@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Provisioning — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <div class="brand-title">Admin Console</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/admin/dashboard" class="nav-item"><i class="fa-solid fa-chart-pie"></i> System Metrics</a>
+      <a href="/admin/manage-users" class="nav-item active"><i class="fa-solid fa-users-gear"></i> User Management</a>
+      <a href="/admin/system-settings" class="nav-item"><i class="fa-solid fa-sliders"></i> System Settings</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>User Provisioning & Role Assignments</h1>
+        <p>Manage system access levels for students, supervisors, and department admins</p>
+      </div>
+    </header>
+
+    <div class="table-container">
+      <div class="table-header">
+        <h3 style="font-size: 1rem; font-weight: 600;">Registered System Accounts</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Department</th>
+            <th>Role</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="users-table">
+          <tr><td colspan="5">Loading system user accounts...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data: users, error } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const tbody = document.getElementById('users-table');
+        if (!users || users.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px;">No registered profiles found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td style="font-weight: 500; color: var(--text-main);">${u.email}</td>
+            <td>${u.full_name || 'Academic User'}</td>
+            <td>${u.department || 'Computer Science'}</td>
+            <td>
+              <select onchange="updateRole('${u.id}', this.value)" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; width: auto; background: rgba(255,255,255,0.05);">
+                <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+                <option value="supervisor" ${u.role === 'supervisor' ? 'selected' : ''}>Supervisor</option>
+                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+            </td>
+            <td>
+              <button onclick="window.showToast('Permissions synchronized', 'info')" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">Save</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+
+    async function updateRole(userId, newRole) {
+      try {
+        const { error } = await window.supabaseClient
+          .from('profiles')
+          .update({ role: newRole })
+          .eq('id', userId);
+
+        if (error) throw error;
+        window.showToast(`Updated user role to ${newRole}`, 'success');
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>

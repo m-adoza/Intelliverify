@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>System Settings — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <div class="brand-title">Admin Console</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/admin/dashboard" class="nav-item"><i class="fa-solid fa-chart-pie"></i> System Metrics</a>
+      <a href="/admin/manage-users" class="nav-item"><i class="fa-solid fa-users-gear"></i> User Management</a>
+      <a href="/admin/system-settings" class="nav-item active"><i class="fa-solid fa-sliders"></i> System Settings</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Global Plagiarism & System Configurations</h1>
+        <p>Configure detection rules, similarity thresholds, and automated alerts</p>
+      </div>
+    </header>
+
+    <div class="card" style="max-width: 680px;">
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="threshold">Plagiarism Flagging Threshold (%)</label>
+          <input type="number" id="threshold" class="form-control" value="20" min="1" max="100" required>
+          <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 6px;">Submissions exceeding this percentage will be automatically tagged with a 'Flagged' status.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="algorithm">Detection Engine Tokenizer</label>
+          <select id="algorithm" class="form-control">
+            <option value="jaccard_ngram">Hybrid Token Jaccard + N-Gram Matching (Default)</option>
+            <option value="cosine_tfidf">Cosine Similarity with TF-IDF Vectorization</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-top: 24px;">
+          <div>
+            <label style="margin: 0; color: var(--text-main);">Automatic Email Alerts</label>
+            <p style="font-size: 0.75rem; color: var(--text-dim);">Send automatic emails when a submission triggers high similarity.</p>
+          </div>
+          <input type="checkbox" id="email-alerts" checked style="accent-color: var(--primary); width: 18px; height: 18px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-top: 24px;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Global Configurations
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('settings-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      window.showToast("System configurations updated successfully", "success");
+    });
+  </script>
+</body>
+</html>

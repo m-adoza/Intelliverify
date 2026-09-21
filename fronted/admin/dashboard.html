@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <div class="brand-title">Admin Console</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/admin/dashboard" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> System Metrics</a>
+      <a href="/admin/manage-users" class="nav-item"><i class="fa-solid fa-users-gear"></i> User Management</a>
+      <a href="/admin/system-settings" class="nav-item"><i class="fa-solid fa-sliders"></i> System Settings</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>System Performance & Oversight</h1>
+        <p>Global analytics across departments, approvals, and plagiarism flags</p>
+      </div>
+    </header>
+
+    <section class="cards-grid">
+      <article class="card">
+        <div class="card-subtitle">Total Users</div>
+        <div class="card-value" id="stat-users">0</div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Approved Projects</div>
+        <div class="card-value" id="stat-approved">0</div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Global Similarity Limit</div>
+        <div class="card-value">20%</div>
+      </article>
+    </section>
+
+    <div class="table-container">
+      <div class="table-header">
+        <h3 style="font-size: 1rem; font-weight: 600;">Department Allocations</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Students</th>
+            <th>Supervisors</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 500; color: var(--text-main);">Computer Science</td>
+            <td>120</td>
+            <td>12</td>
+            <td><span class="badge badge-approved">Active</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 500; color: var(--text-main);">Software Engineering</td>
+            <td>85</td>
+            <td>8</td>
+            <td><span class="badge badge-approved">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const stats = await apiClient.fetch('/admin/stats');
+        document.getElementById('stat-users').textContent = stats.totalUsers || 0;
+        document.getElementById('stat-approved').textContent = stats.approvedProjects || 0;
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>
