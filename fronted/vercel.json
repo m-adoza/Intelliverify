@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/student/dashboard", "destination": "/student/dashboard.html" },
+    { "source": "/student/submit-topic", "destination": "/student/submit-topic.html" },
+    { "source": "/student/messages", "destination": "/student/messages.html" },
+    { "source": "/supervisor/dashboard", "destination": "/supervisor/dashboard.html" },
+    { "source": "/supervisor/assigned-students", "destination": "/supervisor/assigned-students.html" },
+    { "source": "/supervisor/messages", "destination": "/supervisor/messages.html" },
+    { "source": "/admin/dashboard", "destination": "/admin/dashboard.html" },
+    { "source": "/admin/manage-users", "destination": "/admin/manage-users.html" },
+    { "source": "/admin/system-settings", "destination": "/admin/system-settings.html" }
+  ]
+}
