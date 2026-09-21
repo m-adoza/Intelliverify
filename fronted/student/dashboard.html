@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div class="brand-title">Student Portal</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/student/dashboard" class="nav-item active"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="/student/submit-topic" class="nav-item"><i class="fa-solid fa-plus"></i> Submit Topic</a>
+      <a href="/student/messages" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Research Topics & Plagiarism Status</h1>
+        <p>Monitor your project topic proposals and similarity check results</p>
+      </div>
+      <a href="/student/submit-topic" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Submit New Topic</a>
+    </header>
+
+    <section class="cards-grid">
+      <article class="card">
+        <div class="card-subtitle">Assigned Supervisor</div>
+        <div class="card-value" style="font-size: 1.25rem;" id="supervisor-display">Loading...</div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Active Submission</div>
+        <div class="card-value" style="font-size: 1.25rem;" id="status-display"><span class="badge badge-pending">None</span></div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Lowest Plagiarism Score</div>
+        <div class="card-value" id="similarity-display">--</div>
+      </article>
+    </section>
+
+    <div class="table-container">
+      <div class="table-header">
+        <h3 style="font-size: 1rem; font-weight: 600;">Submitted Proposals</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Topic Title</th>
+            <th>Submission Date</th>
+            <th>Similarity Index</th>
+            <th>Approval Status</th>
+          </tr>
+        </thead>
+        <tbody id="topics-list">
+          <tr><td colspan="4">Fetching records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await apiClient.fetch('/student/topics');
+        const topics = res.data || [];
+
+        const tbody = document.getElementById('topics-list');
+        if (topics.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 32px;">No topics submitted yet. Click "Submit New Topic" above to get started.</td></tr>';
+          return;
+        }
+
+        const latest = topics[0];
+        document.getElementById('similarity-display').textContent = `${latest.similarity_score}%`;
+        document.getElementById('status-display').innerHTML = `<span class="badge badge-${latest.status.toLowerCase()}">${latest.status}</span>`;
+
+        tbody.innerHTML = topics.map(t => `
+          <tr>
+            <td style="font-weight: 500; color: var(--text-main);">${t.title}</td>
+            <td>${new Date(t.created_at).toLocaleDateString()}</td>
+            <td><strong style="color: ${t.similarity_score > 20 ? 'var(--danger)' : 'var(--success)'}">${t.similarity_score}%</strong></td>
+            <td><span class="badge badge-${t.status.toLowerCase()}">${t.status}</span></td>
+          </tr>
+        `).join('');
+
+        document.getElementById('supervisor-display').textContent = res.supervisorName || "Dr. Alex Johnson";
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

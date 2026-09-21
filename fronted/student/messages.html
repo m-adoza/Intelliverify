@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Messages — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div class="brand-title">Student Portal</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/student/dashboard" class="nav-item"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="/student/submit-topic" class="nav-item"><i class="fa-solid fa-plus"></i> Submit Topic</a>
+      <a href="/student/messages" class="nav-item active"><i class="fa-solid fa-message"></i> Messages</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content" style="display: flex; flex-direction: column; height: 100vh; padding-bottom: 36px;">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Supervisor Communication</h1>
+        <p>Realtime messaging with your assigned project supervisor</p>
+      </div>
+    </header>
+
+    <div class="card" style="flex: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+      <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2);">
+        <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i>
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 600;" id="supervisor-name">Assigned Supervisor</h4>
+          <span style="font-size: 0.75rem; color: var(--success);"><i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Active Channel</span>
+        </div>
+      </div>
+
+      <div id="chat-messages" style="flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+        <div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 20px;">
+          Loading conversation history...
+        </div>
+      </div>
+
+      <form id="message-form" style="padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 12px; background: rgba(0,0,0,0.2);">
+        <input type="text" id="message-input" class="form-control" placeholder="Type a message to your supervisor..." required autocomplete="off">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    let currentUserId = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) return window.location.href = '/';
+      currentUserId = session.user.id;
+
+      await loadMessages();
+      subscribeToRealtime();
+    });
+
+    async function loadMessages() {
+      const chatContainer = document.getElementById('chat-messages');
+      try {
+        const { data: messages, error } = await window.supabaseClient
+          .from('messages')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (!messages || messages.length === 0) {
+          chatContainer.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem;">No messages yet. Send a message to start communicating.</div>';
+          return;
+        }
+
+        renderMessages(messages);
+      } catch (err) {
+        chatContainer.innerHTML = `<div style="color: var(--danger); text-align: center;">Failed to load messages: ${err.message}</div>`;
+      }
+    }
+
+    function renderMessages(messages) {
+      const chatContainer = document.getElementById('chat-messages');
+      chatContainer.innerHTML = messages.map(msg => {
+        const isMine = msg.sender_id === currentUserId;
+        return `
+          <div style="align-self: ${isMine ? 'flex-end' : 'flex-start'}; max-width: 70%;">
+            <div style="padding: 10px 16px; border-radius: var(--radius-md); font-size: 0.875rem; background: ${isMine ? 'var(--primary)' : 'rgba(255,255,255,0.06)'}; color: var(--text-main); border: 1px solid ${isMine ? 'transparent' : 'var(--border)'};">
+              ${msg.content}
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; text-align: ${isMine ? 'right' : 'left'};">
+              ${new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+        `;
+      }).join('');
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    document.getElementById('message-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('message-input');
+      const content = input.value.trim();
+      if (!content) return;
+
+      try {
+        const { error } = await window.supabaseClient
+          .from('messages')
+          .insert([{ sender_id: currentUserId, content }]);
+
+        if (error) throw error;
+        input.value = '';
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+
+    function subscribeToRealtime() {
+      window.supabaseClient
+        .channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+          loadMessages();
+        })
+        .subscribe();
+    }
+  </script>
+</body>
+</html>

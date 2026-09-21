@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Submit Topic — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div class="brand-title">Student Portal</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/student/dashboard" class="nav-item"><i class="fa-solid fa-house"></i> Overview</a>
+      <a href="/student/submit-topic" class="nav-item active"><i class="fa-solid fa-plus"></i> Submit Topic</a>
+      <a href="/student/messages" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Topic Proposal & Pre-Check</h1>
+        <p>Run instant AI plagiarism pre-scans before submitting to your supervisor</p>
+      </div>
+    </header>
+
+    <div class="card" style="max-width: 720px;">
+      <form id="proposal-form">
+        <div class="form-group">
+          <label for="title">Proposed Research Title</label>
+          <input type="text" id="title" class="form-control" placeholder="e.g., Deep Learning Architecture for Automated Code Security Verification" required>
+        </div>
+
+        <div class="form-group">
+          <label for="abstract">Project Abstract / Problem Statement</label>
+          <textarea id="abstract" class="form-control" rows="6" placeholder="Describe the objectives, scope, methodology, and expected outcomes..." required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button type="button" id="scan-btn" class="btn btn-secondary">
+            <i class="fa-solid fa-microchip"></i> Run Plagiarism Pre-check
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-paper-plane"></i> Final Submit
+          </button>
+        </div>
+      </form>
+
+      <div id="scan-result" style="display: none; margin-top: 24px; padding: 16px; border-radius: var(--radius-sm); background: rgba(0,0,0,0.4); border: 1px solid var(--border);"></div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('scan-btn').addEventListener('click', async () => {
+      const title = document.getElementById('title').value;
+      const abstract = document.getElementById('abstract').value;
+      const resDiv = document.getElementById('scan-result');
+
+      if (!title || !abstract) {
+        window.showToast("Please enter title and abstract before running pre-check", "warning");
+        return;
+      }
+
+      resDiv.style.display = 'block';
+      resDiv.innerHTML = '<span style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing repository similarity...</span>';
+
+      try {
+        const res = await apiClient.fetch('/plagiarism/check', {
+          method: 'POST',
+          body: JSON.stringify({ title, abstract })
+        });
+
+        resDiv.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: var(--text-main);">Plagiarism Scan Analysis</strong>
+            <span class="badge ${res.score > 20 ? 'badge-flagged' : 'badge-approved'}">${res.score}% Similarity</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">${res.message}</p>
+        `;
+      } catch (err) {
+        resDiv.innerHTML = `<span style="color: var(--danger);">Scan failed: ${err.message}</span>`;
+      }
+    });
+
+    document.getElementById('proposal-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const title = document.getElementById('title').value;
+        const abstract = document.getElementById('abstract').value;
+
+        await apiClient.fetch('/student/topics', {
+          method: 'POST',
+          body: JSON.stringify({ title, abstract })
+        });
+
+        window.showToast("Topic submitted successfully", "success");
+        setTimeout(() => window.location.href = '/student/dashboard', 1200);
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>
