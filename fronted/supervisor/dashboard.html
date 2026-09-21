@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Supervisor Console — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div class="brand-title">Supervisor Console</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/supervisor/dashboard" class="nav-item active"><i class="fa-solid fa-chart-line"></i> Topic Reviews</a>
+      <a href="/supervisor/assigned-students" class="nav-item"><i class="fa-solid fa-users"></i> Assigned Students</a>
+      <a href="/supervisor/messages" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Topic Approvals & Similarity Analysis</h1>
+        <p>Review submitted research topics and evaluate automated plagiarism reports</p>
+      </div>
+    </header>
+
+    <section class="cards-grid">
+      <article class="card">
+        <div class="card-subtitle">Assigned Students</div>
+        <div class="card-value" id="assigned-count">0</div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Pending Reviews</div>
+        <div class="card-value" id="pending-count">0</div>
+      </article>
+      <article class="card">
+        <div class="card-subtitle">Flagged Proposals (>20%)</div>
+        <div class="card-value" style="color: var(--danger);" id="flagged-count">0</div>
+      </article>
+    </section>
+
+    <div class="table-container">
+      <div class="table-header">
+        <h3 style="font-size: 1rem; font-weight: 600;">Submitted Topic Proposals</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Student Email</th>
+            <th>Topic Title</th>
+            <th>Similarity</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="supervisor-topics">
+          <tr><td colspan="5">Loading submissions...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    async function loadSubmissions() {
+      try {
+        const res = await apiClient.fetch('/supervisor/topics');
+        const topics = res.data || [];
+
+        document.getElementById('assigned-count').textContent = new Set(topics.map(t => t.student_id)).size;
+        document.getElementById('pending-count').textContent = topics.filter(t => t.status === 'Pending').length;
+        document.getElementById('flagged-count').textContent = topics.filter(t => t.similarity_score > 20).length;
+
+        const tbody = document.getElementById('supervisor-topics');
+        if (topics.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 24px;">No topics awaiting review.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = topics.map(t => `
+          <tr>
+            <td>${t.student_email || 'Student'}</td>
+            <td style="font-weight: 500; color: var(--text-main);">${t.title}</td>
+            <td><strong style="color: ${t.similarity_score > 20 ? 'var(--danger)' : 'var(--success)'}">${t.similarity_score}%</strong></td>
+            <td><span class="badge badge-${t.status.toLowerCase()}">${t.status}</span></td>
+            <td>
+              <button onclick="updateStatus('${t.id}', 'Approved')" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.75rem;">Approve</button>
+              <button onclick="updateStatus('${t.id}', 'Rejected')" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; color: var(--danger);" >Reject</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        await apiClient.fetch(`/supervisor/topics/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status })
+        });
+        window.showToast(`Topic marked as ${status}`, 'success');
+        loadSubmissions();
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadSubmissions);
+  </script>
+</body>
+</html>

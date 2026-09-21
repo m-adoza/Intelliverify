@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assigned Students — IntelliVerify</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/config.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div class="brand-title">Supervisor Console</div>
+    </div>
+    <nav class="nav-group">
+      <a href="/supervisor/dashboard" class="nav-item"><i class="fa-solid fa-chart-line"></i> Topic Reviews</a>
+      <a href="/supervisor/assigned-students" class="nav-item active"><i class="fa-solid fa-users"></i> Assigned Students</a>
+      <a href="/supervisor/messages" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
+    </nav>
+    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h1>Assigned Students Roster</h1>
+        <p>Manage and monitor final year students under your supervision</p>
+      </div>
+    </header>
+
+    <div class="table-container">
+      <div class="table-header">
+        <h3 style="font-size: 1rem; font-weight: 600;">Student Allocation List</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name & Email</th>
+            <th>Department</th>
+            <th>Current Topic</th>
+            <th>Topic Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="students-table">
+          <tr><td colspan="5">Loading student roster...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data: students, error } = await window.supabaseClient
+          .from('profiles')
+          .select('id, email, full_name, department, topics(title, status)')
+          .eq('role', 'student');
+
+        if (error) throw error;
+
+        const tbody = document.getElementById('students-table');
+        if (!students || students.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px;">No students assigned yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = students.map(s => {
+          const activeTopic = s.topics && s.topics.length > 0 ? s.topics[0] : null;
+          const status = activeTopic ? activeTopic.status : 'No Proposal';
+          return `
+            <tr>
+              <td>
+                <div style="font-weight: 600; color: var(--text-main);">${s.full_name || 'Student'}</div>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">${s.email}</div>
+              </td>
+              <td>${s.department || 'Computer Science'}</td>
+              <td style="font-weight: 500;">${activeTopic ? activeTopic.title : '<em>Not submitted</em>'}</td>
+              <td><span class="badge badge-${status.toLowerCase().replace(' ', '')}">${status}</span></td>
+              <td>
+                <a href="/supervisor/messages?studentId=${s.id}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;">
+                  <i class="fa-solid fa-comments"></i> Message
+                </a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        window.showToast(err.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>
