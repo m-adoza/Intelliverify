@@ -37,7 +37,7 @@
     </form>
   </div>
 
-  <script>
+  <script src="script.js">
     document.addEventListener("DOMContentLoaded", async () => {
       // Check existing session
       const { data: { session } } = await window.supabaseClient.auth.getSession();
