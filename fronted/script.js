@@ -1,47 +1,113 @@
-// Relative paths work automatically since frontend and backend share the Render server
-const API_BASE_URL = '';
+// Relative path to backend server
+const API_BASE = '';
 
-// Check server health status on load
-async function checkServerHealth() {
+// Health Check
+async function checkHealth() {
   try {
-    const response = await fetch('/api/health');
-    const data = await response.json();
-    console.log('✅ Connected to backend:', data);
-    return data;
-  } catch (error) {
-    console.error('❌ Failed to connect to backend:', error);
+    const res = await fetch(`${API_BASE}/api/health`);
+    const data = await res.json();
+    console.log('✅ Server online:', data);
+  } catch (err) {
+    console.error('❌ Could not connect to backend:', err);
   }
 }
 
-// Universal API request helper for your frontend forms/requests
-async function sendApiRequest(endpoint, data = {}, method = 'POST') {
-  try {
-    const options = {
-      method: method,
-      headers: {
-        'Content-Type': 'application/json'
+// Utility: Show message alert on form
+function showAlert(message, isError = true) {
+  const alertBox = document.getElementById('alertBox');
+  if (!alertBox) return;
+  alertBox.style.display = 'block';
+  alertBox.className = `alert-box ${isError ? 'alert-error' : 'alert-success'}`;
+  alertBox.textContent = message;
+}
+
+// Registration Form Handler
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Registering...';
+
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const role = document.getElementById('role').value;
+    const matricNo = document.getElementById('matricNo')?.value.trim();
+    const department = document.getElementById('department')?.value.trim();
+    const password = document.getElementById('password').value;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, role, matricNo, department, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Registration failed');
       }
-    };
 
-    if (method !== 'GET') {
-      options.body = JSON.stringify(data);
+      showAlert('Account created successfully! Redirecting to login...', false);
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+    } catch (err) {
+      showAlert(err.message, true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register Account';
     }
-
-    const response = await fetch(endpoint, options);
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return result;
-  } catch (error) {
-    console.error(`Error requesting ${endpoint}:`, error);
-    throw error;
-  }
+  });
 }
 
-// Automatically test backend connectivity when the website loads
-document.addEventListener('DOMContentLoaded', () => {
-  checkServerHealth();
-});
+// Login Form Handler
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loginBtn = document.getElementById('loginBtn');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Signing in...';
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Invalid credentials');
+      }
+
+      // Save user session
+      localStorage.setItem('authToken', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      showAlert(`Welcome back, ${data.user.fullName}! Redirecting...`, false);
+      
+      setTimeout(() => {
+        if (data.user.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }, 1200);
+    } catch (err) {
+      showAlert(err.message, true);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Sign In';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', checkHealth);
