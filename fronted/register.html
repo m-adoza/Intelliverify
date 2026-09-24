@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register – IntelliVerify Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Poppins',sans-serif; background:#0f172a; color:#f8fafc; min-height:100vh; display:flex; flex-direction:column; justify-content:space-between; }
+        a { text-decoration:none; color:#38bdf8; }
+        
+        .navbar { background:#1e293b; padding:15px 0; border-bottom:1px solid #334155; }
+        .container { max-width:1100px; margin:0 auto; padding:0 20px; }
+        .nav-inner { display:flex; align-items:center; justify-content:space-between; }
+        .logo { font-size:1.4rem; font-weight:700; color:#38bdf8; display:flex; align-items:center; gap:8px; }
+
+        .auth-container { max-width:480px; width:100%; margin:40px auto; background:#1e293b; border:1px solid #334155; border-radius:16px; padding:35px 30px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.3); }
+        .auth-header { text-align:center; margin-bottom:25px; }
+        .auth-header i { font-size:2.5rem; color:#38bdf8; margin-bottom:10px; }
+        .auth-header h2 { font-size:1.6rem; font-weight:700; }
+        .auth-header p { color:#94a3b8; font-size:0.9rem; }
+
+        .form-group { margin-bottom:18px; }
+        .form-group label { display:block; font-size:0.85rem; color:#cbd5e1; margin-bottom:6px; font-weight:500; }
+        .form-control { width:100%; padding:12px 15px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; font-size:0.95rem; font-family:inherit; }
+        .form-control:focus { border-color:#38bdf8; outline:none; }
+        select.form-control { cursor:pointer; }
+
+        .btn-submit { width:100%; padding:12px; background:#0d6efd; color:#fff; border:none; border-radius:8px; font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.3s; margin-top:10px; }
+        .btn-submit:hover { background:#2563eb; }
+
+        .alert-box { padding:12px 15px; border-radius:8px; font-size:0.9rem; margin-bottom:18px; display:none; }
+        .alert-error { background:#450a0a; color:#fca5a5; border:1px solid #991b1b; }
+        .alert-success { background:#064e3b; color:#6ee7b7; border:1px solid #065f46; }
+
+        .auth-footer { text-align:center; margin-top:20px; font-size:0.9rem; color:#94a3b8; }
+        .footer { text-align:center; padding:20px; color:#64748b; font-size:0.85rem; border-top:1px solid #1e293b; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container nav-inner">
+        <a href="index.html" class="logo">
+            <i class="fas fa-shield-alt"></i> IntelliVerify
+        </a>
+        <a href="login.html" style="font-size:0.9rem;"><i class="fas fa-sign-in-alt"></i> Login</a>
+    </div>
+</nav>
+
+<div class="auth-container">
+    <div class="auth-header">
+        <i class="fas fa-user-plus"></i>
+        <h2>Create Account</h2>
+        <p>Register as a Student or Administrator</p>
+    </div>
+
+    <div id="alertBox" class="alert-box"></div>
+
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" class="form-control" placeholder="e.g. John Doe" required />
+        </div>
+
+        <div class="form-group">
+            <label for="email">Academic Email</label>
+            <input type="email" id="email" class="form-control" placeholder="name@university.edu" required />
+        </div>
+
+        <div class="form-group">
+            <label for="role">Register As</label>
+            <select id="role" class="form-control" required onchange="toggleRoleFields()">
+                <option value="student">Student</option>
+                <option value="admin">Administrator / Supervisor</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="matricGroup">
+            <label for="matricNo">Matriculation Number</label>
+            <input type="text" id="matricNo" class="form-control" placeholder="e.g. U22/FNS/CSC/1001" />
+        </div>
+
+        <div class="form-group">
+            <label for="department">Department</label>
+            <input type="text" id="department" class="form-control" placeholder="e.g. Computer Science" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" class="form-control" placeholder="••••••••" required />
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Register Account</button>
+    </form>
+
+    <div class="auth-footer">
+        Already have an account? <a href="login.html">Sign In</a>
+    </div>
+</div>
+
+<div class="footer">
+    &copy; 2026 IntelliVerify Portal. All rights reserved.
+</div>
+
+<script src="script.js"></script>
+<script>
+    function toggleRoleFields() {
+        const role = document.getElementById('role').value;
+        const matricGroup = document.getElementById('matricGroup');
+        if (role === 'admin') {
+            matricGroup.style.display = 'none';
+        } else {
+            matricGroup.style.display = 'block';
+        }
+    }
+</script>
+</body>
+</html>
