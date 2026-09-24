@@ -2,93 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard — IntelliVerify</title>
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - IntelliVerify</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b1120; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .navbar {
+      background-color: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-weight: 700; font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+    .nav-links a { color: #cbd5e1; text-decoration: none; font-size: 0.95rem; }
+    .nav-links a:hover { color: #38bdf8; }
+    
+    .btn-logout {
+      background-color: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background-color 0.2s;
+    }
+    .btn-logout:hover { background-color: #b91c1c; }
+
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; width: 100%; }
+    .welcome-card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+    .welcome-card h1 { font-size: 1.75rem; margin-bottom: 8px; color: #f43f5e; }
+    .welcome-card p { color: #94a3b8; font-size: 0.95rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; text-decoration: none; color: inherit; transition: border-color 0.2s; }
+    .card:hover { border-color: #38bdf8; }
+    .card h3 { font-size: 1.1rem; margin-bottom: 12px; color: #f8fafc; }
+    .card p { color: #94a3b8; font-size: 0.875rem; line-height: 1.5; }
+  </style>
 </head>
 <body>
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-user-shield"></i></div>
-      <div class="brand-title">Admin Console</div>
+  <nav class="navbar">
+    <a href="/index.html" class="navbar-brand">🛡️ IntelliVerify (Admin)</a>
+    <div class="nav-links">
+      <a href="/admin/dashboard.html">Dashboard</a>
+      <a href="/admin/manage-users.html">Manage Users</a>
+      <a href="/admin/system-settings.html">Settings</a>
+      <button onclick="handleLogout()" class="btn-logout">Logout</button>
     </div>
-    <nav class="nav-group">
-      <a href="/admin/dashboard" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> System Metrics</a>
-      <a href="/admin/manage-users" class="nav-item"><i class="fa-solid fa-users-gear"></i> User Management</a>
-      <a href="/admin/system-settings" class="nav-item"><i class="fa-solid fa-sliders"></i> System Settings</a>
-    </nav>
-    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
-      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-    </button>
-  </aside>
+  </nav>
 
-  <main class="main-content">
-    <header class="top-bar">
-      <div class="page-title">
-        <h1>System Performance & Oversight</h1>
-        <p>Global analytics across departments, approvals, and plagiarism flags</p>
-      </div>
-    </header>
-
-    <section class="cards-grid">
-      <article class="card">
-        <div class="card-subtitle">Total Users</div>
-        <div class="card-value" id="stat-users">0</div>
-      </article>
-      <article class="card">
-        <div class="card-subtitle">Approved Projects</div>
-        <div class="card-value" id="stat-approved">0</div>
-      </article>
-      <article class="card">
-        <div class="card-subtitle">Global Similarity Limit</div>
-        <div class="card-value">20%</div>
-      </article>
-    </section>
-
-    <div class="table-container">
-      <div class="table-header">
-        <h3 style="font-size: 1rem; font-weight: 600;">Department Allocations</h3>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Students</th>
-            <th>Supervisors</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight: 500; color: var(--text-main);">Computer Science</td>
-            <td>120</td>
-            <td>12</td>
-            <td><span class="badge badge-approved">Active</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 500; color: var(--text-main);">Software Engineering</td>
-            <td>85</td>
-            <td>8</td>
-            <td><span class="badge badge-approved">Active</span></td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="container">
+    <div class="welcome-card">
+      <h1 id="adminGreeting">Welcome, Admin</h1>
+      <p id="adminInfo">Loading system state...</p>
     </div>
-  </main>
+
+    <div class="grid">
+      <a href="/admin/manage-users.html" class="card">
+        <h3>👥 Manage Users</h3>
+        <p>View registered student accounts, manage roles, and review profiles.</p>
+      </a>
+      <a href="/admin/system-settings.html" class="card">
+        <h3>⚙️ System Settings</h3>
+        <p>Configure verification rules and system parameters.</p>
+      </a>
+    </div>
+  </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const stats = await apiClient.fetch('/admin/stats');
-        document.getElementById('stat-users').textContent = stats.totalUsers || 0;
-        document.getElementById('stat-approved').textContent = stats.approvedProjects || 0;
-      } catch (err) {
-        window.showToast(err.message, 'danger');
+    const SUPABASE_URL = 'https://yxgxzflcgrzfndzxqibg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ROUTE GUARD: Verify admin role
+    async function initDashboard() {
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        window.location.href = '/login.html';
+        return;
       }
-    });
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('full_name, role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (userData?.role !== 'admin') {
+        // Non-admins get redirected to student dashboard
+        window.location.href = '/student/dashboard.html';
+        return;
+      }
+
+      document.getElementById('adminGreeting').textContent = `Welcome, Administrator (${userData?.full_name || 'Admin'})`;
+      document.getElementById('adminInfo').textContent = `Authenticated as: ${session.user.email}`;
+    }
+
+    // LOGOUT FUNCTION
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      window.location.href = '/login.html';
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>
