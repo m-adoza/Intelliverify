@@ -164,7 +164,8 @@
 
     <div id="errorAlert" class="alert"></div>
 
-    <form id="loginForm">
+    <!-- Explicit inline submit handler prevents standard page refresh -->
+    <form id="loginForm" onsubmit="handleLogin(event)">
       <div class="form-group">
         <label for="email">Academic Email</label>
         <input type="email" id="email" placeholder="name@university.edu" required />
@@ -184,31 +185,34 @@
   </div>
 
   <script>
-    // -------------------------------------------------------------
-    // REPLACE THESE WITH YOUR SUPABASE PROJECT CREDENTIALS
-    // Found in Supabase Dashboard > Project Settings > API
-    // -------------------------------------------------------------
     const SUPABASE_URL = 'https://yxgxzflcgrzfndzxqibg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const loginForm = document.getElementById('loginForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const errorAlert = document.getElementById('errorAlert');
-
-    loginForm.addEventListener('submit', async (e) => {
+    async function handleLogin(e) {
+      // 1. Immediately prevent page reloading
       e.preventDefault();
-      
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
 
+      const submitBtn = document.getElementById('submitBtn');
+      const errorAlert = document.getElementById('errorAlert');
       errorAlert.style.display = 'none';
+
+      // 2. Safeguard check for Supabase SDK
+      if (typeof window.supabase === 'undefined') {
+        errorAlert.textContent = 'Supabase SDK failed to load. Please refresh your browser.';
+        errorAlert.style.display = 'block';
+        return;
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Signing in...';
 
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
       try {
-        // 1. Authenticate user
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 3. Authenticate with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -218,8 +222,8 @@
 
         const userId = authData.user.id;
 
-        // 2. Fetch role from 'users' table
-        const { data: userData, error: userError } = await supabase
+        // 4. Fetch the user's assigned role from the database
+        const { data: userData } = await supabase
           .from('users')
           .select('role')
           .eq('id', userId)
@@ -227,7 +231,7 @@
 
         let userRole = userData?.role;
 
-        // Fallback: Check 'profiles' table if user record was saved there instead
+        // Fallback check on 'profiles' table if user is registered there
         if (!userRole) {
           const { data: profileData } = await supabase
             .from('profiles')
@@ -237,7 +241,12 @@
           userRole = profileData?.role;
         }
 
-        // 3. Redirect to dashboard according to role
+        // Default role fallback
+        if (!userRole) {
+          userRole = 'student';
+        }
+
+        // 5. Redirect based on static routes
         if (userRole === 'admin') {
           window.location.href = '/admin/dashboard.html';
         } else {
@@ -250,7 +259,7 @@
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign In';
       }
-    });
+    }
   </script>
 </body>
 </html>
