@@ -2,103 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Student Dashboard — IntelliVerify</title>
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - IntelliVerify</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/config.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b1120; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .navbar {
+      background-color: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-weight: 700; font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+    .nav-links a { color: #cbd5e1; text-decoration: none; font-size: 0.95rem; }
+    .nav-links a:hover { color: #38bdf8; }
+    
+    .btn-logout {
+      background-color: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background-color 0.2s;
+    }
+    .btn-logout:hover { background-color: #b91c1c; }
+
+    .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; width: 100%; }
+    .welcome-card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+    .welcome-card h1 { font-size: 1.75rem; margin-bottom: 8px; color: #38bdf8; }
+    .welcome-card p { color: #94a3b8; font-size: 0.95rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+    .card h3 { font-size: 1.1rem; margin-bottom: 12px; color: #f8fafc; }
+    .card p { color: #94a3b8; font-size: 0.875rem; line-height: 1.5; }
+  </style>
 </head>
 <body>
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-      <div class="brand-title">Student Portal</div>
+  <nav class="navbar">
+    <a href="/index.html" class="navbar-brand">🛡️ IntelliVerify</a>
+    <div class="nav-links">
+      <a href="/student/dashboard.html">Dashboard</a>
+      <button onclick="handleLogout()" class="btn-logout">Logout</button>
     </div>
-    <nav class="nav-group">
-      <a href="/student/dashboard" class="nav-item active"><i class="fa-solid fa-house"></i> Overview</a>
-      <a href="/student/submit-topic" class="nav-item"><i class="fa-solid fa-plus"></i> Submit Topic</a>
-      <a href="/student/messages" class="nav-item"><i class="fa-solid fa-message"></i> Messages</a>
-    </nav>
-    <button onclick="window.supabaseClient.auth.signOut().then(() => window.location.href='/')" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
-      <i class="fa-solid fa-right-from-bracket"></i> Sign Out
-    </button>
-  </aside>
+  </nav>
 
-  <main class="main-content">
-    <header class="top-bar">
-      <div class="page-title">
-        <h1>Research Topics & Plagiarism Status</h1>
-        <p>Monitor your project topic proposals and similarity check results</p>
-      </div>
-      <a href="/student/submit-topic" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Submit New Topic</a>
-    </header>
-
-    <section class="cards-grid">
-      <article class="card">
-        <div class="card-subtitle">Assigned Supervisor</div>
-        <div class="card-value" style="font-size: 1.25rem;" id="supervisor-display">Loading...</div>
-      </article>
-      <article class="card">
-        <div class="card-subtitle">Active Submission</div>
-        <div class="card-value" style="font-size: 1.25rem;" id="status-display"><span class="badge badge-pending">None</span></div>
-      </article>
-      <article class="card">
-        <div class="card-subtitle">Lowest Plagiarism Score</div>
-        <div class="card-value" id="similarity-display">--</div>
-      </article>
-    </section>
-
-    <div class="table-container">
-      <div class="table-header">
-        <h3 style="font-size: 1rem; font-weight: 600;">Submitted Proposals</h3>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Topic Title</th>
-            <th>Submission Date</th>
-            <th>Similarity Index</th>
-            <th>Approval Status</th>
-          </tr>
-        </thead>
-        <tbody id="topics-list">
-          <tr><td colspan="4">Fetching records...</td></tr>
-        </tbody>
-      </table>
+  <div class="container">
+    <div class="welcome-card">
+      <h1 id="userGreeting">Welcome, Student</h1>
+      <p id="userInfo">Loading profile information...</p>
     </div>
-  </main>
+
+    <div class="grid">
+      <div class="card">
+        <h3>📄 Verification Portal</h3>
+        <p>Upload and submit your academic credentials for verification.</p>
+      </div>
+      <div class="card">
+        <h3>📊 Verification Status</h3>
+        <p>Check the current status of your submitted documents.</p>
+      </div>
+    </div>
+  </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const res = await apiClient.fetch('/student/topics');
-        const topics = res.data || [];
+    const SUPABASE_URL = 'https://yxgxzflcgrzfndzxqibg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
 
-        const tbody = document.getElementById('topics-list');
-        if (topics.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 32px;">No topics submitted yet. Click "Submit New Topic" above to get started.</td></tr>';
-          return;
-        }
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const latest = topics[0];
-        document.getElementById('similarity-display').textContent = `${latest.similarity_score}%`;
-        document.getElementById('status-display').innerHTML = `<span class="badge badge-${latest.status.toLowerCase()}">${latest.status}</span>`;
+    // ROUTE GUARD: Check active session on page load
+    async function initDashboard() {
+      const { data: { session }, error } = await supabase.auth.getSession();
 
-        tbody.innerHTML = topics.map(t => `
-          <tr>
-            <td style="font-weight: 500; color: var(--text-main);">${t.title}</td>
-            <td>${new Date(t.created_at).toLocaleDateString()}</td>
-            <td><strong style="color: ${t.similarity_score > 20 ? 'var(--danger)' : 'var(--success)'}">${t.similarity_score}%</strong></td>
-            <td><span class="badge badge-${t.status.toLowerCase()}">${t.status}</span></td>
-          </tr>
-        `).join('');
-
-        document.getElementById('supervisor-display').textContent = res.supervisorName || "Dr. Alex Johnson";
-      } catch (err) {
-        window.showToast(err.message, 'danger');
+      if (error || !session) {
+        // Not logged in -> redirect to login
+        window.location.href = '/login.html';
+        return;
       }
-    });
+
+      // Fetch user role to ensure an admin isn't on student dashboard
+      const { data: userData } = await supabase
+        .from('users')
+        .select('full_name, role, email')
+        .eq('id', session.user.id)
+        .single();
+
+      if (userData?.role === 'admin') {
+        window.location.href = '/admin/dashboard.html';
+        return;
+      }
+
+      // Update UI with user information
+      document.getElementById('userGreeting').textContent = `Welcome, ${userData?.full_name || session.user.email}`;
+      document.getElementById('userInfo').textContent = `Email: ${session.user.email} | Role: Student`;
+    }
+
+    // LOGOUT FUNCTIONALITY
+    async function handleLogout() {
+      await supabase.auth.signOut();
+      window.location.href = '/login.html';
+    }
+
+    initDashboard();
   </script>
 </body>
 </html>
