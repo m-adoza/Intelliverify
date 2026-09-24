@@ -1,38 +1,47 @@
-// Set your live Render backend URL
-const API_BASE_URL = 'https://intelliverify.onrender.com';
+// Relative paths work automatically since frontend and backend share the Render server
+const API_BASE_URL = '';
 
-// Example: Health check endpoint test
+// Check server health status on load
 async function checkServerHealth() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/health`);
+    const response = await fetch('/api/health');
     const data = await response.json();
-    console.log('Server health:', data);
+    console.log('✅ Connected to backend:', data);
+    return data;
   } catch (error) {
-    console.error('Failed to connect to backend:', error);
+    console.error('❌ Failed to connect to backend:', error);
   }
 }
 
-// Example: POST request template to your backend
-async function submitData(endpoint, payload) {
+// Universal API request helper for your frontend forms/requests
+async function sendApiRequest(endpoint, data = {}, method = 'POST') {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: 'POST',
+    const options = {
+      method: method,
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    };
+
+    if (method !== 'GET') {
+      options.body = JSON.stringify(data);
     }
-    
-    return await response.json();
+
+    const response = await fetch(endpoint, options);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return result;
   } catch (error) {
     console.error(`Error requesting ${endpoint}:`, error);
     throw error;
   }
 }
 
-// Automatically check backend status on script load
-checkServerHealth();
+// Automatically test backend connectivity when the website loads
+document.addEventListener('DOMContentLoaded', () => {
+  checkServerHealth();
+});
