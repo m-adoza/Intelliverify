@@ -1,156 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IntelliVerify – Smart Project Approval & Plagiarism Detection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Poppins',sans-serif; background:#f4f6f9; color:#212529; line-height:1.6; }
-        a { text-decoration:none; color:inherit; }
-        .container { max-width:1200px; margin:0 auto; padding:0 20px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IntelliVerify - Academic Document Verification</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0b1120; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    .navbar {
+      background-color: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar-brand { font-weight: 700; font-size: 1.2rem; color: #38bdf8; text-decoration: none; }
+    .nav-links { display: flex; gap: 16px; align-items: center; }
+    .nav-links a { color: #cbd5e1; text-decoration: none; font-size: 0.95rem; }
+    .nav-links a:hover { color: #38bdf8; }
+    
+    .btn { padding: 8px 18px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.9rem; }
+    .btn-outline { border: 1px solid #38bdf8; color: #38bdf8; }
+    .btn-primary { background-color: #2563eb; color: #fff; }
 
-        .navbar { background:#fff; padding:18px 0; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:1000; }
-        .navbar .container { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; }
-        .logo { display:flex; align-items:center; gap:10px; font-size:1.6rem; font-weight:700; color:#0d6efd; }
-        .nav-links { display:flex; align-items:center; gap:25px; font-weight:500; list-style:none; }
-        .nav-links a:hover { color:#0d6efd; }
-        .btn { padding:10px 24px; border-radius:30px; font-weight:600; font-size:0.9rem; transition:all 0.3s; display:inline-block; }
-        .btn-outline { background:transparent; color:#0d6efd; border:2px solid #0d6efd; }
-        .btn-outline:hover { background:#0d6efd; color:#fff; }
-        .btn-primary { background:#0d6efd; color:#fff; border:none; }
-        .btn-primary:hover { background:#0b5ed7; transform:translateY(-2px); box-shadow:0 5px 15px rgba(13,110,253,0.3); }
-        .menu-toggle { display:none; font-size:1.8rem; cursor:pointer; color:#0d6efd; }
-
-        .hero { padding:90px 0 70px; background:linear-gradient(135deg, #ffffff 0%, #eef4ff 100%); text-align:center; }
-        .hero h1 { font-size:3.2rem; font-weight:800; color:#0f172a; margin-bottom:20px; line-height:1.2; }
-        .hero h1 span { color:#0d6efd; }
-        .hero p { font-size:1.2rem; color:#475569; max-width:780px; margin:0 auto 35px; }
-        .hero-btns { display:flex; justify-content:center; gap:15px; flex-wrap:wrap; }
-
-        .features { padding:80px 0; }
-        .section-title { text-align:center; font-size:2.2rem; font-weight:700; margin-bottom:15px; }
-        .section-subtitle { text-align:center; color:#6c757d; max-width:650px; margin:0 auto 50px; }
-        .feature-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:30px; }
-        .feature-card { background:#fff; padding:35px 25px; border-radius:16px; border:1px solid #e2e8f0; transition:all 0.3s; }
-        .feature-card:hover { transform:translateY(-5px); box-shadow:0 12px 30px rgba(0,0,0,0.08); border-color:#0d6efd; }
-        .feature-card i { font-size:2.5rem; color:#0d6efd; margin-bottom:20px; }
-        .feature-card h3 { font-size:1.3rem; margin-bottom:12px; }
-        .feature-card p { color:#64748b; font-size:0.95rem; }
-
-        .cta-section { background:#0d6efd; color:#fff; padding:60px 0; text-align:center; border-radius:20px; margin:40px 0 80px; }
-        .cta-section h2 { font-size:2.2rem; font-weight:700; margin-bottom:15px; }
-        .cta-section p { font-size:1.1rem; opacity:0.9; margin-bottom:25px; }
-        .btn-white { background:#fff; color:#0d6efd; font-weight:700; }
-        .btn-white:hover { background:#f8fafc; transform:translateY(-2px); }
-
-        .footer { background:#0b1320; padding:40px 0 20px; color:#adb5bd; }
-        .footer .container { display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px; }
-        .footer-col h4 { color:#fff; margin-bottom:15px; font-weight:600; }
-        .footer-col p, .footer-col a { color:#adb5bd; font-size:0.95rem; line-height:2; }
-        .footer-col a:hover { color:#0d6efd; }
-        .footer-bottom { text-align:center; padding-top:30px; border-top:1px solid #1c2a3a; margin-top:30px; font-size:0.9rem; }
-
-        @media (max-width:768px) {
-            .menu-toggle { display:block; }
-            .nav-links { display:none; flex-direction:column; width:100%; gap:15px; padding:20px 0; border-top:1px solid #dee2e6; margin-top:15px; }
-            .nav-links.active { display:flex; }
-            .hero h1 { font-size:2.3rem; }
-            .footer .container { flex-direction:column; text-align:center; }
-        }
-    </style>
+    .hero { text-align: center; max-width: 800px; margin: 100px auto 40px; padding: 0 20px; }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 16px; color: #f8fafc; }
+    .hero p { font-size: 1.15rem; color: #94a3b8; margin-bottom: 32px; line-height: 1.6; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; }
+  </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="container">
-        <a href="index.html" class="logo">
-            <i class="fas fa-shield-alt"></i>
-            <span>IntelliVerify</span>
-        </a>
-        <div class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></div>
-        <ul class="nav-links" id="navLinks">
-            <li><a href="index.html" style="color:#0d6efd;">Home</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li><a href="login.html" class="btn btn-outline">Login</a></li>
-            <li><a href="register.html" class="btn btn-primary">Register</a></li>
-        </ul>
+  <nav class="navbar">
+    <a href="/index.html" class="navbar-brand">🛡️ IntelliVerify</a>
+    <div class="nav-links" id="navActions">
+      <a href="/login.html" class="btn btn-outline">Sign In</a>
+      <a href="/register.html" class="btn btn-primary">Register</a>
     </div>
-</nav>
+  </nav>
 
-<section class="hero">
-    <div class="container">
-        <h1>Smart Final Year Project Approval &amp; <span>Plagiarism Detection</span></h1>
-        <p>A unified portal for students and administrators to submit research topics, verify originality in real-time, and streamline approval workflows.</p>
-        <div class="hero-btns">
-            <a href="register.html" class="btn btn-primary" style="padding:14px 32px; font-size:1rem;"><i class="fas fa-user-plus"></i> Get Started (Register)</a>
-            <a href="login.html" class="btn btn-outline" style="padding:14px 32px; font-size:1rem;"><i class="fas fa-sign-in-alt"></i> Login to Portal</a>
-        </div>
+  <section class="hero">
+    <h1>Instant & Secure Academic Verification</h1>
+    <p>Streamlining credential and matriculation verification for students and administrators through automated authentication.</p>
+    <div class="hero-btns" id="heroActions">
+      <a href="/login.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">Get Started</a>
+      <a href="/register.html" class="btn btn-outline" style="padding: 12px 28px; font-size: 1rem;">Create Account</a>
     </div>
-</section>
+  </section>
 
-<section class="features">
-    <div class="container">
-        <h2 class="section-title">Key Capabilities</h2>
-        <p class="section-subtitle">Designed to uphold academic integrity and accelerate research topic verification across institutions.</p>
-        
-        <div class="feature-grid">
-            <div class="feature-card">
-                <i class="fas fa-file-signature"></i>
-                <h3>Instant Topic Submission</h3>
-                <p>Students can easily submit proposed project topics with abstract details for automated review.</p>
-            </div>
+  <script>
+    const SUPABASE_URL = 'https://yxgxzflcgrzfndzxqibg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            <div class="feature-card">
-                <i class="fas fa-search-nodes"></i>
-                <h3>AI Plagiarism Checker</h3>
-                <p>Utilizes advanced NLP algorithms (TF-IDF &amp; Cosine Similarity) to calculate uniqueness score instantly.</p>
-            </div>
+    // Dynamic Navigation: Show "Go to Dashboard" if user is already logged in
+    async function checkExistingSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
 
-            <div class="feature-card">
-                <i class="fas fa-user-shield"></i>
-                <h3>Admin &amp; Supervisor Control</h3>
-                <p>Administrators can review submissions, approve original topics, and provide constructive feedback.</p>
-            </div>
-        </div>
+        const dashPath = userData?.role === 'admin' ? '/admin/dashboard.html' : '/student/dashboard.html';
 
-        <div class="cta-section">
-            <h2>Ready to verify your research topic?</h2>
-            <p>Create an account today as a Student or Administrator to begin.</p>
-            <a href="register.html" class="btn btn-white"><i class="fas fa-user-plus"></i> Create an Account</a>
-        </div>
-    </div>
-</section>
+        document.getElementById('navActions').innerHTML = `
+          <a href="${dashPath}" class="btn btn-primary">Go to Dashboard</a>
+        `;
+        document.getElementById('heroActions').innerHTML = `
+          <a href="${dashPath}" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">Open Dashboard</a>
+        `;
+      }
+    }
 
-<footer class="footer">
-    <div class="container">
-        <div class="footer-col">
-            <h4>IntelliVerify</h4>
-            <p>Academic Project Approval &amp; Plagiarism Detection System</p>
-            <p>Developed at Ibrahim Badamasi Babangida University, Lapai</p>
-        </div>
-        <div class="footer-col">
-            <h4>Quick Links</h4>
-            <a href="index.html">Home</a><br />
-            <a href="about.html">About</a><br />
-            <a href="login.html">Login</a><br />
-            <a href="register.html">Register</a>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        &copy; 2026 IntelliVerify. All rights reserved.
-    </div>
-</footer>
-
-<script>
-    document.getElementById('menuToggle').addEventListener('click', function() {
-        document.getElementById('navLinks').classList.toggle('active');
-    });
-</script>
+    checkExistingSession();
+  </script>
 </body>
 </html>
