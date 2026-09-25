@@ -1,11 +1,16 @@
 // ============================================================
-// INTELLIVERIFY SUPABASE CONFIGURATION
+// INTELLIVERIFY - SUPABASE CONFIGURATION
+// ============================================================
+
+// ============================================================
+// SUPABASE CONNECTION
 // ============================================================
 
 const SUPABASE_URL = 'https://ecvvxyavruvkqrinvkax.supabase.co';
 
-// Replace this with your Supabase ANON/PUBLISHABLE key.
-// NEVER put the service_role/secret key in frontend JavaScript.
+// IMPORTANT:
+// Replace this with your Supabase ANON/PUBLISHABLE KEY.
+// DO NOT use your service_role/secret key in frontend code.
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 
@@ -20,7 +25,7 @@ window.supabaseClient = window.supabase.createClient(
 
 
 // ============================================================
-// GET CURRENT USER
+// GET CURRENT AUTHENTICATED USER
 // ============================================================
 
 window.getCurrentUser = async function () {
@@ -35,58 +40,38 @@ window.getCurrentUser = async function () {
         return null;
     }
 
-    return session ? session.user : null;
+    if (!session) {
+        return null;
+    }
+
+    return session.user;
 };
 
 
 // ============================================================
-// ADD PLAGIARISM REPORT
+// GET CURRENT USER PROFILE
 // ============================================================
 
-window.addPlagiarismReport = async function (reportData) {
+window.getCurrentUserProfile = async function () {
 
-    const userId = reportData.user_id;
+    const user = await window.getCurrentUser();
 
-    if (!userId) {
-        throw new Error('User ID is required.');
+    if (!user) {
+        return null;
     }
-
-    const payload = {
-        user_id: userId,
-
-        filename: reportData.filename,
-
-        file_format: reportData.file_format,
-
-        similarity_score: Number(
-            reportData.similarity_score ??
-            reportData.similarity ??
-            0
-        ),
-
-        risk_level: reportData.risk_level,
-
-        matches: reportData.matches || [],
-
-        recommendation: reportData.recommendation || null,
-
-        file_url: reportData.file_url || null
-    };
-
-    console.log('Saving plagiarism report:', payload);
 
     const {
         data,
         error
     } = await window.supabaseClient
-        .from('plagiarism_reports')
-        .insert([payload])
-        .select()
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
         .single();
 
     if (error) {
         console.error(
-            'Error creating plagiarism report:',
+            'Error fetching user profile:',
             error
         );
 
@@ -98,14 +83,106 @@ window.addPlagiarismReport = async function (reportData) {
 
 
 // ============================================================
-// GET USER PLAGIARISM REPORTS
+// ADD PLAGIARISM REPORT
+// ============================================================
+//
+// Matches the actual plagiarism_reports table:
+//
+// report_id
+// user_id
+// filename
+// file_format
+// similarity_score
+// risk_level
+// matches
+// recommendation
+// file_url
+// created_at
 // ============================================================
 
-window.getPlagiarismReportsForUser = async function (userId) {
+window.addPlagiarismReport = async function (reportData) {
+
+    const userId = reportData.user_id;
 
     if (!userId) {
-        throw new Error('User ID is required.');
+        throw new Error(
+            'User ID is required to create a plagiarism report.'
+        );
     }
+
+    const similarityScore = Number(
+        reportData.similarity_score ??
+        reportData.similarity ??
+        0
+    );
+
+    const payload = {
+
+        user_id: userId,
+
+        filename: reportData.filename,
+
+        file_format: reportData.file_format,
+
+        similarity_score: similarityScore,
+
+        risk_level: reportData.risk_level,
+
+        matches: reportData.matches || [],
+
+        recommendation:
+            reportData.recommendation || null,
+
+        file_url:
+            reportData.file_url || null
+    };
+
+
+    console.log(
+        'Saving plagiarism report:',
+        payload
+    );
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('plagiarism_reports')
+        .insert([payload])
+        .select()
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            'Error creating plagiarism report:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data;
+};
+
+
+// ============================================================
+// GET PLAGIARISM REPORTS FOR CURRENT USER
+// ============================================================
+
+window.getPlagiarismReportsForUser = async function (
+    userId
+) {
+
+    if (!userId) {
+        throw new Error(
+            'User ID is required.'
+        );
+    }
+
 
     const {
         data,
@@ -114,11 +191,16 @@ window.getPlagiarismReportsForUser = async function (userId) {
         .from('plagiarism_reports')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', {
-            ascending: false
-        });
+        .order(
+            'created_at',
+            {
+                ascending: false
+            }
+        );
+
 
     if (error) {
+
         console.error(
             'Error loading plagiarism reports:',
             error
@@ -127,20 +209,109 @@ window.getPlagiarismReportsForUser = async function (userId) {
         throw error;
     }
 
+
     return data || [];
 };
 
 
 // ============================================================
-// ADD TOPIC
+// GET SINGLE PLAGIARISM REPORT
+// ============================================================
+
+window.getPlagiarismReport = async function (
+    reportId
+) {
+
+    if (!reportId) {
+        throw new Error(
+            'Report ID is required.'
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('plagiarism_reports')
+        .select('*')
+        .eq('report_id', reportId)
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            'Error fetching plagiarism report:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data;
+};
+
+
+// ============================================================
+// ADD / SUBMIT TOPIC
+// ============================================================
+//
+// Matches the actual topics table:
+//
+// topic_id
+// student_id
+// title
+// problem_statement
+// objectives
+// keywords
+// research_area
+// status
+// plagiarism_report_id
+// submitted_at
 // ============================================================
 
 window.addTopic = async function (topicData) {
 
-    const payload = {
-        student_id: topicData.student_id,
+    if (!topicData.student_id) {
+        throw new Error(
+            'Student ID is required.'
+        );
+    }
 
-        title: topicData.title,
+    if (!topicData.title) {
+        throw new Error(
+            'Topic title is required.'
+        );
+    }
+
+    if (!topicData.problem_statement) {
+        throw new Error(
+            'Problem statement is required.'
+        );
+    }
+
+    if (!topicData.objectives) {
+        throw new Error(
+            'Objectives are required.'
+        );
+    }
+
+    if (!topicData.research_area) {
+        throw new Error(
+            'Research area is required.'
+        );
+    }
+
+
+    const payload = {
+
+        student_id:
+            topicData.student_id,
+
+        title:
+            topicData.title,
 
         problem_statement:
             topicData.problem_statement,
@@ -161,7 +332,12 @@ window.addTopic = async function (topicData) {
             topicData.status || 'pending'
     };
 
-    console.log('Saving topic:', payload);
+
+    console.log(
+        'Submitting topic:',
+        payload
+    );
+
 
     const {
         data,
@@ -172,22 +348,80 @@ window.addTopic = async function (topicData) {
         .select()
         .single();
 
+
     if (error) {
+
         console.error(
-            'Error creating topic:',
+            'Error submitting topic:',
             error
         );
 
         throw error;
     }
 
+
     return data;
 };
 
 
 // ============================================================
-// GET ALL TOPICS + PLAGIARISM REPORTS
-// FOR SUPERVISOR / ADMIN
+// GET CURRENT STUDENT'S TOPICS
+// ============================================================
+
+window.getMyTopics = async function (
+    studentId
+) {
+
+    if (!studentId) {
+        throw new Error(
+            'Student ID is required.'
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('topics')
+        .select(`
+            topic_id,
+            title,
+            problem_statement,
+            objectives,
+            keywords,
+            research_area,
+            status,
+            plagiarism_report_id,
+            submitted_at
+        `)
+        .eq('student_id', studentId)
+        .order(
+            'submitted_at',
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            'Error fetching student topics:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data || [];
+};
+
+
+// ============================================================
+// GET ALL TOPICS WITH ATTACHED PLAGIARISM REPORTS
+// FOR SUPERVISOR / ADMIN REVIEW
 // ============================================================
 
 window.getAdminTopicsWithReports = async function () {
@@ -220,11 +454,16 @@ window.getAdminTopicsWithReports = async function () {
                 created_at
             )
         `)
-        .order('submitted_at', {
-            ascending: false
-        });
+        .order(
+            'submitted_at',
+            {
+                ascending: false
+            }
+        );
+
 
     if (error) {
+
         console.error(
             'Error fetching admin topics:',
             error
@@ -233,12 +472,87 @@ window.getAdminTopicsWithReports = async function () {
         throw error;
     }
 
+
     return data || [];
 };
 
 
 // ============================================================
-// UPDATE TOPIC STATUS
+// GET SINGLE TOPIC
+// ============================================================
+
+window.getTopicById = async function (
+    topicId
+) {
+
+    if (!topicId) {
+        throw new Error(
+            'Topic ID is required.'
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('topics')
+        .select(`
+            topic_id,
+            title,
+            problem_statement,
+            objectives,
+            keywords,
+            research_area,
+            status,
+            submitted_at,
+            student_id,
+            plagiarism_report_id,
+            plagiarism_reports (
+                report_id,
+                user_id,
+                filename,
+                file_format,
+                similarity_score,
+                risk_level,
+                matches,
+                recommendation,
+                file_url,
+                created_at
+            )
+        `)
+        .eq(
+            'topic_id',
+            topicId
+        )
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            'Error fetching topic:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data;
+};
+
+
+// ============================================================
+// UPDATE TOPIC APPROVAL STATUS
+// ============================================================
+//
+// Allowed statuses:
+//
+// pending
+// approved
+// revision
+// rejected
 // ============================================================
 
 window.updateTopicStatus = async function (
@@ -253,11 +567,22 @@ window.updateTopicStatus = async function (
         'rejected'
     ];
 
+
     if (!allowedStatuses.includes(newStatus)) {
+
         throw new Error(
-            'Invalid topic status: ' + newStatus
+            'Invalid topic status. Allowed values: pending, approved, revision, rejected.'
         );
     }
+
+
+    if (!topicId) {
+
+        throw new Error(
+            'Topic ID is required.'
+        );
+    }
+
 
     const {
         data,
@@ -267,11 +592,16 @@ window.updateTopicStatus = async function (
         .update({
             status: newStatus
         })
-        .eq('topic_id', topicId)
+        .eq(
+            'topic_id',
+            topicId
+        )
         .select()
         .single();
 
+
     if (error) {
+
         console.error(
             'Error updating topic status:',
             error
@@ -280,7 +610,126 @@ window.updateTopicStatus = async function (
         throw error;
     }
 
+
     return data;
+};
+
+
+// ============================================================
+// SEND MESSAGE
+// ============================================================
+
+window.sendMessage = async function (
+    senderId,
+    receiverId,
+    content,
+    topicId = null
+) {
+
+    if (!senderId) {
+        throw new Error(
+            'Sender ID is required.'
+        );
+    }
+
+    if (!receiverId) {
+        throw new Error(
+            'Receiver ID is required.'
+        );
+    }
+
+    if (!content || !content.trim()) {
+        throw new Error(
+            'Message cannot be empty.'
+        );
+    }
+
+
+    const payload = {
+
+        sender_id:
+            senderId,
+
+        receiver_id:
+            receiverId,
+
+        content:
+            content.trim(),
+
+        topic_id:
+            topicId || null
+    };
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('messages')
+        .insert([payload])
+        .select()
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            'Error sending message:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data;
+};
+
+
+// ============================================================
+// GET USER MESSAGES
+// ============================================================
+
+window.getUserMessages = async function (
+    userId
+) {
+
+    if (!userId) {
+        throw new Error(
+            'User ID is required.'
+        );
+    }
+
+
+    const {
+        data,
+        error
+    } = await window.supabaseClient
+        .from('messages')
+        .select('*')
+        .or(
+            `sender_id.eq.${userId},receiver_id.eq.${userId}`
+        )
+        .order(
+            'created_at',
+            {
+                ascending: true
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            'Error fetching messages:',
+            error
+        );
+
+        throw error;
+    }
+
+
+    return data || [];
 };
 
 
@@ -294,7 +743,9 @@ window.signOutUser = async function () {
         error
     } = await window.supabaseClient.auth.signOut();
 
+
     if (error) {
+
         console.error(
             'Sign out error:',
             error
@@ -303,5 +754,83 @@ window.signOutUser = async function () {
         throw error;
     }
 
+
     window.location.href = '/';
+};
+
+
+// ============================================================
+// GLOBAL TOAST HELPER
+// ============================================================
+
+window.showToast = function (
+    message,
+    type = 'info'
+) {
+
+    // If the project already has a showToast implementation,
+    // don't replace it.
+    if (
+        window.__intelliVerifyOriginalToast &&
+        typeof window.__intelliVerifyOriginalToast === 'function'
+    ) {
+        window.__intelliVerifyOriginalToast(
+            message,
+            type
+        );
+
+        return;
+    }
+
+
+    // Simple fallback notification
+    const toast = document.createElement('div');
+
+    toast.textContent = message;
+
+    toast.style.position = 'fixed';
+    toast.style.bottom = '25px';
+    toast.style.right = '25px';
+    toast.style.zIndex = '99999';
+    toast.style.padding = '14px 20px';
+    toast.style.borderRadius = '10px';
+    toast.style.color = '#fff';
+    toast.style.fontFamily = 'Poppins, sans-serif';
+    toast.style.fontSize = '14px';
+    toast.style.boxShadow =
+        '0 5px 20px rgba(0,0,0,0.2)';
+
+
+    if (type === 'success') {
+        toast.style.background = '#198754';
+    }
+    else if (
+        type === 'danger' ||
+        type === 'error'
+    ) {
+        toast.style.background = '#dc3545';
+    }
+    else if (type === 'warning') {
+        toast.style.background = '#ffc107';
+        toast.style.color = '#212529';
+    }
+    else {
+        toast.style.background = '#0d6efd';
+    }
+
+
+    document.body.appendChild(toast);
+
+
+    setTimeout(() => {
+
+        toast.style.opacity = '0';
+        toast.style.transition =
+            'opacity 0.3s ease';
+
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+
+    }, 3000);
 };
