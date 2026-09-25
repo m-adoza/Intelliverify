@@ -1,265 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - IntelliVerify</title>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    body {
-      background-color: #0b1120;
-      color: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    <title>Login – IntelliVerify</title>
 
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 16px 24px;
-      background-color: #0f172a;
-      border-bottom: 1px solid #1e293b;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.125rem;
-      color: #38bdf8;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-    .card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 32px 24px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      margin-top: 60px;
-    }
+        body {
+            background: #0b1320;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    .card-title {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
+        .login-card {
+            background: #162235;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            border: 1px solid #23344e;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
 
-    .card-subtitle {
-      text-align: center;
-      color: #94a3b8;
-      font-size: 0.875rem;
-      margin-bottom: 24px;
-    }
+        .brand {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-    .alert {
-      background-color: #7f1d1d;
-      border: 1px solid #991b1b;
-      color: #fecaca;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      margin-bottom: 20px;
-      display: none;
-    }
+        .brand i {
+            font-size: 2.8rem;
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
 
-    .form-group {
-      margin-bottom: 18px;
-    }
+        .brand h2 {
+            font-weight: 700;
+            font-size: 1.6rem;
+        }
 
-    label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      margin-bottom: 6px;
-    }
+        .brand p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
 
-    input {
-      width: 100%;
-      padding: 10px 14px;
-      background-color: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      color: #ffffff;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+        .error-alert {
+            background: rgba(220, 53, 69, 0.15);
+            border: 1px solid #dc3545;
+            color: #ffb3bb;
+            padding: 11px 13px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+            display: none;
+        }
 
-    input:focus {
-      border-color: #3b82f6;
-    }
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-    .btn-submit {
-      width: 100%;
-      padding: 12px;
-      background-color: #2563eb;
-      color: #ffffff;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.2s;
-    }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
 
-    .btn-submit:hover {
-      background-color: #1d4ed8;
-    }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #23344e;
+            background: #0b1320;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.2s;
+        }
 
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
+        .form-group input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+        }
 
-    .footer-link {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: #0d6efd;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
 
-    .footer-link a {
-      color: #38bdf8;
-      text-decoration: none;
-    }
+        .btn-submit:hover {
+            background: #0b5ed7;
+        }
 
-    .footer-link a:hover {
-      text-decoration: underline;
-    }
-  </style>
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 22px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+
+        .back-home:hover {
+            color: #94a3b8;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 22px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <div class="navbar">
-    <a href="/" class="navbar-brand">🛡️ IntelliVerify</a>
-  </div>
+<div class="login-card">
 
-  <div class="card">
-    <h1 class="card-title">Welcome Back</h1>
-    <p class="card-subtitle">Sign in to your account</p>
+    <div class="brand">
+        <i class="fas fa-shield-alt"></i>
+        <h2>IntelliVerify Portal</h2>
+        <p>Student & Academic Research Verification</p>
+    </div>
 
-    <div id="errorAlert" class="alert"></div>
+    <div class="error-alert" id="errorAlert"></div>
 
-    <!-- Explicit inline submit handler prevents standard page refresh -->
-    <form id="loginForm" onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label for="email">Academic Email</label>
-        <input type="email" id="email" placeholder="name@university.edu" required />
-      </div>
+    <form id="loginForm">
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="••••••••" required />
-      </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input
+                type="email"
+                id="email"
+                required
+                autocomplete="email"
+                placeholder="user@university.edu"
+            >
+        </div>
 
-      <button type="submit" id="submitBtn" class="btn-submit">Sign In</button>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••"
+            >
+        </div>
+
+        <button type="submit" class="btn-submit" id="loginBtn">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Sign In</span>
+        </button>
+
     </form>
 
-    <div class="footer-link">
-      Don't have an account? <a href="/register.html">Register</a>
+    <div class="footer-links">
+        Don't have an account?
+        <a href="register.html">Register</a>
     </div>
-  </div>
 
-  <script>
-    const SUPABASE_URL = 'https://yxgxzflcgrzfndzxqibg.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
+    <a href="index.html" class="back-home">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
 
-    async function handleLogin(e) {
-      // 1. Immediately prevent page reloading
-      e.preventDefault();
+</div>
 
-      const submitBtn = document.getElementById('submitBtn');
-      const errorAlert = document.getElementById('errorAlert');
-      errorAlert.style.display = 'none';
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-      // 2. Safeguard check for Supabase SDK
-      if (typeof window.supabase === 'undefined') {
-        errorAlert.textContent = 'Supabase SDK failed to load. Please refresh your browser.';
+<!-- Shared IntelliVerify Supabase configuration -->
+<script src="../js/supabase-config.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorAlert = document.getElementById('errorAlert');
+
+    loginForm.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        errorAlert.style.display = 'none';
+        errorAlert.textContent = '';
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            showError('Please enter your email and password.');
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+
+        try {
+
+            if (typeof window.loginUser !== 'function') {
+                throw new Error(
+                    'Login service is unavailable. Please check supabase-config.js.'
+                );
+            }
+
+            /*
+             * loginUser() should:
+             * 1. Authenticate through Supabase Auth.
+             * 2. Retrieve the user's profile/role.
+             * 3. Return the profile object.
+             */
+            const profile = await window.loginUser(email, password);
+
+            if (!profile || !profile.role) {
+                throw new Error(
+                    'Your account role could not be determined.'
+                );
+            }
+
+            const role = profile.role.toLowerCase();
+
+            /*
+             * Student → Student Dashboard
+             */
+            if (role === 'student') {
+
+                window.location.href = 'student/dashboard.html';
+
+            /*
+             * Supervisor/Admin → Admin Dashboard
+             */
+            } else if (
+                role === 'supervisor' ||
+                role === 'admin'
+            ) {
+
+                window.location.href = 'admin/dashboard.html';
+
+            } else {
+
+                throw new Error(
+                    'Unrecognized user role: ' + profile.role
+                );
+            }
+
+        } catch (err) {
+
+            console.error('Login error:', err);
+
+            showError(
+                err?.message ||
+                'Invalid login credentials. Please try again.'
+            );
+
+            loginBtn.disabled = false;
+
+            loginBtn.innerHTML =
+                '<i class="fas fa-sign-in-alt"></i> Sign In';
+        }
+    });
+
+    function showError(message) {
+        errorAlert.textContent = message;
         errorAlert.style.display = 'block';
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Signing in...';
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      try {
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // 3. Authenticate with Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (authError) throw authError;
-
-        const userId = authData.user.id;
-
-        // 4. Fetch the user's assigned role from the database
-        const { data: userData } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', userId)
-          .single();
-
-        let userRole = userData?.role;
-
-        // Fallback check on 'profiles' table if user is registered there
-        if (!userRole) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', userId)
-            .single();
-          userRole = profileData?.role;
-        }
-
-        // Default role fallback
-        if (!userRole) {
-          userRole = 'student';
-        }
-
-        // 5. Redirect based on static routes
-        if (userRole === 'admin') {
-          window.location.href = '/admin/dashboard.html';
-        } else {
-          window.location.href = '/student/dashboard.html';
-        }
-
-      } catch (err) {
-        errorAlert.textContent = err.message || 'Login failed. Please check your credentials.';
-        errorAlert.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Sign In';
-      }
     }
-  </script>
+
+});
+</script>
+
 </body>
 </html>
