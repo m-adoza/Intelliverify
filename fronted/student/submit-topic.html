@@ -1,899 +1,709 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 
-    <title>Submit Research Topic – IntelliVerify</title>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<title>Submit Research Topic – IntelliVerify</title>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet">
+<link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../../js/supabase-config.js"></script>
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f4f6f9;
-            color: #212529;
-            line-height: 1.6;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+    body {
+        background: #f4f6f9;
+        color: #212529;
+        min-height: 100vh;
+    }
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: #0b1320;
+        color: white;
+        padding: 25px 0;
+        z-index: 1000;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 25px 25px;
+        border-bottom: 1px solid #1c2a3a;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .brand i {
+        color: #0d6efd;
+        font-size: 1.6rem;
+    }
+
+    .user-section {
+        padding: 20px 25px;
+        text-align: center;
+        border-bottom: 1px solid #1c2a3a;
+    }
+
+    .avatar {
+        width: 60px;
+        height: 60px;
+        background: #0d6efd;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .user-name {
+        margin-top: 10px;
+        font-weight: 600;
+    }
+
+    .user-role {
+        color: #6c757d;
+        font-size: .75rem;
+    }
+
+    .nav-title {
+        padding: 20px 25px 10px;
+        color: #6c757d;
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 13px 25px;
+        color: #adb5bd;
+        border-left: 3px solid transparent;
+        transition: .2s;
+    }
+
+    .nav-item:hover {
+        background: rgba(255,255,255,.05);
+        color: white;
+    }
+
+    .nav-item.active {
+        color: #0d6efd;
+        background: rgba(13,110,253,.15);
+        border-left-color: #0d6efd;
+    }
+
+    .logout {
+        margin-top: 30px;
+        border-top: 1px solid #1c2a3a;
+        padding-top: 20px;
+    }
+
+    .logout .nav-item {
+        color: #dc3545;
+        cursor: pointer;
+    }
+
+    /* MAIN */
+
+    .main-content {
+        margin-left: 260px;
+        padding: 30px;
+        min-height: 100vh;
+    }
+
+    .top-bar {
+        max-width: 850px;
+        margin: 0 auto 25px;
+        background: white;
+        border-radius: 16px;
+        padding: 20px 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.02);
+    }
+
+    .top-bar h1 {
+        font-size: 1.5rem;
+    }
+
+    .top-bar p {
+        color: #6c757d;
+        font-size: .85rem;
+        margin-top: 3px;
+    }
+
+    /* CARD */
+
+    .card {
+        max-width: 850px;
+        margin: auto;
+        background: white;
+        border: 1px solid #e9edf4;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.02);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        font-weight: 600;
+        font-size: .9rem;
+        margin-bottom: 8px;
+    }
+
+    input,
+    textarea,
+    select {
+        width: 100%;
+        border: 1px solid #ced4da;
+        border-radius: 9px;
+        padding: 12px;
+        outline: none;
+        font-size: .9rem;
+        transition: .2s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13,110,253,.1);
+    }
+
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* REPORT */
+
+    .report-info {
+        display: none;
+        margin-bottom: 25px;
+        padding: 16px;
+        background: #e8f5e9;
+        border: 1px solid #c8e6c9;
+        border-radius: 12px;
+    }
+
+    .report-info.show {
+        display: block;
+    }
+
+    .report-title {
+        font-weight: 700;
+        color: #2e7d32;
+    }
+
+    .report-details {
+        margin-top: 8px;
+        font-size: .85rem;
+        color: #388e3c;
+    }
+
+    .report-badge {
+        display: inline-block;
+        margin-top: 10px;
+        background: #198754;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+
+    /* BUTTON */
+
+    .btn {
+        border: none;
+        padding: 12px 24px;
+        border-radius: 9px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0b5ed7;
+    }
+
+    .btn:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+    /* STATUS */
+
+    .status {
+        display: none;
+        margin-top: 18px;
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+
+    .status.success {
+        display: block;
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .status.error {
+        display: block;
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    .status.info {
+        display: block;
+        background: #cff4fc;
+        color: #055160;
+    }
+
+    /* MOBILE */
+
+    @media(max-width:768px) {
 
         .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 260px;
-            height: 100vh;
-            background: #0b1320;
-            color: #fff;
-            padding: 25px 0;
-            overflow-y: auto;
-            z-index: 1000;
+            transform: translateX(-100%);
         }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0 25px 25px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            border-bottom: 1px solid #1c2a3a;
-        }
-
-        .brand i {
-            color: #0d6efd;
-            font-size: 1.8rem;
-        }
-
-        .user-section {
-            padding: 20px 25px;
-            text-align: center;
-            border-bottom: 1px solid #1c2a3a;
-        }
-
-        .avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #0d6efd;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 auto 10px;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .user-role {
-            font-size: 0.75rem;
-            color: #adb5bd;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 13px 25px;
-            color: #adb5bd;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .nav-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-        }
-
-        .nav-item.active {
-            background: rgba(13, 110, 253, 0.15);
-            color: #0d6efd;
-            border-left-color: #0d6efd;
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-        }
-
-        /* =========================
-           MAIN CONTENT
-        ========================= */
 
         .main-content {
-            margin-left: 260px;
-            padding: 25px 30px;
-            min-height: 100vh;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fff;
-            padding: 18px 25px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-
-        .top-bar h1 {
-            font-size: 1.6rem;
-            font-weight: 700;
-        }
-
-        .top-bar p {
-            color: #6c757d;
-            font-size: 0.9rem;
-            margin-top: 3px;
-        }
-
-        /* =========================
-           CARD
-        ========================= */
-
-        .card {
-            background: #fff;
-            border-radius: 16px;
-            border: 1px solid #e9edf4;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            margin-bottom: 25px;
-            overflow: hidden;
-        }
-
-        .card-header {
-            padding: 18px 22px;
-            border-bottom: 1px solid #e9edf4;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 22px;
-        }
-
-        /* =========================
-           FORM
-        ========================= */
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 7px;
-            font-size: 0.9rem;
-        }
-
-        .required {
-            color: #dc3545;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #dee2e6;
-            border-radius: 12px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            background: #fff;
-        }
-
-        .form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
-        }
-
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .help-text {
-            display: block;
-            margin-top: 5px;
-            color: #6c757d;
-            font-size: 0.75rem;
-        }
-
-        /* =========================
-           REPORT SELECT
-        ========================= */
-
-        .report-select-box {
-            background: #f8fafc;
-            border: 1px solid #e9edf4;
-            border-radius: 12px;
+            margin-left: 0;
             padding: 15px;
         }
 
-        .report-status {
-            margin-top: 10px;
-            display: none;
-            padding: 12px;
-            border-radius: 9px;
-            font-size: 0.82rem;
-        }
-
-        .report-status.success {
-            display: block;
-            background: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .report-status.info {
-            display: block;
-            background: #cff4fc;
-            color: #055160;
-        }
-
-        /* =========================
-           ATTACHMENT BANNER
-        ========================= */
-
-        .attachment-badge {
-            padding: 14px 16px;
-            background: #e8f5e9;
-            border: 1px dashed #2e7d32;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .attachment-badge i {
-            font-size: 1.8rem;
-            color: #2e7d32;
-        }
-
-        .attachment-badge strong {
-            color: #2e7d32;
-        }
-
-        .attachment-details {
-            font-size: 0.85rem;
-            color: #388e3c;
-        }
-
-        /* =========================
-           BUTTONS
-        ========================= */
-
-        .button-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 11px 22px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            opacity: 0.65;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-primary {
-            background: #0d6efd;
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            background: #0b5ed7;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: #fff;
-        }
-
-        .btn-secondary:hover {
-            background: #5c636a;
-        }
-
-        /* =========================
-           PRE-CHECK RESULT
-        ========================= */
-
-        #scan-result {
-            display: none;
-            margin-top: 24px;
-            padding: 18px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid #e9edf4;
-        }
-
-        .scan-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-
-        .similarity-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-low {
-            background: #d1e7dd;
-            color: #198754;
-        }
-
-        .badge-medium {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-high {
-            background: #f8d7da;
-            color: #842029;
-        }
-
-        /* =========================
-           MESSAGES
-        ========================= */
-
-        .success-message {
-            padding: 14px;
-            background: #d1e7dd;
-            color: #0f5132;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .error-message {
-            padding: 14px;
-            background: #f8d7da;
-            color: #842029;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 768px) {
-
-            .sidebar {
-                position: relative;
-                width: 100%;
-                height: auto;
-                padding-bottom: 10px;
-            }
-
-            .user-section {
-                display: none;
-            }
-
-            .brand {
-                padding-bottom: 15px;
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-
-            .top-bar {
-                padding: 15px;
-            }
-
-            .top-bar h1 {
-                font-size: 1.3rem;
-            }
-
-            .button-row {
-                flex-direction: column;
-            }
-
-            .button-row .btn {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-<!-- =========================================================
-     SIDEBAR
-========================================================= -->
-
-<aside class="sidebar">
-
-    <div class="brand">
-        <i class="fas fa-shield-alt"></i>
-        <span>IntelliVerify</span>
-    </div>
-
-    <div class="user-section">
-        <div class="avatar" id="sidebarAvatar">S</div>
-        <div class="user-name" id="sidebarUserName">Student</div>
-        <div class="user-role">Student</div>
-    </div>
-
-    <a href="dashboard.html" class="nav-item">
-        <i class="fas fa-th-large"></i>
-        Dashboard
-    </a>
-
-    <a href="submit-topic.html" class="nav-item active">
-        <i class="fas fa-file-alt"></i>
-        Submit Topic
-    </a>
-
-    <a href="plagiarism-report.html" class="nav-item">
-        <i class="fas fa-robot"></i>
-        Plagiarism Report
-    </a>
-
-    <a href="approval-status.html" class="nav-item">
-        <i class="fas fa-tasks"></i>
-        Approval Status
-    </a>
-
-    <a href="messages.html" class="nav-item">
-        <i class="fas fa-envelope"></i>
-        Messages
-    </a>
-
-    <a href="#" onclick="window.logoutUser(); return false;" class="nav-item">
-        <i class="fas fa-sign-out-alt"></i>
-        Sign Out
-    </a>
-
-</aside>
-
-
-<!-- =========================================================
-     MAIN CONTENT
-========================================================= -->
-
-<main class="main-content">
-
-    <header class="top-bar">
-        <div>
-            <h1>Project Topic Submission</h1>
-            <p>
-                Submit your final-year project topic and attach
-                your plagiarism analysis report.
-            </p>
-        </div>
-    </header>
-
-
-    <div class="card">
-
-        <div class="card-header">
-            <i class="fas fa-paper-plane" style="color:#0d6efd;"></i>
-            Topic Details & Plagiarism Pre-Check
-        </div>
-
-        <div class="card-body">
-
-            <!-- =================================================
-                 ATTACHED REPORT FROM URL
-            ================================================== -->
-
-            <div id="attachmentBanner" class="attachment-badge">
-
-                <i class="fas fa-file-circle-check"></i>
-
-                <div>
-                    <strong>
-                        Attached Plagiarism Report Verified
-                    </strong>
-
-                    <div class="attachment-details"
-                         id="attachedDetails">
-                        Document: Uploaded proposal |
-                        Plagiarism Similarity: 0%
-                    </div>
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 TOPIC FORM
-            ================================================== -->
-
-            <form id="topicForm">
-
-                <div class="form-group">
-
-                    <label for="title">
-                        Topic Title <span class="required">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="title"
-                        class="form-control"
-                        required
-                        placeholder="e.g. Intelligent Final Year Project Topic Approval and Plagiarism Detection System"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="research_area">
-                        Research Area / Domain
-                        <span class="required">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="research_area"
-                        class="form-control"
-                        required
-                        placeholder="e.g. Computer Science, Artificial Intelligence"
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="abstract">
-                        Project Abstract
-                    </label>
-
-                    <textarea
-                        id="abstract"
-                        class="form-control"
-                        placeholder="Provide a brief summary of your project, its purpose, methodology and expected outcome..."
-                    ></textarea>
-
-                    <small class="help-text">
-                        This field is optional if your current database schema does not contain an abstract column.
-                    </small>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="problem_statement">
-                        Problem Statement <span class="required">*</span>
-                    </label>
-
-                    <textarea
-                        id="problem_statement"
-                        class="form-control"
-                        required
-                        placeholder="Describe the core problem your project intends to solve..."
-                    ></textarea>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="objectives">
-                        Project Objectives <span class="required">*</span>
-                    </label>
-
-                    <textarea
-                        id="objectives"
-                        class="form-control"
-                        required
-                        placeholder="List the primary objectives of your project..."
-                    ></textarea>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="keywords">
-                        Keywords <span class="required">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        id="keywords"
-                        class="form-control"
-                        required
-                        placeholder="e.g. AI, Supabase, NLP, Verification"
-                    >
-
-                </div>
-
-
-                <!-- =================================================
-                     PLAGIARISM REPORT
-                ================================================== -->
-
-                <div class="form-group">
-
-                    <label for="plagiarism_report_id">
-                        Attach Plagiarism Scan Report
-                    </label>
-
-                    <div class="report-select-box">
-
-                        <select
-                            id="plagiarism_report_id"
-                            class="form-control">
-
-                            <option value="">
-                                -- No report selected --
-                            </option>
-
-                        </select>
-
-                        <div id="reportStatus"
-                             class="report-status">
-                        </div>
-
-                    </div>
-
-                    <small class="help-text">
-                        Select a plagiarism report you previously generated.
-                    </small>
-
-                </div>
-
-
-                <!-- =================================================
-                     BUTTONS
-                ================================================== -->
-
-                <div class="button-row">
-
-                    <button
-                        type="button"
-                        id="scan-btn"
-                        class="btn btn-secondary">
-
-                        <i class="fas fa-microchip"></i>
-                        Run Plagiarism Pre-Check
-
-                    </button>
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                        id="submitBtn">
-
-                        <i class="fas fa-paper-plane"></i>
-                        Submit to Supervisor
-
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <!-- =================================================
-                 PRE-CHECK RESULT
-            ================================================== -->
-
-            <div id="scan-result">
-
-                <div class="scan-header">
-
-                    <strong>
-                        <i class="fas fa-chart-line"></i>
-                        Plagiarism Scan Analysis
-                    </strong>
-
-                    <span
-                        id="similarityBadge"
-                        class="similarity-badge badge-low">
-                        0% Similarity
-                    </span>
-
-                </div>
-
-                <p
-                    id="scan-message"
-                    style="font-size:0.85rem;color:#6c757d;">
-                    Analysis results will appear here.
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</main>
-
-
-<script>
-
-(function () {
-
-    let currentUser = null;
-    let attachedReportId = null;
-    let lastSimilarityScore = null;
-
-
-    /* =========================================================
-       GET CURRENT USER
-    ========================================================= */
-
-    async function init() {
-
-        try {
-
-            if (typeof window.getCurrentUser !== 'function') {
-
-                console.error(
-                    'getCurrentUser() was not found in supabase-config.js'
-                );
-
-                return;
-            }
-
-            currentUser = await window.getCurrentUser();
-
-            if (!currentUser) {
-
-                window.location.href = '../login.html';
-
-                return;
-            }
-
-
-            /* ---------------------------------------------
-               USER NAME
-            --------------------------------------------- */
-
-            const profileName =
-                currentUser.profile?.full_name ||
-                currentUser.user_metadata?.full_name ||
-                currentUser.user_metadata?.first_name ||
-                currentUser.email?.split('@')[0] ||
-                'Student';
-
-
-            document.getElementById(
-                'sidebarUserName'
-            ).textContent = profileName;
-
-
-            document.getElementById(
-                'sidebarAvatar'
-            ).textContent =
-                profileName.charAt(0).toUpperCase();
-
-
-            /* ---------------------------------------------
-               LOAD EXISTING PLAGIARISM REPORTS
-            --------------------------------------------- */
-
-            await loadPlagiarismReports();
-
-
-            /* ---------------------------------------------
-               HANDLE URL REPORT PARAMETERS
-            --------------------------------------------- */
-
-            const urlParams =
-                new URLSearchParams(
-                    window.location.search
-                );
-
-            const reportId =
-                urlParams.get('reportId') ||
-                urlParams.get('report_id');
-
-            const fileName =
-                urlParams.get('fileName') ||
-                urlParams.get('filename');
-
-            const score =
-                urlParams.get('score');
-
-
-            if (reportId) {
-
-                attachedReportId = reportId;
-
-                document.getElementById(
-                    'plagiarism_report_id'
-                ).value = reportId;
-
-
-                if (score !== null) {
-
-                    lastSimilarityScore =
-                        Number(score) || 0;
-
-                }
-
-
-                showAttachmentBanner(
-                    fileName || 'Uploaded proposal',
-                    lastSimilarityScore || 0
-                );
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                'Initialization error:',
-                error
-            );
-
+        .card {
+            padding: 20px;
         }
 
     }
 
+</style>
 
-    /* =========================================================
-       LOAD STUDENT PLAGIARISM REPORTS
-    ========================================================= */
+</head><body><aside class="sidebar"><div class="brand">
+    <i class="fas fa-shield-alt"></i>
+    <span>IntelliVerify</span>
+</div>
 
-    async function loadPlagiarismReports() {
+<div class="user-section">
+
+    <div
+        class="avatar"
+        id="sidebarAvatar"
+    >
+        S
+    </div>
+
+    <div
+        class="user-name"
+        id="sidebarUserName"
+    >
+        Student
+    </div>
+
+    <div class="user-role">
+        Student
+    </div>
+
+</div>
+
+<div class="nav-title">
+    Main
+</div>
+
+<a
+    href="dashboard.html"
+    class="nav-item"
+>
+    <i class="fas fa-th-large"></i>
+    Dashboard
+</a>
+
+<a
+    href="submit-topic.html"
+    class="nav-item active"
+>
+    <i class="fas fa-file-alt"></i>
+    Submit Topic
+</a>
+
+<a
+    href="plagiarism-report.html"
+    class="nav-item"
+>
+    <i class="fas fa-search"></i>
+    Plagiarism Report
+</a>
+
+<a
+    href="approval-status.html"
+    class="nav-item"
+>
+    <i class="fas fa-tasks"></i>
+    Approval Status
+</a>
+
+<div class="nav-title">
+    Communication
+</div>
+
+<a
+    href="messages.html"
+    class="nav-item"
+>
+    <i class="fas fa-envelope"></i>
+    Messages
+</a>
+
+<div class="logout">
+
+    <div
+        class="nav-item"
+        id="logoutBtn"
+    >
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+    </div>
+
+</div>
+
+</aside><main class="main-content"><div class="top-bar">
+
+    <h1>
+        <i
+            class="fas fa-paper-plane"
+            style="color:#0d6efd;"
+        ></i>
+        Submit Research Topic
+    </h1>
+
+    <p>
+        Submit your project proposal for supervisor review and approval.
+    </p>
+
+</div>
+
+<div class="card">
+
+    <!-- ATTACHED REPORT -->
+
+    <div
+        class="report-info"
+        id="reportInfo"
+    >
+
+        <div class="report-title">
+
+            <i class="fas fa-check-circle"></i>
+
+            Plagiarism Report Attached
+
+        </div>
+
+        <div
+            class="report-details"
+            id="reportDetails"
+        >
+            -
+        </div>
+
+        <span
+            class="report-badge"
+            id="reportBadge"
+        >
+            VERIFIED
+        </span>
+
+    </div>
+
+    <form id="topicForm">
+
+        <div class="form-group">
+
+            <label for="title">
+                Topic Title
+            </label>
+
+            <input
+                type="text"
+                id="title"
+                required
+                placeholder="e.g. Intelligent Final Year Project Topic Approval System"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="research_area">
+                Research Area / Domain
+            </label>
+
+            <input
+                type="text"
+                id="research_area"
+                required
+                placeholder="e.g. Artificial Intelligence, Software Engineering"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="problem_statement">
+                Problem Statement
+            </label>
+
+            <textarea
+                id="problem_statement"
+                required
+                placeholder="Describe the problem your project intends to solve..."
+            ></textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="objectives">
+                Project Objectives
+            </label>
+
+            <textarea
+                id="objectives"
+                required
+                placeholder="Describe the main objectives of the project..."
+            ></textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="keywords">
+                Keywords
+            </label>
+
+            <input
+                type="text"
+                id="keywords"
+                placeholder="e.g. AI, TF-IDF, Supabase, plagiarism detection"
+            >
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="plagiarism_report_id">
+
+                <i
+                    class="fas fa-file-shield"
+                    style="color:#0d6efd;"
+                ></i>
+
+                Plagiarism Verification Report
+
+            </label>
+
+            <select
+                id="plagiarism_report_id"
+            >
+
+                <option value="">
+                    -- Select scanned report --
+                </option>
+
+            </select>
+
+            <small
+                style="
+                    display:block;
+                    margin-top:7px;
+                    color:#6c757d;
+                "
+            >
+                Only reports belonging to your student account are shown.
+            </small>
+
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            id="submitBtn"
+        >
+
+            <i class="fas fa-paper-plane"></i>
+
+            Submit Topic for Approval
+
+        </button>
+
+        <div
+            class="status"
+            id="statusMessage"
+        ></div>
+
+    </form>
+
+</div>
+
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase-config.js"></script><script>
+
+(function () {
+
+    let currentUser = null;
+
+    let reports = [];
+
+    /*
+     * GET REPORT ID FROM URL
+     *
+     * plagiarism-report.html sends:
+     *
+     * submit-topic.html?report_id=123
+     */
+
+    const urlParams =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const preselectedReportId =
+        urlParams.get('report_id');
+
+    /*
+     * STATUS
+     */
+
+    function showStatus(message, type) {
+
+        const box =
+            document.getElementById(
+                'statusMessage'
+            );
+
+        box.textContent = message;
+
+        box.className =
+            'status ' + type;
+
+    }
+
+    /*
+     * ESCAPE HTML
+     */
+
+    function escapeHTML(value) {
+
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+    }
+
+    /*
+     * INITIALIZE USER
+     */
+
+    async function initializeUser() {
+
+        if (
+            typeof window.getCurrentUser !==
+            'function'
+        ) {
+
+            showStatus(
+                'getCurrentUser() was not found. Check supabase-config.js.',
+                'error'
+            );
+
+            return false;
+
+        }
+
+        currentUser =
+            await window.getCurrentUser();
+
+        if (!currentUser) {
+
+            window.location.href =
+                '../login.html';
+
+            return false;
+
+        }
+
+        const metadata =
+            currentUser.user_metadata || {};
+
+        const name =
+            metadata.first_name ||
+            metadata.full_name ||
+            currentUser.email ||
+            'Student';
+
+        document.getElementById(
+            'sidebarUserName'
+        ).textContent = name;
+
+        document.getElementById(
+            'sidebarAvatar'
+        ).textContent =
+            name.charAt(0).toUpperCase();
+
+        return true;
+
+    }
+
+    /*
+     * LOAD PLAGIARISM REPORTS
+     */
+
+    async function loadReports() {
 
         const select =
             document.getElementById(
@@ -903,734 +713,478 @@
         try {
 
             if (
-                typeof window.getStudentPlagiarismReports !==
+                typeof window.getPlagiarismReportsForUser ===
                 'function'
             ) {
 
-                console.warn(
-                    'getStudentPlagiarismReports() was not found.'
-                );
-
-                return;
-            }
-
-
-            const reports =
-                await window.getStudentPlagiarismReports(
-                    currentUser.id
-                );
-
-
-            if (!reports || reports.length === 0) {
-
-                const status =
-                    document.getElementById(
-                        'reportStatus'
+                reports =
+                    await window.getPlagiarismReportsForUser(
+                        currentUser.id
                     );
 
-                status.className =
-                    'report-status info';
+            }
+            else if (
+                typeof window.getStudentPlagiarismReports ===
+                'function'
+            ) {
 
-                status.innerHTML =
-                    '<i class="fas fa-info-circle"></i> No plagiarism reports have been generated yet. You can run a pre-check below.';
+                reports =
+                    await window.getStudentPlagiarismReports(
+                        currentUser.id
+                    );
 
-                return;
+            }
+            else {
+
+                throw new Error(
+                    'No plagiarism report retrieval function was found in supabase-config.js.'
+                );
+
             }
 
+            if (!Array.isArray(reports)) {
+                reports = [];
+            }
+
+            select.innerHTML = `
+
+                <option value="">
+                    -- Select scanned report --
+                </option>
+
+            `;
 
             reports.forEach(report => {
 
                 const option =
-                    document.createElement('option');
+                    document.createElement(
+                        'option'
+                    );
 
                 option.value =
-                    report.report_id;
+                    report.report_id ||
+                    report.id ||
+                    '';
+
+                const score =
+                    Number(
+                        report.similarity_score || 0
+                    );
+
+                const risk =
+                    (
+                        report.risk_level ||
+                        'low'
+                    ).toUpperCase();
 
                 option.textContent =
-                    `${report.filename || 'Unnamed report'} — ${report.similarity_score ?? 0}% overlap`;
+                    `${report.filename || 'Unnamed document'} — ${score}% — ${risk}`;
 
-                option.dataset.score =
-                    report.similarity_score ?? 0;
-
-                option.dataset.filename =
-                    report.filename || 'Uploaded document';
-
-                option.dataset.risk =
-                    report.risk_level || 'low';
-
-                select.appendChild(option);
+                select.appendChild(
+                    option
+                );
 
             });
 
+            /*
+             * AUTOMATICALLY SELECT
+             * THE ATTACHED REPORT
+             */
 
-            const status =
-                document.getElementById(
-                    'reportStatus'
-                );
+            if (preselectedReportId) {
 
-            status.className =
-                'report-status success';
+                const exists =
+                    reports.some(report =>
+                        String(
+                            report.report_id ||
+                            report.id
+                        ) ===
+                        String(
+                            preselectedReportId
+                        )
+                    );
 
-            status.innerHTML =
-                `<i class="fas fa-check-circle"></i> ${reports.length} plagiarism report(s) available for attachment.`;
+                if (exists) {
 
+                    select.value =
+                        preselectedReportId;
 
-        } catch (error) {
+                    updateReportInfo(
+                        preselectedReportId
+                    );
+
+                }
+                else {
+
+                    showStatus(
+                        'The selected plagiarism report could not be found in your account.',
+                        'error'
+                    );
+
+                }
+
+            }
+
+        }
+        catch (error) {
 
             console.error(
-                'Error loading plagiarism reports:',
+                'Report loading error:',
                 error
             );
 
-            const status =
-                document.getElementById(
-                    'reportStatus'
-                );
-
-            status.className =
-                'report-status info';
-
-            status.innerHTML =
-                '<i class="fas fa-exclamation-circle"></i> Unable to load previous reports. You can still run a new pre-check.';
+            showStatus(
+                'Unable to load plagiarism reports: ' +
+                error.message,
+                'error'
+            );
 
         }
 
     }
 
+    /*
+     * DISPLAY SELECTED REPORT
+     */
 
-    /* =========================================================
-       REPORT SELECTION
-    ========================================================= */
+    function updateReportInfo(reportId) {
 
-    document
-        .getElementById('plagiarism_report_id')
-        .addEventListener(
-            'change',
-            function () {
-
-                const option =
-                    this.options[this.selectedIndex];
-
-                if (!this.value) {
-
-                    attachedReportId = null;
-
-                    document.getElementById(
-                        'attachmentBanner'
-                    ).style.display = 'none';
-
-                    return;
-                }
-
-
-                attachedReportId =
-                    this.value;
-
-
-                lastSimilarityScore =
-                    Number(
-                        option.dataset.score || 0
-                    );
-
-
-                showAttachmentBanner(
-                    option.dataset.filename,
-                    lastSimilarityScore
-                );
-
-            }
-        );
-
-
-    /* =========================================================
-       SHOW ATTACHED REPORT
-    ========================================================= */
-
-    function showAttachmentBanner(
-        filename,
-        score
-    ) {
-
-        const banner =
+        const container =
             document.getElementById(
-                'attachmentBanner'
+                'reportInfo'
             );
 
+        if (!reportId) {
+
+            container.classList.remove(
+                'show'
+            );
+
+            return;
+
+        }
+
+        const report =
+            reports.find(item =>
+                String(
+                    item.report_id ||
+                    item.id
+                ) ===
+                String(reportId)
+            );
+
+        if (!report) {
+
+            container.classList.remove(
+                'show'
+            );
+
+            return;
+
+        }
+
+        const score =
+            Number(
+                report.similarity_score || 0
+            );
+
+        const risk =
+            (
+                report.risk_level ||
+                'low'
+            ).toUpperCase();
 
         document.getElementById(
-            'attachedDetails'
+            'reportDetails'
+        ).innerHTML = `
+
+            <strong>
+                ${escapeHTML(
+                    report.filename ||
+                    'Document'
+                )}
+            </strong>
+
+            · Similarity:
+            <strong>${score}%</strong>
+
+            · Risk:
+            <strong>${risk}</strong>
+
+        `;
+
+        document.getElementById(
+            'reportBadge'
         ).textContent =
-            `Document: ${filename} | Plagiarism Similarity: ${score}%`;
+            score <= 30
+                ? 'VERIFIED'
+                : 'HIGH SIMILARITY';
 
-
-        banner.style.display =
-            'flex';
+        container.classList.add(
+            'show'
+        );
 
     }
 
+    /*
+     * REPORT SELECTION
+     */
 
-    /* =========================================================
-       PLAGIARISM PRE-CHECK
-    ========================================================= */
+    document.getElementById(
+        'plagiarism_report_id'
+    ).addEventListener(
+        'change',
+        function () {
 
-    document
-        .getElementById('scan-btn')
-        .addEventListener(
-            'click',
-            async function () {
+            updateReportInfo(
+                this.value
+            );
 
-                const title =
-                    document.getElementById(
-                        'title'
-                    ).value.trim();
+        }
+    );
 
+    /*
+     * SUBMIT TOPIC
+     */
 
-                const abstract =
-                    document.getElementById(
-                        'abstract'
-                    ).value.trim();
+    document.getElementById(
+        'topicForm'
+    ).addEventListener(
+        'submit',
+        async function (event) {
 
+            event.preventDefault();
 
-                const problem =
-                    document.getElementById(
-                        'problem_statement'
-                    ).value.trim();
+            if (!currentUser) {
 
+                showStatus(
+                    'You must be logged in.',
+                    'error'
+                );
 
-                const result =
-                    document.getElementById(
-                        'scan-result'
+                return;
+
+            }
+
+            const reportId =
+                document.getElementById(
+                    'plagiarism_report_id'
+                ).value || null;
+
+            /*
+             * If a report was selected,
+             * verify that it belongs to the user.
+             */
+
+            if (reportId) {
+
+                const report =
+                    reports.find(item =>
+                        String(
+                            item.report_id ||
+                            item.id
+                        ) ===
+                        String(reportId)
                     );
 
+                if (!report) {
 
-                const badge =
-                    document.getElementById(
-                        'similarityBadge'
-                    );
-
-
-                const message =
-                    document.getElementById(
-                        'scan-message'
-                    );
-
-
-                if (!title || (!abstract && !problem)) {
-
-                    alert(
-                        'Please enter the topic title and either the abstract or problem statement before running the plagiarism pre-check.'
+                    showStatus(
+                        'Invalid plagiarism report selected.',
+                        'error'
                     );
 
                     return;
+
                 }
 
-
-                result.style.display =
-                    'block';
-
-
-                badge.className =
-                    'similarity-badge badge-low';
-
-                badge.textContent =
-                    'Analyzing...';
-
-
-                message.innerHTML =
-                    '<i class="fas fa-spinner fa-spin"></i> Checking repository similarity...';
-
-
-                try {
-
-                    /* -----------------------------------------
-                       API CLIENT IF AVAILABLE
-                    ----------------------------------------- */
-
-                    if (
-                        typeof window.apiClient !== 'undefined' &&
-                        typeof window.apiClient.fetch === 'function'
-                    ) {
-
-                        const response =
-                            await window.apiClient.fetch(
-                                '/plagiarism/check',
-                                {
-                                    method: 'POST',
-
-                                    body: JSON.stringify({
-                                        title: title,
-                                        abstract:
-                                            abstract ||
-                                            problem
-                                    })
-                                }
-                            );
-
-
-                        const score =
-                            Number(
-                                response.score || 0
-                            );
-
-
-                        lastSimilarityScore =
-                            score;
-
-
-                        displayScanResult(
-                            score,
-                            response.message ||
-                            'Plagiarism analysis completed.'
-                        );
-
-
-                        return;
-                    }
-
-
-                    /* -----------------------------------------
-                       LOCAL FALLBACK PRE-CHECK
-                    ----------------------------------------- */
-
-                    const combinedText =
-                        (
-                            title +
-                            ' ' +
-                            abstract +
-                            ' ' +
-                            problem
-                        ).toLowerCase();
-
-
-                    const commonTerms = [
-                        'system',
-                        'management',
-                        'artificial',
-                        'intelligence',
-                        'machine',
-                        'learning',
-                        'detection',
-                        'database',
-                        'software',
-                        'security',
-                        'automated',
-                        'platform',
-                        'web',
-                        'analysis',
-                        'information'
-                    ];
-
-
-                    let matches = 0;
-
-
-                    commonTerms.forEach(
-                        term => {
-
-                            if (
-                                combinedText.includes(
-                                    term
-                                )
-                            ) {
-
-                                matches++;
-
-                            }
-
-                        }
+                const score =
+                    Number(
+                        report.similarity_score || 0
                     );
 
+                /*
+                 * Only reports <=30%
+                 * can be attached.
+                 */
 
-                    const score =
-                        Math.min(
-                            Math.round(
-                                (
-                                    matches /
-                                    commonTerms.length
-                                ) * 100
-                            ),
-                            100
-                        );
+                if (score > 30) {
 
-
-                    lastSimilarityScore =
-                        score;
-
-
-                    displayScanResult(
-                        score,
-                        'Local similarity pre-check completed. Connect the plagiarism analysis service for repository-wide comparison.'
+                    showStatus(
+                        'This plagiarism report cannot be attached because its similarity score is above 30%.',
+                        'error'
                     );
 
-
-                } catch (error) {
-
-                    console.error(
-                        'Plagiarism scan error:',
-                        error
-                    );
-
-
-                    badge.className =
-                        'similarity-badge badge-high';
-
-                    badge.textContent =
-                        'Scan Failed';
-
-
-                    message.textContent =
-                        'Scan failed: ' +
-                        error.message;
+                    return;
 
                 }
 
             }
-        );
 
+            const payload = {
 
-    /* =========================================================
-       DISPLAY SCAN RESULT
-    ========================================================= */
+                student_id:
+                    currentUser.id,
 
-    function displayScanResult(
-        score,
-        message
-    ) {
-
-        const result =
-            document.getElementById(
-                'scan-result'
-            );
-
-
-        const badge =
-            document.getElementById(
-                'similarityBadge'
-            );
-
-
-        const messageBox =
-            document.getElementById(
-                'scan-message'
-            );
-
-
-        result.style.display =
-            'block';
-
-
-        badge.textContent =
-            score + '% Similarity';
-
-
-        if (score <= 20) {
-
-            badge.className =
-                'similarity-badge badge-low';
-
-
-            messageBox.innerHTML =
-                '<strong style="color:#198754;">Low similarity detected.</strong> ' +
-                message;
-
-        }
-
-        else if (score <= 40) {
-
-            badge.className =
-                'similarity-badge badge-medium';
-
-
-            messageBox.innerHTML =
-                '<strong style="color:#856404;">Moderate similarity detected.</strong> ' +
-                message;
-
-        }
-
-        else {
-
-            badge.className =
-                'similarity-badge badge-high';
-
-
-            messageBox.innerHTML =
-                '<strong style="color:#842029;">High similarity detected.</strong> ' +
-                message;
-
-        }
-
-    }
-
-
-    /* =========================================================
-       FINAL TOPIC SUBMISSION
-    ========================================================= */
-
-    document
-        .getElementById('topicForm')
-        .addEventListener(
-            'submit',
-            async function (e) {
-
-                e.preventDefault();
-
-
-                if (!currentUser) {
-
-                    alert(
-                        'Your session has expired. Please log in again.'
-                    );
-
-                    window.location.href =
-                        '../login.html';
-
-                    return;
-                }
-
-
-                const title =
+                title:
                     document.getElementById(
                         'title'
-                    ).value.trim();
+                    ).value.trim(),
 
-
-                const abstract =
-                    document.getElementById(
-                        'abstract'
-                    ).value.trim();
-
-
-                const researchArea =
+                research_area:
                     document.getElementById(
                         'research_area'
-                    ).value.trim();
+                    ).value.trim(),
 
-
-                const problem =
+                problem_statement:
                     document.getElementById(
                         'problem_statement'
-                    ).value.trim();
+                    ).value.trim(),
 
-
-                const objectives =
+                objectives:
                     document.getElementById(
                         'objectives'
-                    ).value.trim();
+                    ).value.trim(),
 
-
-                const keywords =
+                keywords:
                     document.getElementById(
                         'keywords'
-                    ).value.trim();
+                    ).value.trim(),
 
+                plagiarism_report_id:
+                    reportId
 
-                const reportSelect =
-                    document.getElementById(
-                        'plagiarism_report_id'
-                    );
+            };
 
+            const button =
+                document.getElementById(
+                    'submitBtn'
+                );
 
-                const selectedReportId =
-                    reportSelect.value || null;
+            button.disabled = true;
 
+            button.innerHTML =
+                '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
-                if (
-                    !title ||
-                    !researchArea ||
-                    !problem ||
-                    !objectives ||
-                    !keywords
-                ) {
-
-                    alert(
-                        'Please complete all required fields.'
-                    );
-
-                    return;
-                }
-
-
-                /*
-                 * If the user selected a report,
-                 * use its score as the topic similarity score.
-                 */
-
-                if (selectedReportId) {
-
-                    const selectedOption =
-                        reportSelect.options[
-                            reportSelect.selectedIndex
-                        ];
-
-
-                    attachedReportId =
-                        selectedReportId;
-
-
-                    lastSimilarityScore =
-                        Number(
-                            selectedOption.dataset.score ||
-                            0
-                        );
-
-                }
-
-
-                /*
-                 * Warn when similarity is high.
-                 */
+            try {
 
                 if (
-                    lastSimilarityScore !== null &&
-                    lastSimilarityScore > 40
+                    typeof window.submitNewTopic !==
+                    'function'
                 ) {
 
-                    const proceed =
-                        confirm(
-                            `The plagiarism similarity score is ${lastSimilarityScore}%. Do you still want to submit this topic?`
-                        );
-
-
-                    if (!proceed) {
-
-                        return;
-
-                    }
+                    throw new Error(
+                        'submitNewTopic() was not found in supabase-config.js.'
+                    );
 
                 }
 
+                await window.submitNewTopic(
+                    payload
+                );
 
-                const btn =
-                    document.getElementById(
-                        'submitBtn'
-                    );
+                showStatus(
+                    'Research topic submitted successfully. Your supervisor can now review the proposal.',
+                    'success'
+                );
 
+                /*
+                 * Redirect after successful submission.
+                 */
 
-                btn.disabled =
-                    true;
+                setTimeout(
+                    function () {
 
+                        window.location.href =
+                            'approval-status.html';
 
-                btn.innerHTML =
-                    '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                    },
+                    1200
+                );
 
+            }
+            catch (error) {
 
-                try {
+                console.error(
+                    'Topic submission error:',
+                    error
+                );
 
-                    /*
-                     * IMPORTANT:
-                     * This uses the addTopic() helper
-                     * from supabase-config.js.
-                     */
+                showStatus(
+                    'Error submitting topic: ' +
+                    error.message,
+                    'error'
+                );
 
-                    if (
-                        typeof window.addTopic !==
-                        'function'
-                    ) {
+                button.disabled = false;
 
-                        throw new Error(
-                            'addTopic() was not found. Please check your supabase-config.js file.'
-                        );
+                button.innerHTML =
+                    '<i class="fas fa-paper-plane"></i> Submit Topic for Approval';
 
-                    }
+            }
 
+        }
+    );
 
-                    const payload = {
+    /*
+     * LOGOUT
+     */
 
-                        student_id:
-                            currentUser.id,
+    document.getElementById(
+        'logoutBtn'
+    ).addEventListener(
+        'click',
+        async function () {
 
-                        title:
-                            title,
+            try {
 
-                        problem_statement:
-                            problem,
+                if (
+                    window.supabaseClient
+                ) {
 
-                        objectives:
-                            objectives,
-
-                        keywords:
-                            keywords,
-
-                        research_area:
-                            researchArea,
-
-                        plagiarism_report_id:
-                            attachedReportId,
-
-                        similarity_score:
-                            lastSimilarityScore || 0,
-
-                        status:
-                            'pending'
-
-                    };
-
-
-                    /*
-                     * Only include abstract if your topics
-                     * table has an abstract column.
-                     *
-                     * Currently omitted intentionally so
-                     * the payload matches the agreed schema.
-                     */
-
-                    await window.addTopic(
-                        payload
-                    );
-
-
-                    alert(
-                        '✅ Research topic successfully submitted to your supervisor!'
-                    );
-
-
-                    /*
-                     * No "real-" prefix.
-                     */
-
-                    window.location.href =
-                        'approval-status.html';
-
-
-                } catch (error) {
-
-                    console.error(
-                        'Topic submission error:',
-                        error
-                    );
-
-
-                    alert(
-                        'Error submitting topic: ' +
-                        error.message
-                    );
-
-
-                    btn.disabled =
-                        false;
-
-
-                    btn.innerHTML =
-                        '<i class="fas fa-paper-plane"></i> Submit to Supervisor';
+                    await window
+                        .supabaseClient
+                        .auth
+                        .signOut();
 
                 }
 
             }
-        );
+            catch (error) {
 
+                console.error(
+                    'Logout error:',
+                    error
+                );
 
-    /* =========================================================
-       INITIALIZE
-    ========================================================= */
+            }
+
+            window.location.href =
+                '../login.html';
+
+        }
+    );
+
+    /*
+     * INIT
+     */
 
     document.addEventListener(
         'DOMContentLoaded',
-        init
+        async function () {
+
+            const authenticated =
+                await initializeUser();
+
+            if (authenticated) {
+
+                await loadReports();
+
+            }
+
+        }
     );
 
 })();
 
-</script>
-
-</body>
-    </html>
+</script></body></html>
