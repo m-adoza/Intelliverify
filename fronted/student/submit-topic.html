@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit Topic – IntelliVerify</title>
+
+    <title>Submit Research Topic – IntelliVerify</title>
 
     <!-- Font Awesome -->
     <link rel="stylesheet"
@@ -17,7 +18,7 @@
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/supabase-config.js"></script>
+    <script src="../../js/supabase-config.js"></script>
 
     <style>
         * {
@@ -55,7 +56,7 @@
             z-index: 1000;
         }
 
-        .sidebar .brand {
+        .brand {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -65,18 +66,18 @@
             border-bottom: 1px solid #1c2a3a;
         }
 
-        .sidebar .brand i {
+        .brand i {
             color: #0d6efd;
             font-size: 1.8rem;
         }
 
-        .sidebar .user-section {
+        .user-section {
             padding: 20px 25px;
             text-align: center;
             border-bottom: 1px solid #1c2a3a;
         }
 
-        .sidebar .user-section .avatar {
+        .avatar {
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -90,38 +91,38 @@
             margin: 0 auto 10px;
         }
 
-        .sidebar .user-section .user-name {
+        .user-name {
             font-weight: 600;
             font-size: 1rem;
         }
 
-        .sidebar .user-section .user-role {
+        .user-role {
             font-size: 0.75rem;
-            color: #6c757d;
+            color: #adb5bd;
         }
 
-        .sidebar .nav-item {
+        .nav-item {
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 12px 25px;
+            padding: 13px 25px;
             color: #adb5bd;
             transition: all 0.2s;
             border-left: 3px solid transparent;
         }
 
-        .sidebar .nav-item:hover {
+        .nav-item:hover {
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
         }
 
-        .sidebar .nav-item.active {
+        .nav-item.active {
             background: rgba(13, 110, 253, 0.15);
             color: #0d6efd;
             border-left-color: #0d6efd;
         }
 
-        .sidebar .nav-item i {
+        .nav-item i {
             width: 20px;
             text-align: center;
         }
@@ -196,10 +197,11 @@
             font-size: 0.9rem;
         }
 
-        .form-control,
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .required {
+            color: #dc3545;
+        }
+
+        .form-control {
             width: 100%;
             padding: 12px 16px;
             border: 2px solid #dee2e6;
@@ -208,19 +210,84 @@
             font-size: 0.9rem;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
+            background: #fff;
         }
 
-        .form-control:focus,
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-control:focus {
             border-color: #0d6efd;
             box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
         }
 
-        .form-group textarea {
-            min-height: 110px;
+        textarea.form-control {
+            min-height: 120px;
             resize: vertical;
+        }
+
+        .help-text {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
+
+        /* =========================
+           REPORT SELECT
+        ========================= */
+
+        .report-select-box {
+            background: #f8fafc;
+            border: 1px solid #e9edf4;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .report-status {
+            margin-top: 10px;
+            display: none;
+            padding: 12px;
+            border-radius: 9px;
+            font-size: 0.82rem;
+        }
+
+        .report-status.success {
+            display: block;
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .report-status.info {
+            display: block;
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        /* =========================
+           ATTACHMENT BANNER
+        ========================= */
+
+        .attachment-badge {
+            padding: 14px 16px;
+            background: #e8f5e9;
+            border: 1px dashed #2e7d32;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .attachment-badge i {
+            font-size: 1.8rem;
+            color: #2e7d32;
+        }
+
+        .attachment-badge strong {
+            color: #2e7d32;
+        }
+
+        .attachment-details {
+            font-size: 0.85rem;
+            color: #388e3c;
         }
 
         /* =========================
@@ -322,36 +389,7 @@
         }
 
         /* =========================
-           ATTACHMENT BANNER
-        ========================= */
-
-        .attachment-badge {
-            padding: 14px 16px;
-            background: #e8f5e9;
-            border: 1px dashed #2e7d32;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .attachment-badge i {
-            font-size: 1.8rem;
-            color: #2e7d32;
-        }
-
-        .attachment-badge strong {
-            color: #2e7d32;
-        }
-
-        .attachment-details {
-            font-size: 0.85rem;
-            color: #388e3c;
-        }
-
-        /* =========================
-           SUCCESS / ERROR
+           MESSAGES
         ========================= */
 
         .success-message {
@@ -383,11 +421,11 @@
                 padding-bottom: 10px;
             }
 
-            .sidebar .user-section {
+            .user-section {
                 display: none;
             }
 
-            .sidebar .brand {
+            .brand {
                 padding-bottom: 15px;
             }
 
@@ -449,9 +487,19 @@
         Plagiarism Report
     </a>
 
+    <a href="approval-status.html" class="nav-item">
+        <i class="fas fa-tasks"></i>
+        Approval Status
+    </a>
+
     <a href="messages.html" class="nav-item">
         <i class="fas fa-envelope"></i>
         Messages
+    </a>
+
+    <a href="#" onclick="window.logoutUser(); return false;" class="nav-item">
+        <i class="fas fa-sign-out-alt"></i>
+        Sign Out
     </a>
 
 </aside>
@@ -464,15 +512,13 @@
 <main class="main-content">
 
     <header class="top-bar">
-
         <div>
             <h1>Project Topic Submission</h1>
             <p>
-                Submit your topic and run an AI plagiarism pre-check
-                before sending it to your supervisor.
+                Submit your final-year project topic and attach
+                your plagiarism analysis report.
             </p>
         </div>
-
     </header>
 
 
@@ -480,13 +526,13 @@
 
         <div class="card-header">
             <i class="fas fa-paper-plane" style="color:#0d6efd;"></i>
-            Topic Details & Pre-Check
+            Topic Details & Plagiarism Pre-Check
         </div>
 
         <div class="card-body">
 
             <!-- =================================================
-                 ATTACHED PLAGIARISM REPORT
+                 ATTACHED REPORT FROM URL
             ================================================== -->
 
             <div id="attachmentBanner" class="attachment-badge">
@@ -498,9 +544,8 @@
                         Attached Plagiarism Report Verified
                     </strong>
 
-                    <div
-                        class="attachment-details"
-                        id="attachedDetails">
+                    <div class="attachment-details"
+                         id="attachedDetails">
                         Document: Uploaded proposal |
                         Plagiarism Similarity: 0%
                     </div>
@@ -518,7 +563,7 @@
                 <div class="form-group">
 
                     <label for="title">
-                        Topic Title *
+                        Topic Title <span class="required">*</span>
                     </label>
 
                     <input
@@ -526,7 +571,25 @@
                         id="title"
                         class="form-control"
                         required
-                        placeholder="Enter complete project title..."
+                        placeholder="e.g. Intelligent Final Year Project Topic Approval and Plagiarism Detection System"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="research_area">
+                        Research Area / Domain
+                        <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="research_area"
+                        class="form-control"
+                        required
+                        placeholder="e.g. Computer Science, Artificial Intelligence"
                     >
 
                 </div>
@@ -535,31 +598,33 @@
                 <div class="form-group">
 
                     <label for="abstract">
-                        Project Abstract / Problem Statement *
+                        Project Abstract
                     </label>
 
                     <textarea
                         id="abstract"
                         class="form-control"
-                        rows="6"
-                        required
-                        placeholder="Describe the objectives, scope, methodology, problem and expected outcomes..."
+                        placeholder="Provide a brief summary of your project, its purpose, methodology and expected outcome..."
                     ></textarea>
+
+                    <small class="help-text">
+                        This field is optional if your current database schema does not contain an abstract column.
+                    </small>
 
                 </div>
 
 
                 <div class="form-group">
 
-                    <label for="problem">
-                        Detailed Problem Statement *
+                    <label for="problem_statement">
+                        Problem Statement <span class="required">*</span>
                     </label>
 
                     <textarea
-                        id="problem"
+                        id="problem_statement"
                         class="form-control"
                         required
-                        placeholder="State the core problem your project intends to solve..."
+                        placeholder="Describe the core problem your project intends to solve..."
                     ></textarea>
 
                 </div>
@@ -568,7 +633,7 @@
                 <div class="form-group">
 
                     <label for="objectives">
-                        Objectives *
+                        Project Objectives <span class="required">*</span>
                     </label>
 
                     <textarea
@@ -584,7 +649,7 @@
                 <div class="form-group">
 
                     <label for="keywords">
-                        Keywords *
+                        Keywords <span class="required">*</span>
                     </label>
 
                     <input
@@ -592,43 +657,43 @@
                         id="keywords"
                         class="form-control"
                         required
-                        placeholder="Comma separated keywords e.g. AI, NLP, Machine Learning"
+                        placeholder="e.g. AI, Supabase, NLP, Verification"
                     >
 
                 </div>
 
 
+                <!-- =================================================
+                     PLAGIARISM REPORT
+                ================================================== -->
+
                 <div class="form-group">
 
-                    <label for="researchArea">
-                        Research Domain
+                    <label for="plagiarism_report_id">
+                        Attach Plagiarism Scan Report
                     </label>
 
-                    <select
-                        id="researchArea"
-                        class="form-control">
+                    <div class="report-select-box">
 
-                        <option value="Artificial Intelligence">
-                            Artificial Intelligence
-                        </option>
+                        <select
+                            id="plagiarism_report_id"
+                            class="form-control">
 
-                        <option value="Cybersecurity">
-                            Cybersecurity
-                        </option>
+                            <option value="">
+                                -- No report selected --
+                            </option>
 
-                        <option value="Software Engineering">
-                            Software Engineering
-                        </option>
+                        </select>
 
-                        <option value="Information Systems">
-                            Information Systems
-                        </option>
+                        <div id="reportStatus"
+                             class="report-status">
+                        </div>
 
-                        <option value="Data Science">
-                            Data Science
-                        </option>
+                    </div>
 
-                    </select>
+                    <small class="help-text">
+                        Select a plagiarism report you previously generated.
+                    </small>
 
                 </div>
 
@@ -645,7 +710,7 @@
                         class="btn btn-secondary">
 
                         <i class="fas fa-microchip"></i>
-                        Run Plagiarism Pre-check
+                        Run Plagiarism Pre-Check
 
                     </button>
 
@@ -720,7 +785,7 @@
 
             if (typeof window.getCurrentUser !== 'function') {
 
-                console.warn(
+                console.error(
                     'getCurrentUser() was not found in supabase-config.js'
                 );
 
@@ -737,31 +802,39 @@
             }
 
 
-            /* User name */
+            /* ---------------------------------------------
+               USER NAME
+            --------------------------------------------- */
 
-            const firstName =
-                currentUser.user_metadata?.first_name ||
+            const profileName =
+                currentUser.profile?.full_name ||
                 currentUser.user_metadata?.full_name ||
+                currentUser.user_metadata?.first_name ||
                 currentUser.email?.split('@')[0] ||
                 'Student';
 
 
             document.getElementById(
                 'sidebarUserName'
-            ).textContent = firstName;
+            ).textContent = profileName;
 
-
-            /* Avatar */
 
             document.getElementById(
                 'sidebarAvatar'
             ).textContent =
-                firstName.charAt(0).toUpperCase();
+                profileName.charAt(0).toUpperCase();
 
 
-            /* =================================================
-               CHECK FOR ATTACHED PLAGIARISM REPORT
-            ================================================= */
+            /* ---------------------------------------------
+               LOAD EXISTING PLAGIARISM REPORTS
+            --------------------------------------------- */
+
+            await loadPlagiarismReports();
+
+
+            /* ---------------------------------------------
+               HANDLE URL REPORT PARAMETERS
+            --------------------------------------------- */
 
             const urlParams =
                 new URLSearchParams(
@@ -769,10 +842,12 @@
                 );
 
             const reportId =
-                urlParams.get('reportId');
+                urlParams.get('reportId') ||
+                urlParams.get('report_id');
 
             const fileName =
-                urlParams.get('fileName');
+                urlParams.get('fileName') ||
+                urlParams.get('filename');
 
             const score =
                 urlParams.get('score');
@@ -782,24 +857,23 @@
 
                 attachedReportId = reportId;
 
-                lastSimilarityScore =
-                    Number(score || 0);
-
-
                 document.getElementById(
-                    'attachmentBanner'
-                ).style.display = 'flex';
+                    'plagiarism_report_id'
+                ).value = reportId;
 
 
-                document.getElementById(
-                    'attachedDetails'
-                ).textContent =
-                    `Document: ${
-                        fileName ||
-                        'Uploaded proposal'
-                    } | Plagiarism Similarity: ${
-                        lastSimilarityScore
-                    }% (Low Risk Verified)`;
+                if (score !== null) {
+
+                    lastSimilarityScore =
+                        Number(score) || 0;
+
+                }
+
+
+                showAttachmentBanner(
+                    fileName || 'Uploaded proposal',
+                    lastSimilarityScore || 0
+                );
 
             }
 
@@ -811,6 +885,186 @@
             );
 
         }
+
+    }
+
+
+    /* =========================================================
+       LOAD STUDENT PLAGIARISM REPORTS
+    ========================================================= */
+
+    async function loadPlagiarismReports() {
+
+        const select =
+            document.getElementById(
+                'plagiarism_report_id'
+            );
+
+        try {
+
+            if (
+                typeof window.getStudentPlagiarismReports !==
+                'function'
+            ) {
+
+                console.warn(
+                    'getStudentPlagiarismReports() was not found.'
+                );
+
+                return;
+            }
+
+
+            const reports =
+                await window.getStudentPlagiarismReports(
+                    currentUser.id
+                );
+
+
+            if (!reports || reports.length === 0) {
+
+                const status =
+                    document.getElementById(
+                        'reportStatus'
+                    );
+
+                status.className =
+                    'report-status info';
+
+                status.innerHTML =
+                    '<i class="fas fa-info-circle"></i> No plagiarism reports have been generated yet. You can run a pre-check below.';
+
+                return;
+            }
+
+
+            reports.forEach(report => {
+
+                const option =
+                    document.createElement('option');
+
+                option.value =
+                    report.report_id;
+
+                option.textContent =
+                    `${report.filename || 'Unnamed report'} — ${report.similarity_score ?? 0}% overlap`;
+
+                option.dataset.score =
+                    report.similarity_score ?? 0;
+
+                option.dataset.filename =
+                    report.filename || 'Uploaded document';
+
+                option.dataset.risk =
+                    report.risk_level || 'low';
+
+                select.appendChild(option);
+
+            });
+
+
+            const status =
+                document.getElementById(
+                    'reportStatus'
+                );
+
+            status.className =
+                'report-status success';
+
+            status.innerHTML =
+                `<i class="fas fa-check-circle"></i> ${reports.length} plagiarism report(s) available for attachment.`;
+
+
+        } catch (error) {
+
+            console.error(
+                'Error loading plagiarism reports:',
+                error
+            );
+
+            const status =
+                document.getElementById(
+                    'reportStatus'
+                );
+
+            status.className =
+                'report-status info';
+
+            status.innerHTML =
+                '<i class="fas fa-exclamation-circle"></i> Unable to load previous reports. You can still run a new pre-check.';
+
+        }
+
+    }
+
+
+    /* =========================================================
+       REPORT SELECTION
+    ========================================================= */
+
+    document
+        .getElementById('plagiarism_report_id')
+        .addEventListener(
+            'change',
+            function () {
+
+                const option =
+                    this.options[this.selectedIndex];
+
+                if (!this.value) {
+
+                    attachedReportId = null;
+
+                    document.getElementById(
+                        'attachmentBanner'
+                    ).style.display = 'none';
+
+                    return;
+                }
+
+
+                attachedReportId =
+                    this.value;
+
+
+                lastSimilarityScore =
+                    Number(
+                        option.dataset.score || 0
+                    );
+
+
+                showAttachmentBanner(
+                    option.dataset.filename,
+                    lastSimilarityScore
+                );
+
+            }
+        );
+
+
+    /* =========================================================
+       SHOW ATTACHED REPORT
+    ========================================================= */
+
+    function showAttachmentBanner(
+        filename,
+        score
+    ) {
+
+        const banner =
+            document.getElementById(
+                'attachmentBanner'
+            );
+
+
+        document.getElementById(
+            'attachedDetails'
+        ).textContent =
+            `Document: ${filename} | Plagiarism Similarity: ${score}%`;
+
+
+        banner.style.display =
+            'flex';
 
     }
 
@@ -837,6 +1091,12 @@
                     ).value.trim();
 
 
+                const problem =
+                    document.getElementById(
+                        'problem_statement'
+                    ).value.trim();
+
+
                 const result =
                     document.getElementById(
                         'scan-result'
@@ -855,10 +1115,10 @@
                     );
 
 
-                if (!title || !abstract) {
+                if (!title || (!abstract && !problem)) {
 
                     alert(
-                        'Please enter the topic title and abstract before running the plagiarism pre-check.'
+                        'Please enter the topic title and either the abstract or problem statement before running the plagiarism pre-check.'
                     );
 
                     return;
@@ -872,7 +1132,6 @@
                 badge.className =
                     'similarity-badge badge-low';
 
-
                 badge.textContent =
                     'Analyzing...';
 
@@ -883,10 +1142,9 @@
 
                 try {
 
-                    /*
-                     * If the project already has the API client,
-                     * use the API endpoint.
-                     */
+                    /* -----------------------------------------
+                       API CLIENT IF AVAILABLE
+                    ----------------------------------------- */
 
                     if (
                         typeof window.apiClient !== 'undefined' &&
@@ -898,9 +1156,12 @@
                                 '/plagiarism/check',
                                 {
                                     method: 'POST',
+
                                     body: JSON.stringify({
                                         title: title,
-                                        abstract: abstract
+                                        abstract:
+                                            abstract ||
+                                            problem
                                     })
                                 }
                             );
@@ -927,17 +1188,17 @@
                     }
 
 
-                    /*
-                     * Fallback:
-                     * Perform a simple local keyword similarity
-                     * check if apiClient is unavailable.
-                     */
+                    /* -----------------------------------------
+                       LOCAL FALLBACK PRE-CHECK
+                    ----------------------------------------- */
 
                     const combinedText =
                         (
                             title +
                             ' ' +
-                            abstract
+                            abstract +
+                            ' ' +
+                            problem
                         ).toLowerCase();
 
 
@@ -971,7 +1232,9 @@
                                     term
                                 )
                             ) {
+
                                 matches++;
+
                             }
 
                         }
@@ -996,15 +1259,20 @@
 
                     displayScanResult(
                         score,
-                        'Local similarity pre-check completed. Connect your plagiarism API for repository-wide analysis.'
+                        'Local similarity pre-check completed. Connect the plagiarism analysis service for repository-wide comparison.'
                     );
 
 
                 } catch (error) {
 
+                    console.error(
+                        'Plagiarism scan error:',
+                        error
+                    );
+
+
                     badge.className =
                         'similarity-badge badge-high';
-
 
                     badge.textContent =
                         'Scan Failed';
@@ -1132,9 +1400,15 @@
                     ).value.trim();
 
 
+                const researchArea =
+                    document.getElementById(
+                        'research_area'
+                    ).value.trim();
+
+
                 const problem =
                     document.getElementById(
-                        'problem'
+                        'problem_statement'
                     ).value.trim();
 
 
@@ -1150,15 +1424,19 @@
                     ).value.trim();
 
 
-                const researchArea =
+                const reportSelect =
                     document.getElementById(
-                        'researchArea'
-                    ).value;
+                        'plagiarism_report_id'
+                    );
+
+
+                const selectedReportId =
+                    reportSelect.value || null;
 
 
                 if (
                     !title ||
-                    !abstract ||
+                    !researchArea ||
                     !problem ||
                     !objectives ||
                     !keywords
@@ -1173,26 +1451,50 @@
 
 
                 /*
-                 * Prevent final submission when the latest
-                 * pre-check shows excessive similarity.
+                 * If the user selected a report,
+                 * use its score as the topic similarity score.
+                 */
+
+                if (selectedReportId) {
+
+                    const selectedOption =
+                        reportSelect.options[
+                            reportSelect.selectedIndex
+                        ];
+
+
+                    attachedReportId =
+                        selectedReportId;
+
+
+                    lastSimilarityScore =
+                        Number(
+                            selectedOption.dataset.score ||
+                            0
+                        );
+
+                }
+
+
+                /*
+                 * Warn when similarity is high.
                  */
 
                 if (
                     lastSimilarityScore !== null &&
-                    lastSimilarityScore > 40 &&
-                    !attachedReportId
+                    lastSimilarityScore > 40
                 ) {
 
                     const proceed =
                         confirm(
-                            'The plagiarism similarity score is ' +
-                            lastSimilarityScore +
-                            '%. Do you still want to submit this topic?'
+                            `The plagiarism similarity score is ${lastSimilarityScore}%. Do you still want to submit this topic?`
                         );
 
 
                     if (!proceed) {
+
                         return;
+
                     }
 
                 }
@@ -1204,7 +1506,8 @@
                     );
 
 
-                btn.disabled = true;
+                btn.disabled =
+                    true;
 
 
                 btn.innerHTML =
@@ -1213,6 +1516,24 @@
 
                 try {
 
+                    /*
+                     * IMPORTANT:
+                     * This uses the addTopic() helper
+                     * from supabase-config.js.
+                     */
+
+                    if (
+                        typeof window.addTopic !==
+                        'function'
+                    ) {
+
+                        throw new Error(
+                            'addTopic() was not found. Please check your supabase-config.js file.'
+                        );
+
+                    }
+
+
                     const payload = {
 
                         student_id:
@@ -1220,9 +1541,6 @@
 
                         title:
                             title,
-
-                        abstract:
-                            abstract,
 
                         problem_statement:
                             problem,
@@ -1249,21 +1567,12 @@
 
 
                     /*
-                     * Use the existing Supabase helper
-                     * from supabase-config.js
+                     * Only include abstract if your topics
+                     * table has an abstract column.
+                     *
+                     * Currently omitted intentionally so
+                     * the payload matches the agreed schema.
                      */
-
-                    if (
-                        typeof window.addTopic !==
-                        'function'
-                    ) {
-
-                        throw new Error(
-                            'addTopic() was not found. Check your supabase-config.js file.'
-                        );
-
-                    }
-
 
                     await window.addTopic(
                         payload
@@ -1271,13 +1580,12 @@
 
 
                     alert(
-                        '✅ Topic and plagiarism information successfully submitted to your supervisor!'
+                        '✅ Research topic successfully submitted to your supervisor!'
                     );
 
 
                     /*
-                     * Redirect to approval status page.
-                     * NOTE: "real-" has intentionally been removed.
+                     * No "real-" prefix.
                      */
 
                     window.location.href =
@@ -1287,18 +1595,19 @@
                 } catch (error) {
 
                     console.error(
-                        'Submission error:',
+                        'Topic submission error:',
                         error
                     );
 
 
                     alert(
-                        'Submission error: ' +
+                        'Error submitting topic: ' +
                         error.message
                     );
 
 
-                    btn.disabled = false;
+                    btn.disabled =
+                        false;
 
 
                     btn.innerHTML =
@@ -1324,4 +1633,4 @@
 </script>
 
 </body>
-  </html>
+    </html>
