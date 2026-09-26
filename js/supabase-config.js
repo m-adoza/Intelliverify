@@ -1,382 +1,412 @@
-// ============================================================
-// INTELLIVERIFY - SUPABASE CONFIGURATION
-// ============================================================
-// Shared frontend configuration
-//
-// Location:
-// intelliverify/js/supabase-config.js
-//
-// Used by:
-// fronted/login.html
-// fronted/register.html
-// fronted/student/*.html
-// fronted/admin/*.html
-//
-// IMPORTANT:
-// This file contains ONLY the Supabase ANON/PUBLISHABLE key.
-// NEVER put the Supabase service_role/secret key here.
-// ============================================================
+/* ============================================================
+   INTELLIVERIFY - SUPABASE CONFIGURATION
+   Location:
+   /js/supabase-config.js
 
+   Used by:
+   - Login
+   - Registration
+   - Student dashboard
+   - Topic submission
+   - Approval status
+   - Plagiarism reports
+   - Messages
+   - Supabase Storage uploads
 
-// ============================================================
-// 1. SUPABASE CONNECTION
-// ============================================================
+   IMPORTANT:
+   The anon key is safe to expose in frontend code.
+   NEVER put the Supabase SERVICE ROLE KEY here.
+   ============================================================ */
 
-const SUPABASE_URL =
-    'https://yxgxzflcgrzfndzxqibg.supabase.co';
+(function () {
+    'use strict';
 
-const SUPABASE_ANON_KEY =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzIiwicmVmIjoieXhnemZsY2dyemZuZHp4cWliZyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkwMjQzOTA1LCJleHAiOjIxMDU4MTk5MDV9.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
+    /* ============================================================
+       SUPABASE CONNECTION
+       ============================================================ */
 
+    const SUPABASE_URL =
+        'https://yxgxzflcgrzfndzxqibg.supabase.co';
 
-// ============================================================
-// 2. STORAGE CONFIGURATION
-// ============================================================
+    const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6Inl4Z3h6ZmxjZ3J6Zm5kenhxaWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyNDM5MDUsImV4cCI6MjEwNTgxOTkwNX0.DK159oguwZwpw31QoaEB0x0Rz4wTICJo6M5yrmVMwkM';
 
-const DOCUMENT_BUCKET =
-    'project-documents';
+    const STORAGE_BUCKET = 'project-documents';
 
+    /* ============================================================
+       CHECK SUPABASE LIBRARY
+       ============================================================ */
 
-// Allowed document formats for IntelliVerify
-const ALLOWED_DOCUMENT_TYPES = [
-    'application/pdf',
+    if (!window.supabase) {
+        console.error(
+            'IntelliVerify: Supabase JavaScript library was not loaded.'
+        );
+        return;
+    }
 
-    'application/msword',
+    /* ============================================================
+       CREATE SUPABASE CLIENT
+       ============================================================ */
 
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-
-    'text/plain'
-];
-
-
-// Maximum upload size
-// Your Supabase bucket is currently configured for 10 MB.
-const MAX_DOCUMENT_SIZE =
-    10 * 1024 * 1024;
-
-
-// ============================================================
-// 3. CREATE SUPABASE CLIENT
-// ============================================================
-
-if (!window.supabase) {
-
-    console.error(
-        'Supabase JavaScript library was not loaded.'
-    );
-
-} else {
-
-    window.supabaseClient =
+    const supabaseClient =
         window.supabase.createClient(
             SUPABASE_URL,
-            SUPABASE_ANON_KEY
+            SUPABASE_ANON_KEY,
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            }
         );
 
-}
+    /* ============================================================
+       EXPOSE CLIENT GLOBALLY
+       ============================================================ */
+
+    window.supabaseClient = supabaseClient;
+
+    window.INTELLIVERIFY_SUPABASE_URL = SUPABASE_URL;
+    window.INTELLIVERIFY_STORAGE_BUCKET = STORAGE_BUCKET;
 
 
-// ============================================================
-// 4. GET CURRENT AUTHENTICATED USER
-// ============================================================
+    /* ============================================================
+       GET CURRENT AUTHENTICATED USER
+       ============================================================ */
 
-window.getCurrentUser = async function () {
+    window.getCurrentUser = async function () {
 
-    if (!window.supabaseClient) {
-        throw new Error(
-            'Supabase client is not initialized.'
-        );
-    }
-
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient.auth.getUser();
-
-    if (error) {
-
-        console.error(
-            'Get current user error:',
+        const {
+            data,
             error
-        );
+        } = await supabaseClient.auth.getUser();
 
-        return null;
-    }
+        if (error) {
+            console.error(
+                'getCurrentUser error:',
+                error
+            );
 
-    return data?.user || null;
-};
+            return null;
+        }
+
+        return data?.user || null;
+    };
 
 
-// ============================================================
-// 5. GET CURRENT SESSION
-// ============================================================
+    /* ============================================================
+       GET CURRENT SESSION
+       ============================================================ */
 
-window.getCurrentSession = async function () {
+    window.getCurrentSession = async function () {
 
-    if (!window.supabaseClient) {
-        throw new Error(
-            'Supabase client is not initialized.'
-        );
-    }
-
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient.auth.getSession();
-
-    if (error) {
-
-        console.error(
-            'Get session error:',
+        const {
+            data,
             error
-        );
+        } = await supabaseClient.auth.getSession();
 
-        return null;
-    }
+        if (error) {
+            console.error(
+                'getCurrentSession error:',
+                error
+            );
 
-    return data?.session || null;
-};
+            return null;
+        }
 
-
-// ============================================================
-// 6. LOGIN USER
-// ============================================================
-// This fixes the previous:
-// "Login service is unavailable"
-// problem.
-//
-// We authenticate directly through Supabase Auth using
-// the safe frontend ANON key.
-//
-// The user's profile is then loaded from public.profiles.
-// ============================================================
-
-window.loginUser = async function (
-    email,
-    password
-) {
-
-    if (!email || !password) {
-
-        throw new Error(
-            'Email and password are required.'
-        );
-
-    }
+        return data?.session || null;
+    };
 
 
-    if (!window.supabaseClient) {
+    /* ============================================================
+       GET USER PROFILE
+       ============================================================ */
 
-        throw new Error(
-            'Supabase client is not initialized.'
-        );
+    window.getUserProfile = async function (userId = null) {
 
-    }
+        try {
+
+            let id = userId;
+
+            if (!id) {
+
+                const user =
+                    await window.getCurrentUser();
+
+                if (!user) {
+                    return null;
+                }
+
+                id = user.id;
+            }
 
 
-    // Authenticate with Supabase Auth
-    const {
-        data: authData,
-        error: authError
-    } =
-        await window.supabaseClient.auth.signInWithPassword({
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .from('profiles')
+                .select(`
+                    id,
+                    email,
+                    full_name,
+                    role,
+                    department,
+                    created_at
+                `)
+                .eq('id', id)
+                .single();
+
+
+            if (error) {
+
+                console.error(
+                    'Profile lookup error:',
+                    error
+                );
+
+                return null;
+            }
+
+
+            return data;
+
+        } catch (error) {
+
+            console.error(
+                'getUserProfile error:',
+                error
+            );
+
+            return null;
+        }
+    };
+
+
+    /* ============================================================
+       LOGIN USER
+       ============================================================ */
+
+    window.loginUser = async function (
+        email,
+        password
+    ) {
+
+        if (!email || !password) {
+            throw new Error(
+                'Email and password are required.'
+            );
+        }
+
+
+        /* --------------------------------------------------------
+           AUTHENTICATE WITH SUPABASE
+           -------------------------------------------------------- */
+
+        const {
+            data: authData,
+            error: authError
+        } = await supabaseClient.auth.signInWithPassword({
             email: email.trim(),
             password: password
         });
 
 
-    if (authError) {
+        if (authError) {
 
-        console.error(
-            'Supabase login error:',
-            authError
-        );
+            console.error(
+                'Supabase login error:',
+                authError
+            );
 
-        throw new Error(
-            authError.message ||
-            'Invalid email or password.'
-        );
-
-    }
-
-
-    const user =
-        authData?.user;
+            throw new Error(
+                authError.message ||
+                'Invalid email or password.'
+            );
+        }
 
 
-    if (!user) {
-
-        throw new Error(
-            'Login succeeded but no user was returned.'
-        );
-
-    }
+        const user = authData?.user;
 
 
-    // Retrieve application profile
-    const {
-        data: profile,
-        error: profileError
-    } =
-        await window.supabaseClient
-            .from('profiles')
-            .select(
-                'id, email, full_name, role, department, created_at'
-            )
-            .eq(
-                'id',
-                user.id
-            )
-            .single();
+        if (!user) {
+
+            throw new Error(
+                'Login succeeded but no user account was returned.'
+            );
+        }
 
 
-    if (profileError) {
+        /* --------------------------------------------------------
+           GET PROFILE
+           -------------------------------------------------------- */
 
-        console.error(
-            'Profile lookup error:',
-            profileError
-        );
-
-        // Authentication succeeded, but profile was not found.
-        // We sign out so the application doesn't leave the user
-        // in a partially authenticated state.
-        await window.supabaseClient.auth.signOut();
-
-        throw new Error(
-            'Login succeeded, but your IntelliVerify profile could not be loaded.'
-        );
-
-    }
+        let profile =
+            await window.getUserProfile(user.id);
 
 
-    return profile;
+        /* --------------------------------------------------------
+           FALLBACK TO AUTH METADATA
+           -------------------------------------------------------- */
 
-};
+        if (!profile) {
+
+            profile = {
+
+                id: user.id,
+
+                email:
+                    user.email || email,
+
+                full_name:
+                    user.user_metadata?.full_name ||
+                    'Academic User',
+
+                role:
+                    user.user_metadata?.role ||
+                    'student',
+
+                department:
+                    user.user_metadata?.department ||
+                    'Computer Science',
+
+                created_at:
+                    user.created_at
+            };
+        }
 
 
-// ============================================================
-// 7. LOGOUT / SIGN OUT
-// ============================================================
+        /* --------------------------------------------------------
+           NORMALIZE ROLE
+           -------------------------------------------------------- */
 
-window.signOutUser = async function () {
-
-    if (!window.supabaseClient) {
-        window.location.href = '/';
-        return;
-    }
+        profile.role =
+            String(
+                profile.role || 'student'
+            ).toLowerCase().trim();
 
 
-    const {
-        error
-    } =
-        await window.supabaseClient.auth.signOut();
+        /* --------------------------------------------------------
+           SAVE PROFILE LOCALLY
+           -------------------------------------------------------- */
+
+        try {
+
+            localStorage.setItem(
+                'intelliverify_profile',
+                JSON.stringify(profile)
+            );
+
+        } catch (storageError) {
+
+            console.warn(
+                'Could not save profile locally:',
+                storageError
+            );
+        }
 
 
-    if (error) {
+        return profile;
+    };
 
-        console.error(
-            'Sign out error:',
+
+    /* ============================================================
+       LOGOUT
+       ============================================================ */
+
+    window.logoutUser = async function () {
+
+        const {
             error
-        );
+        } = await supabaseClient.auth.signOut();
 
-        throw error;
-    }
+        if (error) {
 
+            console.error(
+                'Logout error:',
+                error
+            );
 
-    window.location.href = '/';
-
-};
-
-
-// Backward-compatible logout alias
-window.logoutUser = window.signOutUser;
+            throw error;
+        }
 
 
-// ============================================================
-// 8. GET CURRENT USER PROFILE
-// ============================================================
+        try {
 
-window.getCurrentUserProfile = async function () {
+            localStorage.removeItem(
+                'intelliverify_profile'
+            );
 
-    const user =
-        await window.getCurrentUser();
+        } catch (error) {
 
-
-    if (!user) {
-        return null;
-    }
-
-
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
-            .from('profiles')
-            .select(
-                'id, email, full_name, role, department, created_at'
-            )
-            .eq(
-                'id',
-                user.id
-            )
-            .single();
+            console.warn(
+                'Could not clear local profile:',
+                error
+            );
+        }
+    };
 
 
-    if (error) {
+    /* ============================================================
+       STORAGE - UPLOAD DOCUMENT
+       ============================================================ */
 
-        console.error(
-            'Error fetching user profile:',
-            error
-        );
-
-        throw error;
-    }
-
-
-    return data;
-
-};
-
-
-// ============================================================
-// 9. DOCUMENT VALIDATION
-// ============================================================
-
-window.validateDocumentFile = function (file) {
-
-    if (!file) {
-
-        throw new Error(
-            'Please select a document.'
-        );
-
-    }
-
-
-    if (
-        !ALLOWED_DOCUMENT_TYPES.includes(
-            file.type
-        )
+    window.uploadDocument = async function (
+        file,
+        folder = 'documents'
     ) {
 
-        // Some browsers may not correctly identify .doc/.docx.
-        // Check extension as a fallback.
-        const extension =
-            file.name
-                .split('.')
-                .pop()
-                .toLowerCase();
+        if (!file) {
+            throw new Error(
+                'No document was selected.'
+            );
+        }
+
+
+        const user =
+            await window.getCurrentUser();
+
+
+        if (!user) {
+            throw new Error(
+                'You must be logged in before uploading a document.'
+            );
+        }
+
+
+        /* --------------------------------------------------------
+           ALLOWED FILE TYPES
+           -------------------------------------------------------- */
+
+        const allowedTypes = [
+
+            'application/pdf',
+
+            'application/msword',
+
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+
+            'text/plain',
+
+            'application/vnd.oasis.opendocument.text'
+        ];
 
 
         const allowedExtensions = [
             'pdf',
             'doc',
             'docx',
-            'txt'
+            'txt',
+            'odt'
         ];
+
+
+        const extension =
+            file.name
+                .split('.')
+                .pop()
+                .toLowerCase();
 
 
         if (
@@ -386,107 +416,75 @@ window.validateDocumentFile = function (file) {
         ) {
 
             throw new Error(
-                'Unsupported document format. Please upload PDF, DOC, DOCX, or TXT.'
+                'Unsupported file type. Please upload PDF, DOC, DOCX, TXT or ODT.'
             );
-
         }
 
-    }
+
+        /* --------------------------------------------------------
+           SIZE CHECK
+           -------------------------------------------------------- */
+
+        const maxSize =
+            10 * 1024 * 1024;
 
 
-    if (
-        file.size >
-        MAX_DOCUMENT_SIZE
-    ) {
+        if (file.size > maxSize) {
 
-        throw new Error(
-            'File is too large. Maximum allowed size is 10 MB.'
-        );
-
-    }
-
-
-    return true;
-
-};
-
-
-// ============================================================
-// 10. UPLOAD DOCUMENT TO SUPABASE STORAGE
-// ============================================================
-//
-// Storage bucket:
-//
-// project-documents
-//
-// Files are organized as:
-//
-// project-documents/
-//     user-id/
-//         timestamp-filename
-//
-// The function returns the storage path.
-//
-// We store the PATH in plagiarism_reports.file_url.
-// This is safer than storing a temporary signed URL.
-// ============================================================
-
-window.uploadDocument = async function (
-    file
-) {
-
-    const user =
-        await window.getCurrentUser();
-
-
-    if (!user) {
-
-        throw new Error(
-            'You must be logged in before uploading a document.'
-        );
-
-    }
-
-
-    window.validateDocumentFile(
-        file
-    );
-
-
-    // Clean filename
-    const cleanFilename =
-        file.name
-            .replace(
-                /[^a-zA-Z0-9._-]/g,
-                '_'
+            throw new Error(
+                'File is too large. Maximum allowed size is 10 MB.'
             );
+        }
 
 
-    const timestamp =
-        Date.now();
+        /* --------------------------------------------------------
+           SAFE FILE NAME
+           -------------------------------------------------------- */
+
+        const cleanName =
+            file.name
+                .replace(
+                    /[^a-zA-Z0-9._-]/g,
+                    '_'
+                );
 
 
-    const storagePath =
-        `${user.id}/${timestamp}-${cleanFilename}`;
+        const timestamp =
+            Date.now();
 
 
-    console.log(
-        'Uploading document:',
-        storagePath
-    );
+        const randomPart =
+            Math.random()
+                .toString(36)
+                .substring(2, 10);
 
 
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
+        /*
+         * Every user gets their own folder.
+         *
+         * Example:
+         *
+         * documents/
+         *   USER_UUID/
+         *      1758890000-ab12-topic.docx
+         */
+
+        const filePath =
+            `${folder}/${user.id}/${timestamp}-${randomPart}-${cleanName}`;
+
+
+        /* --------------------------------------------------------
+           UPLOAD TO SUPABASE STORAGE
+           -------------------------------------------------------- */
+
+        const {
+            data,
+            error
+        } = await supabaseClient
             .storage
-            .from(
-                DOCUMENT_BUCKET
-            )
+            .from(STORAGE_BUCKET)
             .upload(
-                storagePath,
+                filePath,
                 file,
                 {
                     cacheControl: '3600',
@@ -498,537 +496,280 @@ window.uploadDocument = async function (
             );
 
 
-    if (error) {
+        if (error) {
 
-        console.error(
-            'Document upload error:',
-            error
-        );
+            console.error(
+                'Storage upload error:',
+                error
+            );
 
-        throw new Error(
-            'Document upload failed: ' +
-            error.message
-        );
+            throw new Error(
+                'Document upload failed: ' +
+                error.message
+            );
+        }
 
-    }
 
+        return {
 
-    return {
+            path:
+                data.path,
 
-        path:
-            data.path,
+            fullPath:
+                data.fullPath,
 
-        fullPath:
-            data.fullPath,
+            filename:
+                file.name,
 
-        filename:
-            file.name,
+            size:
+                file.size,
 
-        fileFormat:
-            file.name
-                .split('.')
-                .pop()
-                .toLowerCase(),
+            type:
+                file.type,
 
-        size:
-            file.size,
+            extension:
+                extension,
 
-        mimeType:
-            file.type
-
+            bucket:
+                STORAGE_BUCKET
+        };
     };
 
-};
+
+    /* ============================================================
+       STORAGE - GET SIGNED URL
+       ============================================================ */
+
+    window.getDocumentUrl = async function (
+        filePath,
+        expiresIn = 3600
+    ) {
+
+        if (!filePath) {
+            throw new Error(
+                'Document path is required.'
+            );
+        }
 
 
-// ============================================================
-// 11. CREATE SIGNED DOCUMENT URL
-// ============================================================
-//
-// Useful if project-documents is a PRIVATE bucket.
-//
-// URL expires after the requested number of seconds.
-// ============================================================
-
-window.getDocumentSignedUrl = async function (
-    storagePath,
-    expiresIn = 3600
-) {
-
-    if (!storagePath) {
-
-        throw new Error(
-            'Storage path is required.'
-        );
-
-    }
-
-
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
+        const {
+            data,
+            error
+        } = await supabaseClient
             .storage
-            .from(
-                DOCUMENT_BUCKET
-            )
+            .from(STORAGE_BUCKET)
             .createSignedUrl(
-                storagePath,
+                filePath,
                 expiresIn
             );
 
 
-    if (error) {
+        if (error) {
 
-        console.error(
-            'Signed URL error:',
-            error
-        );
-
-        throw error;
-    }
-
-
-    return data?.signedUrl || null;
-
-};
-
-
-// ============================================================
-// 12. DELETE DOCUMENT FROM STORAGE
-// ============================================================
-
-window.deleteDocument = async function (
-    storagePath
-) {
-
-    if (!storagePath) {
-
-        throw new Error(
-            'Storage path is required.'
-        );
-
-    }
-
-
-    const {
-        data: files,
-        error: listError
-    } =
-        await window.supabaseClient
-            .storage
-            .from(
-                DOCUMENT_BUCKET
-            )
-            .list(
-                storagePath.split('/')[0]
+            console.error(
+                'Signed URL error:',
+                error
             );
 
-
-    // We don't require the list operation to succeed for deletion.
-    // The actual remove operation below determines the result.
-
-    if (listError) {
-        console.warn(
-            'Storage list warning:',
-            listError
-        );
-    }
+            throw new Error(
+                'Could not generate document URL: ' +
+                error.message
+            );
+        }
 
 
-    const {
-        error
-    } =
-        await window.supabaseClient
-            .storage
-            .from(
-                DOCUMENT_BUCKET
-            )
-            .remove([
-                storagePath
-            ]);
-
-
-    if (error) {
-
-        console.error(
-            'Document deletion error:',
-            error
-        );
-
-        throw error;
-    }
-
-
-    return true;
-
-};
-
-
-// ============================================================
-// 13. ADD PLAGIARISM REPORT
-// ============================================================
-
-window.addPlagiarismReport = async function (
-    reportData
-) {
-
-    const userId =
-        reportData.user_id;
-
-
-    if (!userId) {
-
-        throw new Error(
-            'User ID is required to create a plagiarism report.'
-        );
-
-    }
-
-
-    const similarityScore =
-        Number(
-            reportData.similarity_score ??
-            reportData.similarity ??
-            0
-        );
-
-
-    const payload = {
-
-        user_id:
-            userId,
-
-        filename:
-            reportData.filename,
-
-        file_format:
-            reportData.file_format,
-
-        similarity_score:
-            similarityScore,
-
-        risk_level:
-            reportData.risk_level ||
-            'low',
-
-        matches:
-            reportData.matches ||
-            [],
-
-        recommendation:
-            reportData.recommendation ||
-            null,
-
-        file_url:
-            reportData.file_url ||
-            null
-
+        return data.signedUrl;
     };
 
 
-    console.log(
-        'Saving plagiarism report:',
-        payload
-    );
+    /* ============================================================
+       STORAGE - DELETE DOCUMENT
+       ============================================================ */
+
+    window.deleteDocument = async function (
+        filePath
+    ) {
+
+        if (!filePath) {
+            throw new Error(
+                'Document path is required.'
+            );
+        }
 
 
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
-            .from(
-                'plagiarism_reports'
-            )
+        const {
+            error
+        } = await supabaseClient
+            .storage
+            .from(STORAGE_BUCKET)
+            .remove([
+                filePath
+            ]);
+
+
+        if (error) {
+
+            console.error(
+                'Delete document error:',
+                error
+            );
+
+            throw new Error(
+                'Could not delete document: ' +
+                error.message
+            );
+        }
+
+
+        return true;
+    };
+
+
+    /* ============================================================
+       CREATE PLAGIARISM REPORT RECORD
+       ============================================================ */
+
+    window.createPlagiarismReport = async function ({
+        filename,
+        fileFormat,
+        similarityScore = 0,
+        riskLevel = 'low',
+        matches = [],
+        recommendation = '',
+        fileUrl = null
+    }) {
+
+        const user =
+            await window.getCurrentUser();
+
+
+        if (!user) {
+
+            throw new Error(
+                'You must be logged in.'
+            );
+        }
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from('plagiarism_reports')
             .insert([
-                payload
+                {
+
+                    user_id:
+                        user.id,
+
+                    filename:
+                        filename,
+
+                    file_format:
+                        fileFormat,
+
+                    similarity_score:
+                        similarityScore,
+
+                    risk_level:
+                        riskLevel,
+
+                    matches:
+                        matches,
+
+                    recommendation:
+                        recommendation,
+
+                    file_url:
+                        fileUrl
+                }
             ])
             .select()
             .single();
 
 
-    if (error) {
-
-        console.error(
-            'Error creating plagiarism report:',
-            error
-        );
-
-        throw error;
-    }
-
-
-    return data;
-
-};
-
-
-// ============================================================
-// 14. GET PLAGIARISM REPORTS FOR CURRENT USER
-// ============================================================
-
-window.getPlagiarismReportsForUser =
-    async function (
-        userId
-    ) {
-
-        if (!userId) {
-
-            throw new Error(
-                'User ID is required.'
-            );
-
-        }
-
-
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .from(
-                    'plagiarism_reports'
-                )
-                .select('*')
-                .eq(
-                    'user_id',
-                    userId
-                )
-                .order(
-                    'created_at',
-                    {
-                        ascending: false
-                    }
-                );
-
-
         if (error) {
 
             console.error(
-                'Error loading plagiarism reports:',
+                'Create plagiarism report error:',
                 error
             );
 
             throw error;
-
-        }
-
-
-        return data || [];
-
-    };
-
-
-// ============================================================
-// 15. GET SINGLE PLAGIARISM REPORT
-// ============================================================
-
-window.getPlagiarismReport =
-    async function (
-        reportId
-    ) {
-
-        if (!reportId) {
-
-            throw new Error(
-                'Report ID is required.'
-            );
-
-        }
-
-
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .from(
-                    'plagiarism_reports'
-                )
-                .select('*')
-                .eq(
-                    'report_id',
-                    reportId
-                )
-                .single();
-
-
-        if (error) {
-
-            console.error(
-                'Error fetching plagiarism report:',
-                error
-            );
-
-            throw error;
-
         }
 
 
         return data;
-
     };
 
 
-// ============================================================
-// 16. ADD / SUBMIT TOPIC
-// ============================================================
+    /* ============================================================
+       GET USER'S PLAGIARISM REPORTS
+       ============================================================ */
 
-window.addTopic = async function (
-    topicData
-) {
+    window.getMyPlagiarismReports = async function () {
 
-    if (!topicData.student_id) {
-
-        throw new Error(
-            'Student ID is required.'
-        );
-
-    }
+        const user =
+            await window.getCurrentUser();
 
 
-    if (!topicData.title) {
-
-        throw new Error(
-            'Topic title is required.'
-        );
-
-    }
+        if (!user) {
+            return [];
+        }
 
 
-    if (!topicData.problem_statement) {
-
-        throw new Error(
-            'Problem statement is required.'
-        );
-
-    }
-
-
-    if (!topicData.objectives) {
-
-        throw new Error(
-            'Objectives are required.'
-        );
-
-    }
-
-
-    if (!topicData.research_area) {
-
-        throw new Error(
-            'Research area is required.'
-        );
-
-    }
-
-
-    const payload = {
-
-        student_id:
-            topicData.student_id,
-
-        title:
-            topicData.title,
-
-        problem_statement:
-            topicData.problem_statement,
-
-        objectives:
-            topicData.objectives,
-
-        keywords:
-            topicData.keywords ||
-            null,
-
-        research_area:
-            topicData.research_area,
-
-        plagiarism_report_id:
-            topicData.plagiarism_report_id ||
-            null,
-
-        status:
-            topicData.status ||
-            'pending'
-
-    };
-
-
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
-            .from(
-                'topics'
-            )
-            .insert([
-                payload
-            ])
-            .select()
-            .single();
-
-
-    if (error) {
-
-        console.error(
-            'Error submitting topic:',
+        const {
+            data,
             error
-        );
-
-        throw error;
-
-    }
-
-
-    return data;
-
-};
-
-
-// ============================================================
-// 17. GET CURRENT STUDENT TOPICS
-// ============================================================
-
-window.getMyTopics = async function (
-    studentId
-) {
-
-    if (!studentId) {
-
-        throw new Error(
-            'Student ID is required.'
-        );
-
-    }
+        } = await supabaseClient
+            .from('plagiarism_reports')
+            .select('*')
+            .eq('user_id', user.id)
+            .order(
+                'created_at',
+                {
+                    ascending: false
+                }
+            );
 
 
-    const {
-        data,
-        error
-    } =
-        await window.supabaseClient
-            .from(
-                'topics'
-            )
-            .select(`
-                topic_id,
-                title,
-                problem_statement,
-                objectives,
-                keywords,
-                research_area,
-                status,
-                plagiarism_report_id,
-                submitted_at
-            `)
-            .eq(
-                'student_id',
-                studentId
-            )
+        if (error) {
+
+            console.error(
+                'Load plagiarism reports error:',
+                error
+            );
+
+            throw error;
+        }
+
+
+        return data || [];
+    };
+
+
+    /* ============================================================
+       GET USER'S TOPICS
+       ============================================================ */
+
+    window.getMyTopics = async function () {
+
+        const user =
+            await window.getCurrentUser();
+
+
+        if (!user) {
+            return [];
+        }
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from('topics')
+            .select('*')
+            .eq('student_id', user.id)
             .order(
                 'submitted_at',
                 {
@@ -1037,604 +778,219 @@ window.getMyTopics = async function (
             );
 
 
-    if (error) {
-
-        console.error(
-            'Error fetching student topics:',
-            error
-        );
-
-        throw error;
-
-    }
-
-
-    return data || [];
-
-};
-
-
-// Compatibility function.
-// Your older approval-status.html calls getStudentTopics().
-window.getStudentTopics = async function (
-    studentId
-) {
-
-    const topics =
-        await window.getMyTopics(
-            studentId
-        );
-
-
-    // Attach the corresponding plagiarism report
-    // to each topic when one exists.
-    const reportIds =
-        topics
-            .map(
-                topic =>
-                    topic.plagiarism_report_id
-            )
-            .filter(Boolean);
-
-
-    if (reportIds.length === 0) {
-
-        return topics;
-
-    }
-
-
-    const {
-        data: reports,
-        error
-    } =
-        await window.supabaseClient
-            .from(
-                'plagiarism_reports'
-            )
-            .select('*')
-            .in(
-                'report_id',
-                reportIds
-            );
-
-
-    if (error) {
-
-        console.warn(
-            'Could not load topic plagiarism reports:',
-            error
-        );
-
-        return topics;
-
-    }
-
-
-    return topics.map(
-        topic => ({
-
-            ...topic,
-
-            plagiarism_reports:
-                reports?.find(
-                    report =>
-                        report.report_id ===
-                        topic.plagiarism_report_id
-                ) || null
-
-        })
-    );
-
-};
-
-
-// ============================================================
-// 18. GET ALL TOPICS WITH REPORTS
-// ============================================================
-
-window.getAdminTopicsWithReports =
-    async function () {
-
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .from(
-                    'topics'
-                )
-                .select(`
-                    topic_id,
-                    title,
-                    problem_statement,
-                    objectives,
-                    keywords,
-                    research_area,
-                    status,
-                    submitted_at,
-                    student_id,
-                    plagiarism_report_id,
-                    plagiarism_reports (
-                        report_id,
-                        user_id,
-                        filename,
-                        file_format,
-                        similarity_score,
-                        risk_level,
-                        matches,
-                        recommendation,
-                        file_url,
-                        created_at
-                    )
-                `)
-                .order(
-                    'submitted_at',
-                    {
-                        ascending: false
-                    }
-                );
-
-
         if (error) {
 
             console.error(
-                'Error fetching admin topics:',
+                'Load topics error:',
                 error
             );
 
             throw error;
-
         }
 
 
         return data || [];
-
     };
 
 
-// ============================================================
-// 19. GET SINGLE TOPIC
-// ============================================================
+    /* ============================================================
+       GET SINGLE TOPIC
+       ============================================================ */
 
-window.getTopicById =
-    async function (
+    window.getTopic = async function (
         topicId
     ) {
 
-        if (!topicId) {
-
-            throw new Error(
-                'Topic ID is required.'
-            );
-
-        }
-
-
         const {
             data,
             error
-        } =
-            await window.supabaseClient
-                .from(
-                    'topics'
-                )
-                .select(`
-                    topic_id,
-                    title,
-                    problem_statement,
-                    objectives,
-                    keywords,
-                    research_area,
-                    status,
-                    submitted_at,
-                    student_id,
-                    plagiarism_report_id,
-                    plagiarism_reports (
-                        report_id,
-                        user_id,
-                        filename,
-                        file_format,
-                        similarity_score,
-                        risk_level,
-                        matches,
-                        recommendation,
-                        file_url,
-                        created_at
-                    )
-                `)
-                .eq(
-                    'topic_id',
-                    topicId
-                )
-                .single();
-
-
-        if (error) {
-
-            console.error(
-                'Error fetching topic:',
-                error
-            );
-
-            throw error;
-
-        }
-
-
-        return data;
-
-    };
-
-
-// ============================================================
-// 20. UPDATE TOPIC APPROVAL STATUS
-// ============================================================
-
-window.updateTopicStatus =
-    async function (
-        topicId,
-        newStatus
-    ) {
-
-        const allowedStatuses = [
-            'pending',
-            'approved',
-            'revision',
-            'rejected'
-        ];
-
-
-        if (
-            !allowedStatuses.includes(
-                newStatus
+        } = await supabaseClient
+            .from('topics')
+            .select('*')
+            .eq(
+                'topic_id',
+                topicId
             )
-        ) {
+            .single();
 
-            throw new Error(
-                'Invalid topic status.'
+
+        if (error) {
+
+            console.error(
+                'Get topic error:',
+                error
             );
 
+            throw error;
         }
 
 
-        if (!topicId) {
+        return data;
+    };
+
+
+    /* ============================================================
+       SUBMIT TOPIC
+       ============================================================ */
+
+    window.submitTopic = async function ({
+        title,
+        problemStatement,
+        objectives,
+        keywords,
+        researchArea,
+        plagiarismReportId = null
+    }) {
+
+        const user =
+            await window.getCurrentUser();
+
+
+        if (!user) {
 
             throw new Error(
-                'Topic ID is required.'
+                'You must be logged in to submit a topic.'
             );
+        }
 
+
+        if (!title ||
+            !problemStatement ||
+            !objectives ||
+            !researchArea
+        ) {
+
+            throw new Error(
+                'Please complete all required topic fields.'
+            );
         }
 
 
         const {
             data,
             error
-        } =
-            await window.supabaseClient
-                .from(
-                    'topics'
-                )
-                .update({
+        } = await supabaseClient
+            .from('topics')
+            .insert([
+                {
+
+                    student_id:
+                        user.id,
+
+                    title:
+                        title.trim(),
+
+                    problem_statement:
+                        problemStatement.trim(),
+
+                    objectives:
+                        objectives.trim(),
+
+                    keywords:
+                        keywords
+                            ? keywords.trim()
+                            : null,
+
+                    research_area:
+                        researchArea.trim(),
+
                     status:
-                        newStatus
-                })
-                .eq(
-                    'topic_id',
-                    topicId
-                )
-                .select()
-                .single();
+                        'pending',
+
+                    plagiarism_report_id:
+                        plagiarismReportId
+                }
+            ])
+            .select()
+            .single();
 
 
         if (error) {
 
             console.error(
-                'Error updating topic status:',
+                'Topic submission error:',
                 error
             );
 
             throw error;
-
         }
 
 
         return data;
-
     };
 
 
-// ============================================================
-// 21. SEND MESSAGE
-// ============================================================
+    /* ============================================================
+       GET PROFILE FROM LOCAL STORAGE
+       ============================================================ */
 
-window.sendMessage =
-    async function (
-        senderId,
-        receiverId,
-        content,
-        topicId = null
-    ) {
+    window.getCachedProfile = function () {
 
-        if (!senderId) {
+        try {
 
-            throw new Error(
-                'Sender ID is required.'
-            );
-
-        }
-
-
-        if (!receiverId) {
-
-            throw new Error(
-                'Receiver ID is required.'
-            );
-
-        }
-
-
-        if (
-            !content ||
-            !content.trim()
-        ) {
-
-            throw new Error(
-                'Message cannot be empty.'
-            );
-
-        }
-
-
-        const payload = {
-
-            sender_id:
-                senderId,
-
-            receiver_id:
-                receiverId,
-
-            content:
-                content.trim(),
-
-            topic_id:
-                topicId ||
-                null
-
-        };
-
-
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .from(
-                    'messages'
-                )
-                .insert([
-                    payload
-                ])
-                .select()
-                .single();
-
-
-        if (error) {
-
-            console.error(
-                'Error sending message:',
-                error
-            );
-
-            throw error;
-
-        }
-
-
-        return data;
-
-    };
-
-
-// ============================================================
-// 22. GET USER MESSAGES
-// ============================================================
-
-window.getUserMessages =
-    async function (
-        userId
-    ) {
-
-        if (!userId) {
-
-            throw new Error(
-                'User ID is required.'
-            );
-
-        }
-
-
-        const {
-            data,
-            error
-        } =
-            await window.supabaseClient
-                .from(
-                    'messages'
-                )
-                .select('*')
-                .or(
-                    `sender_id.eq.${userId},receiver_id.eq.${userId}`
-                )
-                .order(
-                    'created_at',
-                    {
-                        ascending: true
-                    }
+            const saved =
+                localStorage.getItem(
+                    'intelliverify_profile'
                 );
 
 
-        if (error) {
+            return saved
+                ? JSON.parse(saved)
+                : null;
 
-            console.error(
-                'Error fetching messages:',
-                error
-            );
+        } catch (error) {
 
-            throw error;
-
+            return null;
         }
-
-
-        return data || [];
-
     };
 
 
-// ============================================================
-// 23. TOAST HELPER
-// ============================================================
+    /* ============================================================
+       AUTH STATE LISTENER
+       ============================================================ */
 
-window.showToast =
-    function (
-        message,
-        type = 'info'
-    ) {
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
 
-        // Use existing application toast if one exists.
-        if (
-            window.__intelliVerifyOriginalToast &&
-            typeof window.__intelliVerifyOriginalToast ===
-                'function'
-        ) {
-
-            window.__intelliVerifyOriginalToast(
-                message,
-                type
-            );
-
-            return;
-
-        }
-
-
-        const toast =
-            document.createElement(
-                'div'
+            console.log(
+                'IntelliVerify auth event:',
+                event
             );
 
 
-        toast.textContent =
-            message;
+            if (session?.user) {
 
-
-        toast.style.position =
-            'fixed';
-
-        toast.style.bottom =
-            '25px';
-
-        toast.style.right =
-            '25px';
-
-        toast.style.zIndex =
-            '99999';
-
-        toast.style.padding =
-            '14px 20px';
-
-        toast.style.borderRadius =
-            '10px';
-
-        toast.style.color =
-            '#fff';
-
-        toast.style.fontFamily =
-            'Poppins, sans-serif';
-
-        toast.style.fontSize =
-            '14px';
-
-        toast.style.boxShadow =
-            '0 5px 20px rgba(0,0,0,0.2)';
-
-
-        if (
-            type === 'success'
-        ) {
-
-            toast.style.background =
-                '#198754';
-
-        }
-        else if (
-            type === 'danger' ||
-            type === 'error'
-        ) {
-
-            toast.style.background =
-                '#dc3545';
-
-        }
-        else if (
-            type === 'warning'
-        ) {
-
-            toast.style.background =
-                '#ffc107';
-
-            toast.style.color =
-                '#212529';
-
-        }
-        else {
-
-            toast.style.background =
-                '#0d6efd';
-
-        }
-
-
-        document.body.appendChild(
-            toast
-        );
-
-
-        setTimeout(
-            () => {
-
-                toast.style.opacity =
-                    '0';
-
-                toast.style.transition =
-                    'opacity 0.3s ease';
-
-
-                setTimeout(
-                    () => {
-
-                        toast.remove();
-
-                    },
-                    300
+                console.log(
+                    'Authenticated user:',
+                    session.user.email
                 );
 
-            },
-            3000
-        );
+            } else {
 
-    };
+                console.log(
+                    'No authenticated user.'
+                );
+            }
+        }
+    );
 
 
-// ============================================================
-// 24. CONFIGURATION READY MESSAGE
-// ============================================================
+    /* ============================================================
+       CONFIGURATION TEST
+       ============================================================ */
 
-console.log(
-    'IntelliVerify Supabase configuration loaded successfully.'
-);
+    console.log(
+        'IntelliVerify Supabase configuration loaded.'
+    );
 
-console.log(
-    'Storage bucket:',
-    DOCUMENT_BUCKET
-);
+    console.log(
+        'Supabase URL:',
+        SUPABASE_URL
+    );
+
+    console.log(
+        'Storage bucket:',
+        STORAGE_BUCKET
+    );
+
+})();
