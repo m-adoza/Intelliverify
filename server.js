@@ -69,7 +69,10 @@ const staticPath =
 app.use(
     express.static(staticPath)
 );
-
+// Serve shared JavaScript files
+app.use(
+    '/js', express.static(path.join(__dirname, 'js'))
+);
 
 // ============================================================
 // SUPABASE SERVER CLIENT
