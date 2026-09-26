@@ -1,30 +1,35 @@
 /*
-=========================================================
+===============================================================
  INTELLIVERIFY - SUPABASE CONFIGURATION
- Location: /js/supabase-config.js
-
- Used by:
- - Login
- - Registration
- - Student dashboard
- - Topic submission
- - Approval status
- - Plagiarism reports
- - Messages
- - File uploads
+ Location:
+ /js/supabase-config.js
 
  IMPORTANT:
- The publishable key is safe for frontend use.
- NEVER put the Supabase SERVICE ROLE key here.
-=========================================================
+ - This file is FRONTEND code.
+ - The publishable key is safe to expose here.
+ - NEVER put the Supabase SERVICE ROLE key here.
+ - Backend/server operations use Render environment variables.
+
+ Current database profile columns:
+ - id
+ - email
+ - full_name
+ - role
+ - department
+ - created_at
+
+ NOTE:
+ matric_no is intentionally NOT requested because it does not
+ currently exist in the profiles table.
+===============================================================
 */
 
 (function () {
     'use strict';
 
-    // =====================================================
-    // SUPABASE CONNECTION
-    // =====================================================
+    /* =========================================================
+       SUPABASE CONNECTION
+    ========================================================= */
 
     const SUPABASE_URL =
         'https://yxgxzflcgrzfndzxqibg.supabase.co';
@@ -35,21 +40,22 @@
     const STORAGE_BUCKET = 'project-documents';
 
 
-    // =====================================================
-    // CHECK SUPABASE LIBRARY
-    // =====================================================
+    /* =========================================================
+       CHECK SUPABASE LIBRARY
+    ========================================================= */
 
     if (!window.supabase) {
         console.error(
             'IntelliVerify: Supabase JavaScript library was not loaded.'
         );
+
         return;
     }
 
 
-    // =====================================================
-    // CREATE SUPABASE CLIENT
-    // =====================================================
+    /* =========================================================
+       CREATE SUPABASE CLIENT
+    ========================================================= */
 
     const supabaseClient = window.supabase.createClient(
         SUPABASE_URL,
@@ -64,208 +70,533 @@
     );
 
 
-    // =====================================================
-    // EXPOSE CLIENT GLOBALLY
-    // =====================================================
+    /* =========================================================
+       EXPOSE CLIENT GLOBALLY
+    ========================================================= */
 
     window.supabaseClient = supabaseClient;
-    window.INTELLIVERY_SUPABASE_URL = SUPABASE_URL;
-    window.INTELLIVERY_STORAGE_BUCKET = STORAGE_BUCKET;
+
+    window.INTELLIVERIFY_SUPABASE_URL = SUPABASE_URL;
+
+    window.INTELLIVERIFY_STORAGE_BUCKET = STORAGE_BUCKET;
 
 
-    // =====================================================
-    // GET CURRENT USER
-    // =====================================================
+    /* =========================================================
+       GET CURRENT AUTHENTICATED USER
+    ========================================================= */
 
     window.getCurrentUser = async function () {
 
-        const {
-            data,
-            error
-        } = await supabaseClient.auth.getUser();
+        try {
 
-        if (error) {
-            console.error('getCurrentUser error:', error);
+            const {
+                data,
+                error
+            } = await supabaseClient.auth.getUser();
+
+            if (error) {
+                console.error(
+                    'getCurrentUser error:',
+                    error
+                );
+
+                return null;
+            }
+
+            return data?.user || null;
+
+        } catch (error) {
+
+            console.error(
+                'getCurrentUser exception:',
+                error
+            );
+
             return null;
         }
-
-        return data.user || null;
     };
 
 
-    // =====================================================
-    // GET CURRENT SESSION
-    // =====================================================
+    /* =========================================================
+       GET CURRENT SESSION
+    ========================================================= */
 
     window.getCurrentSession = async function () {
 
-        const {
-            data,
-            error
-        } = await supabaseClient.auth.getSession();
+        try {
 
-        if (error) {
-            console.error('getCurrentSession error:', error);
+            const {
+                data,
+                error
+            } = await supabaseClient.auth.getSession();
+
+            if (error) {
+                console.error(
+                    'getCurrentSession error:',
+                    error
+                );
+
+                return null;
+            }
+
+            return data?.session || null;
+
+        } catch (error) {
+
+            console.error(
+                'getCurrentSession exception:',
+                error
+            );
+
             return null;
         }
-
-        return data.session || null;
     };
 
 
-    // =====================================================
-    // LOGIN USER
-    // =====================================================
+    /* =========================================================
+       GET USER PROFILE
+       
+       IMPORTANT:
+       We ONLY request columns that currently exist in
+       the profiles table.
+    ========================================================= */
+
+    window.getUserProfile = async function (userId = null) {
+
+        try {
+
+            const user = await window.getCurrentUser();
+
+            const id = userId || user?.id;
+
+            if (!id) {
+                return null;
+            }
+
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .from('profiles')
+                .select(`
+                    id,
+                    email,
+                    full_name,
+                    role,
+                    department,
+                    created_at
+                `)
+                .eq('id', id)
+                .single();
+
+            if (error) {
+
+                console.error(
+                    'getUserProfile error:',
+                    error
+                );
+
+                throw error;
+            }
+
+            return data;
+
+        } catch (error) {
+
+            console.error(
+                'getUserProfile exception:',
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    /* =========================================================
+       LOGIN USER
+       
+       1. Authenticate with Supabase Auth
+       2. Retrieve profile
+       3. Return profile to login.html
+    ========================================================= */
 
     window.loginUser = async function (email, password) {
 
-        // -------------------------------------------------
-        // Authenticate with Supabase Auth
-        // -------------------------------------------------
-
-        const {
-            data: authData,
-            error: authError
-        } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
-
-        if (authError) {
-            console.error('Supabase login error:', authError);
-            throw new Error(authError.message);
+        if (!email || !password) {
+            throw new Error(
+                'Email and password are required.'
+            );
         }
 
-        if (!authData || !authData.user) {
-            throw new Error('Login failed. No user account was returned.');
-        }
+        try {
+
+            /* -----------------------------------------------
+               AUTHENTICATE
+            ------------------------------------------------ */
+
+            const {
+                data: authData,
+                error: authError
+            } = await supabaseClient.auth.signInWithPassword({
+                email: email.trim(),
+                password: password
+            });
+
+            if (authError) {
+                throw authError;
+            }
+
+            if (!authData?.user) {
+                throw new Error(
+                    'Login succeeded, but no authenticated user was returned.'
+                );
+            }
 
 
-        // -------------------------------------------------
-        // Get user profile
-        // -------------------------------------------------
+            /* -----------------------------------------------
+               LOAD PROFILE
+            ------------------------------------------------ */
 
-        const {
-            data: profile,
-            error: profileError
-        } = await supabaseClient
-            .from('profiles')
-            .select(`
-                id,
-                email,
-                full_name,
-                role,
-                department,
-                matric_no,
-                created_at
-            `)
-            .eq('id', authData.user.id)
-            .single();
+            let profile;
+
+            try {
+
+                profile =
+                    await window.getUserProfile(
+                        authData.user.id
+                    );
+
+            } catch (profileError) {
+
+                /*
+                 * Authentication succeeded, but profile
+                 * retrieval failed.
+                 */
+
+                throw new Error(
+                    'Login succeeded, but your user profile could not be loaded: ' +
+                    profileError.message
+                );
+            }
 
 
-        if (profileError) {
+            if (!profile) {
+
+                throw new Error(
+                    'Login succeeded, but no user profile was found.'
+                );
+            }
+
+
+            /* -----------------------------------------------
+               RETURN PROFILE
+            ------------------------------------------------ */
+
+            return {
+
+                id: profile.id,
+
+                email:
+                    profile.email ||
+                    authData.user.email,
+
+                full_name:
+                    profile.full_name ||
+                    authData.user.user_metadata?.full_name ||
+                    '',
+
+                role:
+                    profile.role ||
+                    authData.user.user_metadata?.role ||
+                    'student',
+
+                department:
+                    profile.department || null,
+
+                created_at:
+                    profile.created_at || null
+            };
+
+        } catch (error) {
 
             console.error(
-                'Profile retrieval error:',
-                profileError
+                'loginUser error:',
+                error
             );
 
-            // Authentication succeeded, but profile lookup failed.
-            // Sign the user out so we don't leave a partially
-            // authenticated session behind.
-
-            await supabaseClient.auth.signOut();
-
-            throw new Error(
-                'Login succeeded, but your user profile could not be loaded: ' +
-                profileError.message
-            );
+            throw error;
         }
-
-
-        // -------------------------------------------------
-        // Return complete profile
-        // -------------------------------------------------
-
-        return {
-            id: profile.id,
-            email: profile.email || authData.user.email,
-            full_name:
-                profile.full_name ||
-                authData.user.user_metadata?.full_name ||
-                '',
-            role: profile.role || 'student',
-            department: profile.department || null,
-            matric_no: profile.matric_no || null,
-            created_at: profile.created_at || null
-        };
     };
 
 
-    // =====================================================
-    // LOGOUT
-    // =====================================================
+    /* =========================================================
+       REGISTER USER
+       
+       Creates:
+       1. Supabase Auth account
+       2. profiles table record
+       
+       IMPORTANT:
+       matric_no is NOT inserted because the current
+       profiles table does not contain that column.
+    ========================================================= */
+
+    window.registerUser = async function ({
+        email,
+        password,
+        fullName,
+        role = 'student',
+        department = null
+    }) {
+
+        if (!email || !password || !fullName) {
+            throw new Error(
+                'Email, password and full name are required.'
+            );
+        }
+
+        try {
+
+            /* -----------------------------------------------
+               CREATE AUTH ACCOUNT
+            ------------------------------------------------ */
+
+            const {
+                data: authData,
+                error: authError
+            } = await supabaseClient.auth.signUp({
+
+                email: email.trim(),
+
+                password: password,
+
+                options: {
+
+                    data: {
+                        full_name: fullName,
+                        role: role,
+                        department: department
+                    }
+                }
+            });
+
+
+            if (authError) {
+                throw authError;
+            }
+
+
+            if (!authData?.user) {
+
+                throw new Error(
+                    'Failed to create user account.'
+                );
+            }
+
+
+            /* -----------------------------------------------
+               CREATE PROFILE
+            ------------------------------------------------ */
+
+            const {
+                data: profile,
+                error: profileError
+            } = await supabaseClient
+                .from('profiles')
+                .insert({
+
+                    id: authData.user.id,
+
+                    email: email.trim(),
+
+                    full_name: fullName,
+
+                    role: role,
+
+                    department: department || null
+
+                })
+                .select(`
+                    id,
+                    email,
+                    full_name,
+                    role,
+                    department,
+                    created_at
+                `)
+                .single();
+
+
+            if (profileError) {
+
+                console.error(
+                    'Profile creation error:',
+                    profileError
+                );
+
+                throw new Error(
+                    'Account was created, but the user profile could not be saved: ' +
+                    profileError.message
+                );
+            }
+
+
+            return profile;
+
+        } catch (error) {
+
+            console.error(
+                'registerUser error:',
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    /* =========================================================
+       LOGOUT USER
+    ========================================================= */
 
     window.logoutUser = async function () {
 
-        const {
-            error
-        } = await supabaseClient.auth.signOut();
+        try {
 
-        if (error) {
-            console.error('Logout error:', error);
-            throw new Error(error.message);
+            const {
+                error
+            } = await supabaseClient.auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            /*
+             * Return user to the main portal.
+             */
+
+            window.location.href = '/';
+
+        } catch (error) {
+
+            console.error(
+                'logoutUser error:',
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    /* =========================================================
+       CHECK WHETHER USER IS LOGGED IN
+    ========================================================= */
+
+    window.isUserLoggedIn = async function () {
+
+        const session =
+            await window.getCurrentSession();
+
+        return Boolean(session);
+    };
+
+
+    /* =========================================================
+       GET USER ROLE
+    ========================================================= */
+
+    window.getUserRole = async function () {
+
+        try {
+
+            const profile =
+                await window.getUserProfile();
+
+            return profile?.role || null;
+
+        } catch (error) {
+
+            console.error(
+                'getUserRole error:',
+                error
+            );
+
+            return null;
+        }
+    };
+
+
+    /* =========================================================
+       PROTECT PAGE
+       
+       Redirects unauthenticated users to login.html
+    ========================================================= */
+
+    window.requireAuthentication = async function () {
+
+        const user =
+            await window.getCurrentUser();
+
+        if (!user) {
+
+            window.location.href =
+                '/login.html';
+
+            return false;
         }
 
         return true;
     };
 
 
-    // =====================================================
-    // GET CURRENT USER PROFILE
-    // =====================================================
+    /* =========================================================
+       PROTECT ROLE
+    ========================================================= */
 
-    window.getUserProfile = async function () {
+    window.requireRole = async function (allowedRoles = []) {
 
-        const user = await window.getCurrentUser();
+        const profile =
+            await window.getUserProfile();
 
-        if (!user) {
-            return null;
+        if (!profile) {
+
+            window.location.href =
+                '/login.html';
+
+            return false;
         }
 
-        const {
-            data: profile,
-            error
-        } = await supabaseClient
-            .from('profiles')
-            .select(`
-                id,
-                email,
-                full_name,
-                role,
-                department,
-                matric_no,
-                created_at
-            `)
-            .eq('id', user.id)
-            .single();
+        const userRole =
+            String(profile.role || '')
+                .toLowerCase();
 
-        if (error) {
-            console.error(
-                'getUserProfile error:',
-                error
+        const roles =
+            allowedRoles.map(role =>
+                String(role).toLowerCase()
             );
 
-            return null;
+        if (!roles.includes(userRole)) {
+
+            console.warn(
+                'Unauthorized role:',
+                userRole
+            );
+
+            window.location.href =
+                '/';
+
+            return false;
         }
 
-        return profile;
+        return true;
     };
 
 
-    // =====================================================
-    // SUPABASE STORAGE HELPERS
-    // =====================================================
+    /* =========================================================
+       STORAGE - UPLOAD FILE
+    ========================================================= */
 
     window.uploadProjectFile = async function (
         file,
@@ -273,57 +604,212 @@
     ) {
 
         if (!file) {
-            throw new Error('No file selected.');
+            throw new Error(
+                'No file was provided.'
+            );
         }
 
-        const {
-            data,
-            error
-        } = await supabaseClient.storage
-            .from(STORAGE_BUCKET)
-            .upload(
-                filePath,
-                file,
-                {
-                    upsert: false
-                }
+        if (!filePath) {
+            throw new Error(
+                'A storage file path is required.'
             );
+        }
 
-        if (error) {
+        try {
+
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .storage
+                .from(STORAGE_BUCKET)
+                .upload(
+                    filePath,
+                    file,
+                    {
+                        upsert: false
+                    }
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            return data;
+
+        } catch (error) {
+
             console.error(
                 'File upload error:',
                 error
             );
 
-            throw new Error(error.message);
+            throw error;
         }
-
-        return data;
     };
 
 
-    // =====================================================
-    // GET STORAGE FILE URL
-    // =====================================================
+    /* =========================================================
+       STORAGE - GET FILE URL
+    ========================================================= */
 
-    window.getProjectFileUrl = function (filePath) {
+    window.getProjectFileUrl = function (
+        filePath
+    ) {
+
+        if (!filePath) {
+            return null;
+        }
 
         const {
             data
-        } = supabaseClient.storage
+        } = supabaseClient
+            .storage
             .from(STORAGE_BUCKET)
             .getPublicUrl(filePath);
 
-        return data.publicUrl;
+        return data?.publicUrl || null;
     };
 
 
-    // =====================================================
-    // READY MESSAGE
-    // =====================================================
+    /* =========================================================
+       STORAGE - DELETE FILE
+    ========================================================= */
+
+    window.deleteProjectFile = async function (
+        filePath
+    ) {
+
+        if (!filePath) {
+            throw new Error(
+                'File path is required.'
+            );
+        }
+
+        try {
+
+            const {
+                error
+            } = await supabaseClient
+                .storage
+                .from(STORAGE_BUCKET)
+                .remove([filePath]);
+
+            if (error) {
+                throw error;
+            }
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                'File deletion error:',
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    /* =========================================================
+       DATABASE HELPER
+       
+       Fetch records from a table.
+    ========================================================= */
+
+    window.fetchTable = async function (
+        table,
+        options = {}
+    ) {
+
+        try {
+
+            let query =
+                supabaseClient
+                    .from(table)
+                    .select(
+                        options.select || '*'
+                    );
+
+            if (options.column && options.value !== undefined) {
+
+                query =
+                    query.eq(
+                        options.column,
+                        options.value
+                    );
+            }
+
+            if (options.orderBy) {
+
+                query =
+                    query.order(
+                        options.orderBy,
+                        {
+                            ascending:
+                                options.ascending !== false
+                        }
+                    );
+            }
+
+            const {
+                data,
+                error
+            } = await query;
+
+            if (error) {
+                throw error;
+            }
+
+            return data;
+
+        } catch (error) {
+
+            console.error(
+                `fetchTable(${table}) error:`,
+                error
+            );
+
+            throw error;
+        }
+    };
+
+
+    /* =========================================================
+       AUTH STATE LISTENER
+    ========================================================= */
+
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
+
+            console.log(
+                'IntelliVerify Auth Event:',
+                event
+            );
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    'intelliverify-auth-change',
+                    {
+                        detail: {
+                            event: event,
+                            session: session
+                        }
+                    }
+                )
+            );
+        }
+    );
+
+
+    /* =========================================================
+       INITIALIZATION MESSAGE
+    ========================================================= */
 
     console.log(
-        'IntelliVerify: Supabase client initialized successfully.'
+        'IntelliVerify Supabase client initialized successfully.'
     );
 
 })();
