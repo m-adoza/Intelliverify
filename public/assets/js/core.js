@@ -1294,13 +1294,33 @@
             </div>
         `).join('');
 
+        // ---- FIXED: fire-and-forget read, navigate immediately ----
         list.querySelectorAll('.iv-notif-item').forEach(el => {
-            el.onclick = async () => {
+            el.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
                 const id = el.dataset.id;
                 const link = el.dataset.link;
-                try { await api(`/api/notifications/${id}/read`, { method: 'POST' }); } catch (_) {}
-                if (link) window.location.href = link;
-                else updateBellCount();
+
+                // Mark as read in background — do NOT await
+                if (id) {
+                    api(`/api/notifications/${id}/read`, { method: 'POST' })
+                        .catch(() => {});
+                }
+
+                // Close panel immediately
+                if (notifPanel) {
+                    notifPanel.remove();
+                    notifPanel = null;
+                }
+
+                // Navigate immediately (no await, no hang)
+                if (link && link.length > 0) {
+                    window.location.assign(link);
+                } else {
+                    updateBellCount();
+                }
             };
         });
     }
