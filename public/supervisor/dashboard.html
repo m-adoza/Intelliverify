@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — IntelliVerify Supervisor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Stats ---- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .stat {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .stat-label {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .stat-icon {
+            width: 30px; height: 30px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--iv-text);
+            line-height: 1;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+        }
+
+        .stat-danger .stat-value { color: var(--iv-danger); }
+        .stat-danger .stat-icon  { color: var(--iv-danger); background: var(--iv-danger-bg); }
+
+        /* ---- Filter tabs (reused) ---- */
+        .filter-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: var(--iv-bg-muted);
+            border-radius: var(--iv-r-md);
+            margin-bottom: var(--iv-s-4);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            flex: 0 0 auto;
+            padding: 7px 14px;
+            border-radius: var(--iv-r-sm);
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text-2);
+            cursor: pointer;
+            transition: var(--iv-transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .filter-tab:hover { color: var(--iv-text); }
+
+        .filter-tab-active,
+        .filter-tab-active:hover {
+            background: var(--iv-bg);
+            color: var(--iv-text);
+            box-shadow: var(--iv-shadow-xs);
+        }
+
+        .filter-tab-count {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg);
+            border-radius: 999px;
+            padding: 1px 7px;
+            font-weight: 600;
+        }
+
+        .filter-tab-active .filter-tab-count {
+            background: var(--iv-bg-muted);
+        }
+
+        /* ---- Topic table ---- */
+        .topic-table {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .topic-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        .topic-table th {
+            text-align: left;
+            padding: 12px var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--iv-border);
+            white-space: nowrap;
+        }
+
+        .topic-table td {
+            padding: 14px var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            vertical-align: middle;
+        }
+
+        .topic-table tbody tr:last-child td { border-bottom: none; }
+
+        .topic-table tbody tr {
+            cursor: pointer;
+            transition: var(--iv-transition);
+        }
+
+        .topic-table tbody tr:hover td { background: var(--iv-bg-subtle); }
+
+        .topic-title-cell {
+            font-weight: 500;
+            color: var(--iv-text);
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .student-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .student-name {
+            font-weight: 500;
+            color: var(--iv-text);
+            font-size: 13px;
+        }
+
+        .student-email {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+        }
+
+        /* ---- Empty states ---- */
+        .mini-empty {
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+            color: var(--iv-text-3);
+            font-size: 13px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+        }
+
+        .mini-empty i {
+            font-size: 28px;
+            opacity: 0.4;
+            display: block;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .mini-empty-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text-2);
+            margin-bottom: 6px;
+        }
+
+        .mini-empty-text {
+            font-size: 13px;
+            line-height: 1.55;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .mini-empty .iv-btn {
+            margin-top: var(--iv-s-4);
+        }
+
+        /* ---- Recent activity ---- */
+        .activity {
+            margin-top: var(--iv-s-6);
+        }
+
+        .activity-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .activity-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .activity-list {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .activity-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .activity-row:last-child { border-bottom: none; }
+
+        .activity-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .activity-icon-danger { background: var(--iv-danger-bg); color: var(--iv-danger); }
+        .activity-icon-warning { background: var(--iv-warning-bg); color: var(--iv-warning); }
+        .activity-icon-success { background: var(--iv-success-bg); color: var(--iv-success); }
+
+        .activity-body { flex: 1; min-width: 0; }
+
+        .activity-title-line {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .activity-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        @media (max-width: 1100px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 800px) {
+            .topic-table th:nth-child(2),
+            .topic-table td:nth-child(2) { display: none; }
+        }
+
+        @media (max-width: 600px) {
+            .stats { grid-template-columns: 1fr; gap: var(--iv-s-3); }
+            .stat-value { font-size: 22px; }
+            .topic-table th:nth-child(4),
+            .topic-table td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const state = {
+        topics: [],
+        reports: [],
+        students: [],
+        corpusCount: 0,
+        activeFilter: 'all'
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('supervisor');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/supervisor/dashboard.html',
+            title: 'Dashboard',
+            subtitle: 'Review proposals from your supervised students',
+            actions: `
+                <a href="/supervisor/link-student.html" class="iv-btn iv-btn-primary iv-btn-sm">
+                    <i class="fas fa-link"></i> Link student
+                </a>
+            `
+        });
+
+        content.innerHTML = skeleton();
+        await load();
+    })();
+
+    // ============================================================
+    // DATA
+    // ============================================================
+
+    async function load() {
+        const content = document.getElementById('iv-content');
+
+        try {
+            const [topicsRes, reportsRes, studentsRes, corpusRes] = await Promise.all([
+                window.api('/api/topics').catch(() => ({ topics: [] })),
+                window.api('/api/reports').catch(() => ({ reports: [] })),
+                window.api('/api/pairing/students').catch(() => ({ students: [] })),
+                window.api('/api/corpus').catch(() => ({ documents: [] }))
+            ]);
+
+            state.topics = topicsRes.topics || [];
+            state.reports = reportsRes.reports || [];
+            state.students = studentsRes.students || [];
+            state.corpusCount = (corpusRes.documents || []).length;
+
+            content.innerHTML = page();
+            wire();
+        } catch (err) {
+            console.error(err);
+            content.innerHTML = errorState(err.message);
+            const retry = document.getElementById('retryBtn');
+            if (retry) retry.onclick = load;
+        }
+    }
+
+    function skeleton() {
+        return `
+            <div class="stats">
+                ${[1,2,3,4].map(() => `
+                    <div class="stat">
+                        <div class="stat-head">
+                            <div class="skeleton" style="height: 12px; width: 90px; background: var(--iv-bg-muted); border-radius: 6px;"></div>
+                        </div>
+                        <div class="skeleton" style="height: 28px; width: 50px; background: var(--iv-bg-muted); border-radius: 6px;"></div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+        `;
+    }
+
+    function errorState(msg) {
+        return `
+            <div class="mini-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="mini-empty-title">Could not load your dashboard</div>
+                <div class="mini-empty-text">${window.escapeHTML(msg || 'Please try again.')}</div>
+                <button class="iv-btn iv-btn-primary" id="retryBtn">
+                    <i class="fas fa-sync-alt"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // PAGE MARKUP
+    // ============================================================
+
+    function page() {
+        const pendingCount = state.topics.filter(t => t.status === 'pending').length;
+        const highRiskCount = state.reports.filter(r => r.risk_level === 'high').length;
+        const studentCount = state.students.length;
+
+        if (!studentCount) {
+            return noStudentsPage();
+        }
+
+        return `
+            <div class="stats">
+                ${stat('Linked students', 'fa-users', studentCount, 'Currently under your supervision')}
+                ${stat('Pending reviews', 'fa-clock', pendingCount, pendingCount === 1 ? 'Topic awaiting your review' : 'Topics awaiting your review')}
+                ${stat('High-risk scans', 'fa-exclamation-triangle', highRiskCount, 'Scans ≥60% similarity', 'danger')}
+                ${stat('Corpus documents', 'fa-database', state.corpusCount, 'Reference files available for comparison')}
+            </div>
+
+            <div class="filter-tabs" id="filterTabs"></div>
+            <div id="tableArea"></div>
+
+            ${state.reports.length ? recentScansSection() : ''}
+        `;
+    }
+
+    function noStudentsPage() {
+        return `
+            <div class="mini-empty">
+                <i class="fas fa-user-plus"></i>
+                <div class="mini-empty-title">No students linked yet</div>
+                <div class="mini-empty-text">
+                    Ask your students to share their pairing code with you,
+                    then enter it on the Link Student page to add them to your supervision.
+                </div>
+                <a href="/supervisor/link-student.html" class="iv-btn iv-btn-primary">
+                    <i class="fas fa-link"></i> Link your first student
+                </a>
+            </div>
+        `;
+    }
+
+    function stat(label, icon, value, sub, variant = '') {
+        const cls = variant === 'danger' ? 'stat stat-danger' : 'stat';
+        return `
+            <div class="${cls}">
+                <div class="stat-head">
+                    <span class="stat-label">${window.escapeHTML(label)}</span>
+                    <div class="stat-icon"><i class="fas ${icon}"></i></div>
+                </div>
+                <div class="stat-value">${Number(value) || 0}</div>
+                <div class="stat-sub">${window.escapeHTML(sub || '')}</div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // FILTER TABS + TABLE
+    // ============================================================
+
+    function wire() {
+        renderTabs();
+        renderTable();
+
+        document.querySelectorAll('.activity-row').forEach(el => {
+            const id = el.dataset.topicId;
+            if (id) {
+                el.style.cursor = 'pointer';
+                el.onclick = () => openTopic(id);
+            }
+        });
+    }
+
+    function renderTabs() {
+        const counts = {
+            all:      state.topics.length,
+            pending:  state.topics.filter(t => t.status === 'pending').length,
+            approved: state.topics.filter(t => t.status === 'approved').length,
+            revision: state.topics.filter(t => t.status === 'revision').length,
+            rejected: state.topics.filter(t => t.status === 'rejected').length
+        };
+
+        const tabs = [
+            { key: 'all',      label: 'All' },
+            { key: 'pending',  label: 'Pending' },
+            { key: 'approved', label: 'Approved' },
+            { key: 'revision', label: 'Revision' },
+            { key: 'rejected', label: 'Rejected' }
+        ];
+
+        const wrap = document.getElementById('filterTabs');
+        if (!wrap) return;
+
+        wrap.innerHTML = tabs.map(t => `
+            <button class="filter-tab ${state.activeFilter === t.key ? 'filter-tab-active' : ''}"
+                    data-filter="${t.key}">
+                ${window.escapeHTML(t.label)}
+                <span class="filter-tab-count">${counts[t.key]}</span>
+            </button>
+        `).join('');
+
+        wrap.querySelectorAll('.filter-tab').forEach(el => {
+            el.onclick = () => {
+                state.activeFilter = el.dataset.filter;
+                renderTabs();
+                renderTable();
+            };
+        });
+    }
+
+    function renderTable() {
+        const area = document.getElementById('tableArea');
+        if (!area) return;
+
+        const filtered = state.activeFilter === 'all'
+            ? state.topics
+            : state.topics.filter(t => t.status === state.activeFilter);
+
+        if (!state.topics.length) {
+            area.innerHTML = `
+                <div class="mini-empty">
+                    <i class="fas fa-inbox"></i>
+                    <div class="mini-empty-title">No topics submitted yet</div>
+                    <div class="mini-empty-text">
+                        Your students haven't submitted any project proposals.
+                        You'll see them here as soon as they do.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        if (!filtered.length) {
+            area.innerHTML = `
+                <div class="mini-empty">
+                    <i class="fas fa-filter"></i>
+                    <div class="mini-empty-title">No ${window.escapeHTML(state.activeFilter)} topics</div>
+                    <div class="mini-empty-text">Try a different filter tab.</div>
+                </div>
+            `;
+            return;
+        }
+
+        area.innerHTML = `
+            <div class="topic-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Topic</th>
+                            <th>Student</th>
+                            <th>Area</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(t => row(t)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        area.querySelectorAll('tr[data-topic-id]').forEach(el => {
+            el.onclick = () => openTopic(el.dataset.topicId);
+        });
+    }
+
+    function row(t) {
+        const s = t.student || {};
+        const status = (t.status || 'pending').toLowerCase();
+
+        return `
+            <tr data-topic-id="${window.escapeHTML(t.topic_id)}">
+                <td>
+                    <div class="topic-title-cell">${window.escapeHTML(t.title || 'Untitled')}</div>
+                </td>
+                <td>
+                    <div class="student-cell">
+                        <div class="student-name">${window.escapeHTML(s.full_name || 'Student')}</div>
+                        <div class="student-email">${window.escapeHTML(s.email || '')}</div>
+                    </div>
+                </td>
+                <td>${window.escapeHTML(t.research_area || '—')}</td>
+                <td><span class="iv-badge iv-badge-${status}">${window.escapeHTML(status)}</span></td>
+                <td>${window.formatDate(t.submitted_at)}</td>
+            </tr>
+        `;
+    }
+
+    function openTopic(id) {
+        window.location.href = '/supervisor/review-topic.html?id=' + encodeURIComponent(id);
+    }
+
+    // ============================================================
+    // RECENT SCANS SECTION
+    // ============================================================
+
+    function recentScansSection() {
+        // Take the 5 most recent reports
+        const recent = [...state.reports]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 5);
+
+        if (!recent.length) return '';
+
+        return `
+            <div class="activity">
+                <div class="activity-head">
+                    <div class="activity-title">Recent scans from your students</div>
+                    <a href="/supervisor/assigned-students.html" class="section-link"
+                       style="font-size: 13px; color: var(--iv-focus); text-decoration: none; font-weight: 500;">
+                        View all students →
+                    </a>
+                </div>
+
+                <div class="activity-list">
+                    ${recent.map(r => activityRow(r)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function activityRow(r) {
+        const risk = String(r.risk_level || 'low').toLowerCase();
+        const score = Number(r.similarity_score || 0);
+        const student = r.user || {};
+
+        const iconCls =
+            risk === 'high'   ? 'activity-icon-danger'  :
+            risk === 'medium' ? 'activity-icon-warning' :
+                                'activity-icon-success';
+
+        const ext = (r.file_format || '').toLowerCase();
+        const fileIcon =
+            ext === 'pdf'  ? 'fa-file-pdf'  :
+            ext === 'docx' ? 'fa-file-word' :
+            ext === 'txt'  ? 'fa-file-lines' :
+                             'fa-file';
+
+        return `
+            <div class="activity-row">
+                <div class="activity-icon ${iconCls}">
+                    <i class="fas ${fileIcon}"></i>
+                </div>
+                <div class="activity-body">
+                    <div class="activity-title-line">${window.escapeHTML(r.filename || 'Document')}</div>
+                    <div class="activity-meta">
+                        ${window.escapeHTML(student.full_name || student.email || 'Student')}
+                        · ${score}% similarity
+                        · ${window.timeAgo(r.created_at)}
+                    </div>
+                </div>
+                <span class="iv-badge iv-badge-${risk}">${window.escapeHTML(risk)}</span>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
