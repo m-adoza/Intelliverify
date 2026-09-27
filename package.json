@@ -4,7 +4,7 @@
   "description": "IntelliVerify 2.0 — Final Year Project Topic Approval & Plagiarism Detection System",
   "main": "server.js",
   "engines": {
-    "node": ">=20 <21"
+    "node": ">=22 <23"
   },
   "scripts": {
     "start": "node server.js",
