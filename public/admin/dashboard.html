@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Metric sections ---- */
+        .metric-section {
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .metric-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .metric-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .metric-link {
+            font-size: 13px;
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .metric-link:hover { text-decoration: underline; }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--iv-s-4);
+        }
+
+        .metric-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            transition: var(--iv-transition);
+        }
+
+        .metric-card-clickable {
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .metric-card-clickable:hover {
+            border-color: var(--iv-border-strong);
+            box-shadow: var(--iv-shadow-sm);
+        }
+
+        .metric-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .metric-card-label {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .metric-card-icon {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 13px;
+        }
+
+        .metric-card-icon-success { background: var(--iv-success-bg); color: var(--iv-success); }
+        .metric-card-icon-warning { background: var(--iv-warning-bg); color: var(--iv-warning); }
+        .metric-card-icon-danger  { background: var(--iv-danger-bg);  color: var(--iv-danger); }
+        .metric-card-icon-info    { background: var(--iv-info-bg);    color: var(--iv-info); }
+
+        .metric-card-value {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--iv-text);
+            line-height: 1;
+        }
+
+        .metric-card-sub {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 8px;
+        }
+
+        /* ---- Quick actions ---- */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--iv-s-3);
+        }
+
+        .quick-card {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-md);
+            text-decoration: none;
+            color: inherit;
+            transition: var(--iv-transition);
+        }
+
+        .quick-card:hover {
+            border-color: var(--iv-border-strong);
+            background: var(--iv-bg-subtle);
+        }
+
+        .quick-card-icon {
+            width: 40px; height: 40px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .quick-card-body { flex: 1; min-width: 0; }
+
+        .quick-card-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .quick-card-text {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .quick-card i.quick-card-arrow {
+            color: var(--iv-text-3);
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        /* ---- Info card ---- */
+        .info-card {
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+        }
+
+        .info-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) 0;
+            border-bottom: 1px solid var(--iv-border);
+            font-size: 13px;
+        }
+
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-row:first-child { padding-top: 0; }
+
+        .info-row-label {
+            color: var(--iv-text-3);
+        }
+
+        .info-row-value {
+            color: var(--iv-text);
+            font-weight: 600;
+        }
+
+        .info-row-value-mono {
+            font-family: var(--iv-font-mono);
+            font-size: 12px;
+        }
+
+        /* ---- Skeleton ---- */
+        .sk {
+            background: linear-gradient(90deg, #f4f4f5 0%, #e4e4e7 50%, #f4f4f5 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 1100px) {
+            .metric-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 800px) {
+            .quick-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .metric-grid { grid-template-columns: 1fr; gap: var(--iv-s-3); }
+            .metric-card-value { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    let state = {
+        stats: null,
+        users: []
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('admin');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/admin/dashboard.html',
+            title: 'Admin Dashboard',
+            subtitle: 'System-wide overview of IntelliVerify',
+            actions: `
+                <a href="/admin/manage-users.html" class="iv-btn iv-btn-primary iv-btn-sm">
+                    <i class="fas fa-users-cog"></i> Manage users
+                </a>
+            `
+        });
+
+        content.innerHTML = skeleton();
+        await load();
+    })();
+
+    // ============================================================
+    // LOAD
+    // ============================================================
+
+    async function load() {
+        const content = document.getElementById('iv-content');
+
+        try {
+            const [statsRes, usersRes] = await Promise.all([
+                window.api('/api/admin/stats').catch(() => null),
+                window.api('/api/admin/users').catch(() => ({ users: [] }))
+            ]);
+
+            state.stats = statsRes || null;
+            state.users = usersRes.users || [];
+
+            content.innerHTML = page();
+        } catch (err) {
+            console.error(err);
+            content.innerHTML = errorState(err.message);
+            const retry = document.getElementById('retryBtn');
+            if (retry) retry.onclick = load;
+        }
+    }
+
+    // ============================================================
+    // SKELETON
+    // ============================================================
+
+    function skeleton() {
+        return `
+            <div class="metric-section">
+                <div class="metric-grid">
+                    ${[1,2,3,4].map(() => `
+                        <div class="metric-card">
+                            <div class="metric-card-head">
+                                <div class="sk" style="height: 12px; width: 90px;"></div>
+                                <div class="sk" style="height: 32px; width: 32px;"></div>
+                            </div>
+                            <div class="sk" style="height: 30px; width: 60px;"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // PAGE
+    // ============================================================
+
+    function page() {
+        const s = state.stats || { users: {}, topics: {}, reports: {} };
+        const users = s.users || {};
+        const topics = s.topics || {};
+        const reports = s.reports || {};
+
+        const totalUsers = Number(users.total || 0);
+        const totalTopics = Number(topics.total || 0);
+        const totalReports = Number(reports.total || 0);
+        const highRisk = Number(reports.high_risk || 0);
+
+        return `
+            <!-- Users & Activity -->
+            <div class="metric-section">
+                <div class="metric-head">
+                    <div class="metric-title">Users & activity</div>
+                    <a href="/admin/manage-users.html" class="metric-link">Manage →</a>
+                </div>
+                <div class="metric-grid">
+                    ${metricCard('Total users', 'fa-users', totalUsers, `${users.students || 0} students · ${users.supervisors || 0} supervisors`, 'info', '/admin/manage-users.html')}
+                    ${metricCard('Admins', 'fa-user-shield', users.admins || 0, 'Full system access', '', '/admin/manage-users.html')}
+                    ${metricCard('Topics submitted', 'fa-file-alt', totalTopics, `${topics.pending || 0} pending review`, '', '/admin/manage-users.html')}
+                    ${metricCard('Plagiarism scans', 'fa-shield-alt', totalReports, `${highRisk} high-risk detected`, highRisk > 0 ? 'danger' : '', '/admin/manage-users.html')}
+                </div>
+            </div>
+
+            <!-- Quick actions -->
+            <div class="metric-section">
+                <div class="metric-head">
+                    <div class="metric-title">Quick actions</div>
+                </div>
+                <div class="quick-grid">
+                    ${quickCard('Manage users', 'Change roles, delete accounts', 'fa-users-cog', '/admin/manage-users.html')}
+                    ${quickCard('Manage pairings', 'Force-link or unlink supervisors', 'fa-link', '/admin/pairings.html')}
+                    ${quickCard('System settings', 'Configure thresholds and defaults', 'fa-cog', '/admin/system-settings.html')}
+                </div>
+            </div>
+
+            <!-- System health -->
+            <div class="metric-section">
+                <div class="metric-head">
+                    <div class="metric-title">System overview</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-title">Runtime information</div>
+                    <div class="info-row">
+                        <span class="info-row-label">Backend status</span>
+                        <span class="info-row-value">
+                            <span class="iv-badge iv-badge-approved">Online</span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Supabase project</span>
+                        <span class="info-row-value info-row-value-mono">yxgxzflc…qibg</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Approved topics</span>
+                        <span class="info-row-value">${approvedCount()}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Low-risk scans</span>
+                        <span class="info-row-value">${lowRiskCount()}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Registered accounts</span>
+                        <span class="info-row-value">${totalUsers}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function approvedCount() {
+        // We don't have this in stats; approximate with 0 to keep it simple
+        // (would need a separate endpoint or expanded stats payload to be accurate)
+        return state.stats?.topics?.approved ?? '—';
+    }
+
+    function lowRiskCount() {
+        return state.stats?.reports?.low_risk ?? '—';
+    }
+
+    function metricCard(label, icon, value, sub, variant = '', href = null) {
+        const iconCls =
+            variant === 'danger'  ? 'metric-card-icon metric-card-icon-danger'  :
+            variant === 'warning' ? 'metric-card-icon metric-card-icon-warning' :
+            variant === 'success' ? 'metric-card-icon metric-card-icon-success' :
+            variant === 'info'    ? 'metric-card-icon metric-card-icon-info'    :
+                                    'metric-card-icon';
+
+        const inner = `
+            <div class="metric-card-head">
+                <span class="metric-card-label">${window.escapeHTML(label)}</span>
+                <div class="${iconCls}"><i class="fas ${icon}"></i></div>
+            </div>
+            <div class="metric-card-value">${Number(value) || 0}</div>
+            ${sub ? `<div class="metric-card-sub">${window.escapeHTML(sub)}</div>` : ''}
+        `;
+
+        if (href) {
+            return `<a href="${href}" class="metric-card metric-card-clickable">${inner}</a>`;
+        }
+        return `<div class="metric-card">${inner}</div>`;
+    }
+
+    function quickCard(title, text, icon, href) {
+        return `
+            <a href="${href}" class="quick-card">
+                <div class="quick-card-icon"><i class="fas ${icon}"></i></div>
+                <div class="quick-card-body">
+                    <div class="quick-card-title">${window.escapeHTML(title)}</div>
+                    <div class="quick-card-text">${window.escapeHTML(text)}</div>
+                </div>
+                <i class="fas fa-arrow-right quick-card-arrow"></i>
+            </a>
+        `;
+    }
+
+    // ============================================================
+    // ERROR
+    // ============================================================
+
+    function errorState(message) {
+        return `
+            <div class="info-card" style="text-align: center; padding: var(--iv-s-10) var(--iv-s-5);">
+                <div style="font-size: 24px; color: var(--iv-danger); margin-bottom: var(--iv-s-3);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--iv-text); margin-bottom: var(--iv-s-2);">
+                    Could not load dashboard
+                </div>
+                <div style="font-size: 13.5px; color: var(--iv-text-3); margin-bottom: var(--iv-s-5);">
+                    ${window.escapeHTML(message || 'Please try again.')}
+                </div>
+                <button class="iv-btn iv-btn-primary" id="retryBtn">
+                    <i class="fas fa-sync-alt"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
