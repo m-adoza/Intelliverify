@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Users — IntelliVerify Admin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Toolbar ---- */
+        .toolbar {
+            display: flex;
+            gap: var(--iv-s-3);
+            margin-bottom: var(--iv-s-4);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+            max-width: 400px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--iv-text-3);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 38px;
+            padding: 0 14px 0 34px;
+            border-radius: var(--iv-r-sm);
+            border: 1px solid var(--iv-border-strong);
+            background: var(--iv-bg);
+            font-family: inherit;
+            font-size: 13.5px;
+            color: var(--iv-text);
+            outline: none;
+            transition: var(--iv-transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--iv-focus);
+            box-shadow: 0 0 0 3px var(--iv-focus-ring);
+        }
+
+        /* ---- Filter tabs ---- */
+        .filter-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: var(--iv-bg-muted);
+            border-radius: var(--iv-r-md);
+            margin-bottom: var(--iv-s-4);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            flex: 0 0 auto;
+            padding: 7px 14px;
+            border-radius: var(--iv-r-sm);
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text-2);
+            cursor: pointer;
+            transition: var(--iv-transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .filter-tab:hover { color: var(--iv-text); }
+
+        .filter-tab-active,
+        .filter-tab-active:hover {
+            background: var(--iv-bg);
+            color: var(--iv-text);
+            box-shadow: var(--iv-shadow-xs);
+        }
+
+        .filter-tab-count {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg);
+            border-radius: 999px;
+            padding: 1px 7px;
+            font-weight: 600;
+        }
+
+        .filter-tab-active .filter-tab-count {
+            background: var(--iv-bg-muted);
+        }
+
+        /* ---- Users table ---- */
+        .table-wrap {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        .users-table th {
+            text-align: left;
+            padding: 12px var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--iv-border);
+            white-space: nowrap;
+        }
+
+        .users-table td {
+            padding: 14px var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            vertical-align: middle;
+        }
+
+        .users-table tbody tr:last-child td { border-bottom: none; }
+        .users-table tbody tr:hover td { background: var(--iv-bg-subtle); }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+        }
+
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-avatar-you {
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+        }
+
+        .user-body { min-width: 0; }
+
+        .user-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-you-badge {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .role-select {
+            height: 32px;
+            padding: 0 26px 0 10px;
+            border-radius: var(--iv-r-sm);
+            border: 1px solid var(--iv-border-strong);
+            background: var(--iv-bg);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%2371717a' d='M1 1l4 4 4-4'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            transition: var(--iv-transition);
+        }
+
+        .role-select:focus {
+            border-color: var(--iv-focus);
+            box-shadow: 0 0 0 3px var(--iv-focus-ring);
+        }
+
+        .role-select:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+        .row-btn {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            background: transparent;
+            border: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12.5px;
+            transition: var(--iv-transition);
+        }
+
+        .row-btn:hover {
+            background: var(--iv-bg-muted);
+            color: var(--iv-text);
+        }
+
+        .row-btn-danger:hover {
+            background: var(--iv-danger-bg);
+            border-color: var(--iv-danger-border);
+            color: var(--iv-danger);
+        }
+
+        .row-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ---- Empty state ---- */
+        .empty {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .empty-title {
+            font-size: 15px; font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .empty-text {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            max-width: 400px;
+            margin-left: auto; margin-right: auto;
+            line-height: 1.55;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 1000px) {
+            .users-table th:nth-child(3),
+            .users-table td:nth-child(3) { display: none; }
+        }
+
+        @media (max-width: 700px) {
+            .users-table { font-size: 13px; }
+            .users-table th, .users-table td { padding: 12px var(--iv-s-3); }
+            .users-table th:nth-child(5),
+            .users-table td:nth-child(5) { display: none; }
+            .user-avatar { width: 32px; height: 32px; font-size: 11px; }
+        }
+
+        @media (max-width: 550px) {
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-wrap { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const state = {
+        me: null,
+        users: [],
+        activeFilter: 'all',
+        searchTerm: '',
+        updating: new Set()   // user ids currently being modified
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('admin');
+        if (!ctx) return;
+
+        state.me = ctx.profile;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/admin/manage-users.html',
+            title: 'Manage Users',
+            subtitle: 'Change roles, remove accounts, and audit registrations',
+            actions: `
+                <a href="/admin/dashboard.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireToolbar();
+        await load();
+    })();
+
+    // ============================================================
+    // PAGE
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" id="searchInput"
+                           placeholder="Search by name or email…" autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="filter-tabs" id="filterTabs"></div>
+            <div id="tableArea">
+                <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        `;
+    }
+
+    function wireToolbar() {
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            state.searchTerm = e.target.value.trim().toLowerCase();
+            renderTable();
+        });
+    }
+
+    // ============================================================
+    // LOAD
+    // ============================================================
+
+    async function load() {
+        const area = document.getElementById('tableArea');
+        try {
+            const res = await window.api('/api/admin/users');
+            state.users = res.users || [];
+            renderTabs();
+            renderTable();
+        } catch (err) {
+            console.error(err);
+            area.innerHTML = errorState(err.message);
+            const retry = document.getElementById('retryBtn');
+            if (retry) retry.onclick = load;
+        }
+    }
+
+    // ============================================================
+    // FILTER TABS
+    // ============================================================
+
+    function renderTabs() {
+        const counts = {
+            all:        state.users.length,
+            student:    state.users.filter(u => u.role === 'student').length,
+            supervisor: state.users.filter(u => u.role === 'supervisor').length,
+            admin:      state.users.filter(u => u.role === 'admin').length
+        };
+
+        const tabs = [
+            { key: 'all',        label: 'All' },
+            { key: 'student',    label: 'Students' },
+            { key: 'supervisor', label: 'Supervisors' },
+            { key: 'admin',      label: 'Admins' }
+        ];
+
+        const wrap = document.getElementById('filterTabs');
+        wrap.innerHTML = tabs.map(t => `
+            <button class="filter-tab ${state.activeFilter === t.key ? 'filter-tab-active' : ''}"
+                    data-filter="${t.key}">
+                ${window.escapeHTML(t.label)}
+                <span class="filter-tab-count">${counts[t.key]}</span>
+            </button>
+        `).join('');
+
+        wrap.querySelectorAll('.filter-tab').forEach(el => {
+            el.onclick = () => {
+                state.activeFilter = el.dataset.filter;
+                renderTabs();
+                renderTable();
+            };
+        });
+    }
+
+    // ============================================================
+    // TABLE
+    // ============================================================
+
+    function renderTable() {
+        const area = document.getElementById('tableArea');
+
+        if (!state.users.length) {
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon"><i class="fas fa-users"></i></div>
+                    <div class="empty-title">No users registered</div>
+                    <div class="empty-text">
+                        When students and supervisors sign up, they will appear here.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const filtered = state.users.filter(u => {
+            if (state.activeFilter !== 'all' && u.role !== state.activeFilter) return false;
+            if (!state.searchTerm) return true;
+            const hay = [u.full_name, u.email, u.department]
+                .filter(Boolean).join(' ').toLowerCase();
+            return hay.includes(state.searchTerm);
+        });
+
+        if (!filtered.length) {
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon"><i class="fas fa-search"></i></div>
+                    <div class="empty-title">No matches</div>
+                    <div class="empty-text">
+                        ${state.searchTerm
+                            ? `No users match "${window.escapeHTML(state.searchTerm)}".`
+                            : 'No users in this category.'}
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Count total admins in the system (not just filtered) for last-admin protection
+        const totalAdmins = state.users.filter(u => u.role === 'admin').length;
+
+        area.innerHTML = `
+            <div class="table-wrap">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Joined</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(u => row(u, totalAdmins)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        wireTable();
+    }
+
+    function row(u, totalAdmins) {
+        const isMe = u.id === state.me.id;
+        const isBusy = state.updating.has(u.id);
+        const isLastAdmin = u.role === 'admin' && totalAdmins <= 1;
+
+        const name = u.full_name || 'Unnamed user';
+        const email = u.email || '—';
+
+        // Role dropdown
+        const roleSelect = `
+            <select class="role-select" data-role-for="${window.escapeHTML(u.id)}"
+                    ${isMe || isBusy ? 'disabled' : ''}>
+                <option value="student"    ${u.role === 'student'    ? 'selected' : ''}>Student</option>
+                <option value="supervisor" ${u.role === 'supervisor' ? 'selected' : ''}>Supervisor</option>
+                <option value="admin"      ${u.role === 'admin'      ? 'selected' : ''}>Admin</option>
+            </select>
+        `;
+
+        // Delete button (disabled if self or last admin or busy)
+        const deleteBtn = `
+            <button class="row-btn row-btn-danger"
+                    data-action="delete"
+                    data-id="${window.escapeHTML(u.id)}"
+                    data-name="${window.escapeHTML(name)}"
+                    title="${isMe ? 'You cannot delete your own account' : (isLastAdmin ? 'Cannot delete the last admin' : 'Delete user')}"
+                    ${isMe || isLastAdmin || isBusy ? 'disabled' : ''}>
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+
+        return `
+            <tr data-user-id="${window.escapeHTML(u.id)}">
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar ${isMe ? 'user-avatar-you' : ''}">
+                            ${window.escapeHTML(window.initials(name))}
+                        </div>
+                        <div class="user-body">
+                            <div class="user-name">
+                                ${window.escapeHTML(name)}
+                                ${isMe ? `<span class="user-you-badge">You</span>` : ''}
+                            </div>
+                            <div class="user-email">${window.escapeHTML(email)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${roleSelect}</td>
+                <td>${window.escapeHTML(u.department || '—')}</td>
+                <td>${window.formatDate(u.created_at)}</td>
+                <td>
+                    <div class="row-actions">
+                        ${deleteBtn}
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    function wireTable() {
+        // Role changes
+        document.querySelectorAll('[data-role-for]').forEach(sel => {
+            const userId = sel.dataset.roleFor;
+            const prevValue = sel.value;
+
+            sel.addEventListener('change', async () => {
+                const newRole = sel.value;
+                if (newRole === prevValue) return;
+
+                const target = state.users.find(u => u.id === userId);
+                const name = target?.full_name || target?.email || 'this user';
+
+                const ok = await window.confirmDialog({
+                    title: `Change role to ${newRole}?`,
+                    message: `${name} will be granted the ${newRole} role immediately.`,
+                    confirmLabel: 'Change role'
+                });
+
+                if (!ok) {
+                    sel.value = prevValue;
+                    return;
+                }
+
+                state.updating.add(userId);
+                sel.disabled = true;
+
+                try {
+                    await window.api('/api/admin/users/' + userId + '/role', {
+                        method: 'PATCH',
+                        body: { role: newRole }
+                    });
+
+                    if (target) target.role = newRole;
+
+                    window.toast(`${name} is now ${newRole}.`, 'success');
+                    renderTabs();
+                    renderTable();
+
+                } catch (err) {
+                    console.error(err);
+                    window.toast(err.message || 'Could not change role.', 'error');
+                    sel.value = prevValue;
+                } finally {
+                    state.updating.delete(userId);
+                    sel.disabled = false;
+                }
+            });
+        });
+
+        // Delete buttons
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.onclick = async () => {
+                const userId = btn.dataset.id;
+                const name = btn.dataset.name;
+
+                const ok = await window.confirmDialog({
+                    title: 'Delete user?',
+                    message: `${name} will be permanently removed along with all their topics, scans, and messages. This cannot be undone.`,
+                    confirmLabel: 'Delete user',
+                    danger: true
+                });
+                if (!ok) return;
+
+                state.updating.add(userId);
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+
+                try {
+                    await window.api('/api/admin/users/' + userId, { method: 'DELETE' });
+                    window.toast('User deleted.', 'success');
+                    state.users = state.users.filter(u => u.id !== userId);
+                    renderTabs();
+                    renderTable();
+                } catch (err) {
+                    console.error(err);
+                    window.toast(err.message || 'Delete failed.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-trash"></i>`;
+                } finally {
+                    state.updating.delete(userId);
+                }
+            };
+        });
+    }
+
+    // ============================================================
+    // ERROR
+    // ============================================================
+
+    function errorState(msg) {
+        return `
+            <div class="empty">
+                <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="empty-title">Could not load users</div>
+                <div class="empty-text">${window.escapeHTML(msg || 'Please try again.')}</div>
+                <button class="iv-btn iv-btn-primary" id="retryBtn" style="margin-top: var(--iv-s-4);">
+                    <i class="fas fa-sync-alt"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
