@@ -14,7 +14,6 @@
     <script src="/assets/js/core.js"></script>
 
     <style>
-        /* ---- Hero code-entry card ---- */
         .link-hero {
             background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
             color: #fafafa;
@@ -122,7 +121,6 @@
             cursor: not-allowed;
         }
 
-        /* ---- Inline result flash ---- */
         .flash {
             margin: var(--iv-s-5) auto 0;
             max-width: 460px;
@@ -153,7 +151,6 @@
             flex-shrink: 0;
         }
 
-        /* ---- Section head ---- */
         .sect-head {
             display: flex;
             align-items: center;
@@ -176,7 +173,6 @@
             font-weight: 500;
         }
 
-        /* ---- Students list ---- */
         .stu-list {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -279,7 +275,6 @@
             color: var(--iv-danger);
         }
 
-        /* ---- Empty state ---- */
         .empty {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -354,10 +349,6 @@
         await loadStudents();
     })();
 
-    // ============================================================
-    // MARKUP
-    // ============================================================
-
     function page() {
         return `
             <div class="link-hero">
@@ -400,22 +391,14 @@
         `;
     }
 
-    // ============================================================
-    // FORM WIRING
-    // ============================================================
-
     function wireForm() {
         const input = document.getElementById('codeInput');
         const btn = document.getElementById('linkBtn');
 
-        // Auto-uppercase, auto-insert IV- prefix, limit length
         input.addEventListener('input', () => {
             let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-            // If the user typed IV at start, strip it so we can re-add cleanly
             if (raw.startsWith('IV')) raw = raw.slice(2);
-
-            // Trim to 6 body chars
             raw = raw.slice(0, 6);
 
             input.value = raw ? 'IV-' + raw : '';
@@ -423,11 +406,9 @@
             clearFlash();
             input.classList.remove('code-input-ok', 'code-input-err');
 
-            // Enable button only when we have at least 3 body chars
             btn.disabled = raw.length < 3 || state.linking;
         });
 
-        // Handle paste of a code without IV-
         input.addEventListener('paste', (e) => {
             setTimeout(() => {
                 const v = input.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
@@ -458,10 +439,6 @@
         `;
     }
 
-    // ============================================================
-    // SUBMIT
-    // ============================================================
-
     async function handleSubmit(e) {
         e.preventDefault();
         if (state.linking) return;
@@ -471,7 +448,7 @@
         const code = input.value.trim().toUpperCase();
 
         if (!code || code.length < 5) {
-            flash('error', 'fa-exclamation-circle', 'Please enter a valid pairing code.');
+            flash('error', 'fa-circle-exclamation', 'Please enter a valid pairing code.');
             return;
         }
 
@@ -491,9 +468,8 @@
             const name = student.full_name || student.email || 'Student';
 
             input.classList.add('code-input-ok');
-            flash('success', 'fa-check-circle', `${name} is now under your supervision.`);
+            flash('success', 'fa-circle-check', `${name} is now under your supervision.`);
 
-            // Clear input and reload list
             input.value = '';
             await loadStudents();
 
@@ -503,7 +479,6 @@
             console.error(err);
             input.classList.add('code-input-err');
 
-            // Friendly error messages based on status code
             let msg = err.message || 'Could not link student.';
             if (err.status === 404) msg = 'No student found with that code. Please double-check.';
             else if (err.status === 409) msg = 'You are already supervising this student.';
@@ -511,7 +486,7 @@
                 msg = 'You cannot link to your own account.';
             }
 
-            flash('error', 'fa-exclamation-triangle', msg);
+            flash('error', 'fa-triangle-exclamation', msg);
         } finally {
             state.linking = false;
             btn.disabled = input.value.trim().length < 5;
@@ -519,10 +494,6 @@
             input.focus();
         }
     }
-
-    // ============================================================
-    // STUDENTS LIST
-    // ============================================================
 
     async function loadStudents() {
         const area = document.getElementById('studentsArea');
@@ -547,7 +518,7 @@
             area.innerHTML = `
                 <div class="empty">
                     <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <i class="fas fa-triangle-exclamation"></i>
                     </div>
                     <div class="empty-title">Could not load your students</div>
                     <div class="empty-text">${window.escapeHTML(err.message)}</div>
@@ -597,7 +568,7 @@
                             data-assign="${window.escapeHTML(s.assignment_id)}"
                             data-name="${window.escapeHTML(name)}"
                             title="Unlink">
-                        <i class="fas fa-unlink"></i>
+                        <i class="fas fa-link-slash"></i>
                     </button>
                 </div>
             </div>
@@ -642,7 +613,7 @@
                     console.error(err);
                     window.toast(err.message || 'Could not unlink.', 'error');
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fas fa-unlink"></i>`;
+                    btn.innerHTML = `<i class="fas fa-link-slash"></i>`;
                 }
             };
         });
