@@ -42,51 +42,39 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
-
 // ------------------------------------------------------------
 // CORS
 // ------------------------------------------------------------
-// Same-origin requests (frontend and backend on the same host)
-// don't actually need CORS — the browser trusts itself. But
-// modern browsers still send an Origin header for POSTs, so we
-// must not reject them.
+// Same-origin requests don't actually need CORS — the browser
+// trusts itself. But modern browsers still send an Origin header
+// for POSTs, so we must not reject them.
 //
-// Strategy:
-//   • Requests with no Origin (curl, server-to-server) → allow
-//   • Same-origin (Origin host matches request Host) → allow
-//   • Configured FRONTEND_URL → allow
-//   • localhost variants → allow
-//   • any *.onrender.com → allow (dev convenience, same-tenant)
-//   • anything else → no CORS headers (browser blocks it)
+// Rules:
+//   • No Origin header      → allow (curl, server-to-server)
+//   • Same-origin           → allow (browser trusts itself)
+//   • FRONTEND_URL matches  → allow (configured cross-origin)
+//   • *.onrender.com        → allow (convenience, same tenant)
+//   • localhost variants    → allow (local dev)
+//   • everything else       → no CORS headers
+
+const configuredOrigin = process.env.FRONTEND_URL || '';
 
 app.use((req, res, next) => {
     const origin = req.headers.origin;
 
-    // No origin → not a browser CORS request
     if (!origin) return next();
 
-    // Same-origin check: compare Origin host to our Host header
     let isSameOrigin = false;
     try {
         const originHost = new URL(origin).host;
-        const ourHost = req.headers.host;
-        isSameOrigin = originHost === ourHost;
+        isSameOrigin = originHost === req.headers.host;
     } catch (_) { /* malformed origin */ }
-
-    const isConfigured =
-        allowedOrigins.includes(origin);
-
-    const isRenderSubdomain =
-        origin.endsWith('.onrender.com');
-
-    const isLocalhost =
-        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
     const allow =
         isSameOrigin ||
-        isConfigured ||
-        isRenderSubdomain ||
-        isLocalhost;
+        (configuredOrigin && origin === configuredOrigin) ||
+        origin.endsWith('.onrender.com') ||
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 
     if (allow) {
         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -100,7 +88,6 @@ app.use((req, res, next) => {
         console.warn('[CORS] Blocked origin:', origin);
     }
 
-    // Handle preflight
     if (req.method === 'OPTIONS') {
         return res.sendStatus(204);
     }
