@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Students — IntelliVerify Supervisor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Summary strip ---- */
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--iv-s-3);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .summary-item {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-md);
+            padding: var(--iv-s-4);
+        }
+
+        .summary-label {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--iv-text);
+            margin-top: 4px;
+            line-height: 1;
+        }
+
+        .summary-value-success { color: var(--iv-success); }
+        .summary-value-warning { color: var(--iv-warning); }
+        .summary-value-danger  { color: var(--iv-danger); }
+
+        /* ---- Toolbar ---- */
+        .toolbar {
+            display: flex;
+            gap: var(--iv-s-3);
+            margin-bottom: var(--iv-s-4);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 360px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--iv-text-3);
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 38px;
+            padding: 0 14px 0 34px;
+            border-radius: var(--iv-r-sm);
+            border: 1px solid var(--iv-border-strong);
+            background: var(--iv-bg);
+            font-family: inherit;
+            font-size: 13.5px;
+            color: var(--iv-text);
+            outline: none;
+            transition: var(--iv-transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--iv-focus);
+            box-shadow: 0 0 0 3px var(--iv-focus-ring);
+        }
+
+        .sort-select {
+            height: 38px;
+            padding: 0 12px;
+            border-radius: var(--iv-r-sm);
+            border: 1px solid var(--iv-border-strong);
+            background: var(--iv-bg);
+            font-family: inherit;
+            font-size: 13.5px;
+            color: var(--iv-text);
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* ---- Student cards ---- */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--iv-s-4);
+        }
+
+        .student-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            transition: var(--iv-transition);
+        }
+
+        .student-card:hover {
+            border-color: var(--iv-border-strong);
+            box-shadow: var(--iv-shadow-sm);
+        }
+
+        .sc-head {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-4);
+            padding-bottom: var(--iv-s-4);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .sc-avatar {
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .sc-identity {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sc-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            letter-spacing: -0.01em;
+        }
+
+        .sc-email {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sc-dept {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ---- Info rows in card ---- */
+        .sc-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .sc-info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-3);
+            font-size: 13px;
+        }
+
+        .sc-info-icon {
+            width: 26px; height: 26px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .sc-info-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sc-info-label {
+            font-size: 11px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .sc-info-value {
+            font-size: 13px;
+            color: var(--iv-text);
+            margin-top: 2px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sc-info-value-muted {
+            color: var(--iv-text-3);
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .sc-info-row-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 3px;
+        }
+
+        /* ---- Card footer actions ---- */
+        .sc-actions {
+            display: flex;
+            gap: 6px;
+            padding-top: var(--iv-s-4);
+            border-top: 1px solid var(--iv-border);
+            flex-wrap: wrap;
+        }
+
+        .sc-action {
+            flex: 1;
+            min-width: 90px;
+            height: 34px;
+            padding: 0 12px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: var(--iv-transition);
+            white-space: nowrap;
+        }
+
+        .sc-action:hover {
+            background: var(--iv-bg-muted);
+            color: var(--iv-text);
+            border-color: var(--iv-border-strong);
+        }
+
+        .sc-action-primary {
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            border-color: var(--iv-accent);
+        }
+
+        .sc-action-primary:hover {
+            background: var(--iv-accent-hover);
+            border-color: var(--iv-accent-hover);
+            color: var(--iv-text-inverse);
+        }
+
+        /* ---- Empty states ---- */
+        .empty {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .empty-title {
+            font-size: 15px; font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .empty-text {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            max-width: 400px;
+            margin-left: auto; margin-right: auto;
+            line-height: 1.55;
+        }
+
+        .empty .iv-btn { margin-top: var(--iv-s-4); }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 1100px) {
+            .students-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 800px) {
+            .summary-strip { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .summary-strip { grid-template-columns: 1fr; gap: var(--iv-s-2); }
+            .summary-value { font-size: 18px; }
+            .student-card { padding: var(--iv-s-4); }
+            .sc-avatar { width: 40px; height: 40px; font-size: 13px; }
+            .sc-action { min-width: 0; flex: 1 1 45%; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const state = {
+        students: [],   // from /api/pairing/students
+        topics: [],     // from /api/topics
+        reports: [],    // from /api/reports
+        search: '',
+        sortBy: 'name'  // 'name' | 'recent' | 'risk'
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('supervisor');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/supervisor/assigned-students.html',
+            title: 'My Students',
+            subtitle: 'Overview of every student under your supervision',
+            actions: `
+                <a href="/supervisor/link-student.html" class="iv-btn iv-btn-primary iv-btn-sm">
+                    <i class="fas fa-link"></i> Link student
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireToolbar();
+        await load();
+    })();
+
+    // ============================================================
+    // MARKUP
+    // ============================================================
+
+    function page() {
+        return `
+            <div id="summaryArea"></div>
+
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <i class="fas fa-search"></i>
+                    <input class="search-input" id="searchInput" placeholder="Search by name, email, or topic…" />
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="name">Sort: Name (A–Z)</option>
+                    <option value="recent">Sort: Recently linked</option>
+                    <option value="risk">Sort: Highest risk</option>
+                </select>
+            </div>
+
+            <div id="studentsArea">
+                <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // DATA
+    // ============================================================
+
+    async function load() {
+        const area = document.getElementById('studentsArea');
+
+        try {
+            const [studentsRes, topicsRes, reportsRes] = await Promise.all([
+                window.api('/api/pairing/students').catch(() => ({ students: [] })),
+                window.api('/api/topics').catch(() => ({ topics: [] })),
+                window.api('/api/reports').catch(() => ({ reports: [] }))
+            ]);
+
+            state.students = studentsRes.students || [];
+            state.topics = topicsRes.topics || [];
+            state.reports = reportsRes.reports || [];
+
+            renderSummary();
+            renderStudents();
+
+        } catch (err) {
+            console.error(err);
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="empty-title">Could not load students</div>
+                    <div class="empty-text">${window.escapeHTML(err.message)}</div>
+                    <button class="iv-btn iv-btn-primary" onclick="load()">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    window.load = load;
+
+    // ============================================================
+    // SUMMARY
+    // ============================================================
+
+    function renderSummary() {
+        const area = document.getElementById('summaryArea');
+        if (!state.students.length) { area.innerHTML = ''; return; }
+
+        const totalStudents = state.students.length;
+        const withTopics = new Set(state.topics.map(t => t.student?.id).filter(Boolean)).size;
+        const pendingCount = state.topics.filter(t => t.status === 'pending').length;
+        const highRiskCount = state.reports.filter(r => r.risk_level === 'high').length;
+
+        area.innerHTML = `
+            <div class="summary-strip">
+                <div class="summary-item">
+                    <div class="summary-label">Students</div>
+                    <div class="summary-value">${totalStudents}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Submitted topics</div>
+                    <div class="summary-value">${withTopics}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Pending review</div>
+                    <div class="summary-value ${pendingCount ? 'summary-value-warning' : ''}">${pendingCount}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">High-risk scans</div>
+                    <div class="summary-value ${highRiskCount ? 'summary-value-danger' : ''}">${highRiskCount}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // TOOLBAR WIRING
+    // ============================================================
+
+    function wireToolbar() {
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            state.search = e.target.value.trim().toLowerCase();
+            renderStudents();
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            state.sortBy = e.target.value;
+            renderStudents();
+        });
+    }
+
+    // ============================================================
+    // STUDENTS GRID
+    // ============================================================
+
+    function renderStudents() {
+        const area = document.getElementById('studentsArea');
+
+        if (!state.students.length) {
+            area.innerHTML = emptyState();
+            return;
+        }
+
+        // Enrich each student with derived data
+        const enriched = state.students.map(s => enrich(s));
+
+        // Filter
+        const filtered = enriched.filter(s => {
+            if (!state.search) return true;
+            const hay = [
+                s.profile.full_name,
+                s.profile.email,
+                s.profile.department,
+                s.latestTopic?.title
+            ].filter(Boolean).join(' ').toLowerCase();
+            return hay.includes(state.search);
+        });
+
+        // Sort
+        const sorted = [...filtered].sort((a, b) => {
+            if (state.sortBy === 'name') {
+                return (a.profile.full_name || a.profile.email || '')
+                    .localeCompare(b.profile.full_name || b.profile.email || '');
+            }
+            if (state.sortBy === 'recent') {
+                return new Date(b.linked_at) - new Date(a.linked_at);
+            }
+            if (state.sortBy === 'risk') {
+                return b.riskScore - a.riskScore;
+            }
+            return 0;
+        });
+
+        if (!sorted.length) {
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon"><i class="fas fa-search"></i></div>
+                    <div class="empty-title">No matches</div>
+                    <div class="empty-text">
+                        No students match "${window.escapeHTML(state.search)}". Try a different search.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        area.innerHTML = `
+            <div class="students-grid">
+                ${sorted.map(s => card(s)).join('')}
+            </div>
+        `;
+
+        // Wire up actions
+        area.querySelectorAll('[data-action="message"]').forEach(btn => {
+            btn.onclick = () => {
+                window.location.href = '/supervisor/messages.html?student=' +
+                    encodeURIComponent(btn.dataset.id);
+            };
+        });
+
+        area.querySelectorAll('[data-action="review"]').forEach(btn => {
+            btn.onclick = () => {
+                window.location.href = '/supervisor/review-topic.html?id=' +
+                    encodeURIComponent(btn.dataset.topic);
+            };
+        });
+    }
+
+    // ============================================================
+    // ENRICHMENT — compute latest topic + risk per student
+    // ============================================================
+
+    function enrich(link) {
+        const profile = link.student || {};
+
+        // Latest topic from this student
+        const studentTopics = state.topics
+            .filter(t => t.student?.id === profile.id)
+            .sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+        const latestTopic = studentTopics[0] || null;
+
+        // Highest risk from this student's reports
+        const studentReports = state.reports.filter(r => r.user?.id === profile.id);
+        const risks = { low: 0, medium: 1, high: 2 };
+        const highestRisk = studentReports.reduce((acc, r) => {
+            const v = risks[(r.risk_level || 'low').toLowerCase()] ?? 0;
+            return v > acc ? v : acc;
+        }, -1);
+        const highestRiskLabel = highestRisk < 0 ? null : ['low', 'medium', 'high'][highestRisk];
+
+        return {
+            assignment_id: link.assignment_id,
+            linked_at: link.linked_at,
+            linked_by: link.linked_by,
+            profile,
+            topics: studentTopics,
+            latestTopic,
+            reports: studentReports,
+            highestRisk: highestRiskLabel,
+            riskScore: highestRisk < 0 ? -1 : highestRisk
+        };
+    }
+
+    // ============================================================
+    // CARD
+    // ============================================================
+
+    function card(s) {
+        const name = s.profile.full_name || s.profile.email || 'Student';
+        const email = s.profile.email || '';
+        const dept = s.profile.department || 'Department not set';
+
+        const topicStatus = s.latestTopic ? (s.latestTopic.status || 'pending').toLowerCase() : null;
+
+        return `
+            <article class="student-card">
+                <div class="sc-head">
+                    <div class="sc-avatar">${window.escapeHTML(window.initials(name))}</div>
+                    <div class="sc-identity">
+                        <div class="sc-name">${window.escapeHTML(name)}</div>
+                        <div class="sc-email">${window.escapeHTML(email)}</div>
+                        <div class="sc-dept">
+                            <i class="fas fa-building" style="font-size: 10px;"></i>
+                            ${window.escapeHTML(dept)}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sc-info">
+                    ${topicInfoRow(s)}
+                    ${riskInfoRow(s)}
+                    ${linkInfoRow(s)}
+                </div>
+
+                <div class="sc-actions">
+                    <button class="sc-action" data-action="message" data-id="${window.escapeHTML(s.profile.id)}">
+                        <i class="fas fa-comment"></i> Message
+                    </button>
+                    ${s.latestTopic ? `
+                        <button class="sc-action sc-action-primary" data-action="review" data-topic="${window.escapeHTML(s.latestTopic.topic_id)}">
+                            <i class="fas fa-eye"></i> Review topic
+                        </button>
+                    ` : `
+                        <span class="sc-action" style="cursor: default; opacity: 0.6;">
+                            <i class="fas fa-hourglass"></i> No topic yet
+                        </span>
+                    `}
+                </div>
+            </article>
+        `;
+    }
+
+    function topicInfoRow(s) {
+        if (!s.latestTopic) {
+            return `
+                <div class="sc-info-row">
+                    <div class="sc-info-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="sc-info-body">
+                        <div class="sc-info-label">Latest topic</div>
+                        <div class="sc-info-value sc-info-value-muted">No topic submitted yet</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const status = (s.latestTopic.status || 'pending').toLowerCase();
+        const totalTopics = s.topics.length;
+
+        return `
+            <div class="sc-info-row">
+                <div class="sc-info-icon"><i class="fas fa-file-alt"></i></div>
+                <div class="sc-info-body">
+                    <div class="sc-info-label">Latest topic</div>
+                    <div class="sc-info-value">${window.escapeHTML(s.latestTopic.title || 'Untitled')}</div>
+                    <div class="sc-info-row-badges">
+                        <span class="iv-badge iv-badge-${status}">${window.escapeHTML(status)}</span>
+                        ${totalTopics > 1 ? `
+                            <span class="iv-badge iv-badge-neutral">${totalTopics} total</span>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function riskInfoRow(s) {
+        if (!s.reports.length) {
+            return `
+                <div class="sc-info-row">
+                    <div class="sc-info-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="sc-info-body">
+                        <div class="sc-info-label">Plagiarism checks</div>
+                        <div class="sc-info-value sc-info-value-muted">No scans run</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const count = s.reports.length;
+        const risk = s.highestRisk || 'low';
+
+        return `
+            <div class="sc-info-row">
+                <div class="sc-info-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="sc-info-body">
+                    <div class="sc-info-label">Plagiarism checks</div>
+                    <div class="sc-info-value">
+                        ${count} scan${count === 1 ? '' : 's'} run
+                    </div>
+                    <div class="sc-info-row-badges">
+                        <span class="iv-badge iv-badge-${risk}">
+                            Highest: ${window.escapeHTML(risk.toUpperCase())}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function linkInfoRow(s) {
+        const via = s.linked_by === 'admin' ? 'Assigned by admin' : 'Linked via code';
+        const icon = s.linked_by === 'admin' ? 'fa-user-shield' : 'fa-link';
+        const when = window.formatDate(s.linked_at);
+
+        return `
+            <div class="sc-info-row">
+                <div class="sc-info-icon"><i class="fas ${icon}"></i></div>
+                <div class="sc-info-body">
+                    <div class="sc-info-label">Link</div>
+                    <div class="sc-info-value" style="font-weight: 400;">
+                        ${window.escapeHTML(via)} · ${window.escapeHTML(when)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // EMPTY STATE
+    // ============================================================
+
+    function emptyState() {
+        return `
+            <div class="empty">
+                <div class="empty-icon"><i class="fas fa-users"></i></div>
+                <div class="empty-title">No students linked yet</div>
+                <div class="empty-text">
+                    Ask your students for their pairing codes and enter them on the Link Student page.
+                    They will appear here with their topics and scans.
+                </div>
+                <a href="/supervisor/link-student.html" class="iv-btn iv-btn-primary">
+                    <i class="fas fa-link"></i> Link your first student
+                </a>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
