@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reference Corpus — IntelliVerify Supervisor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Info banner ---- */
+        .info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            background: var(--iv-info-bg);
+            border: 1px solid var(--iv-info-border);
+            border-radius: var(--iv-r-md);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .info-banner-icon {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-info);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .info-banner-body { flex: 1; min-width: 0; }
+
+        .info-banner-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+            margin-bottom: 3px;
+        }
+
+        .info-banner-text {
+            font-size: 13px;
+            color: var(--iv-text-2);
+            line-height: 1.55;
+        }
+
+        /* ---- Layout ---- */
+        .corpus-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: var(--iv-s-5);
+            align-items: start;
+        }
+
+        /* ---- Upload card ---- */
+        .upload-zone {
+            border: 2px dashed var(--iv-border-strong);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-8) var(--iv-s-5);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--iv-transition);
+            background: var(--iv-bg-subtle);
+        }
+
+        .upload-zone:hover,
+        .upload-zone-drag {
+            border-color: var(--iv-focus);
+            background: var(--iv-info-bg);
+        }
+
+        .upload-zone-icon {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            color: var(--iv-text-2);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .upload-zone-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .upload-zone-sub {
+            font-size: 13px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+        }
+
+        .upload-zone-formats {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: var(--iv-s-4);
+        }
+
+        .upload-zone-formats span {
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--iv-text-2);
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ---- Upload queue ---- */
+        .queue {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-2);
+            margin-top: var(--iv-s-4);
+        }
+
+        .qitem {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+        }
+
+        .qitem-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .qitem-body { flex: 1; min-width: 0; }
+
+        .qitem-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .qitem-meta {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .qitem-status {
+            font-size: 11.5px;
+            font-weight: 600;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .qitem-status-pending  { color: var(--iv-text-3); }
+        .qitem-status-uploading{ color: var(--iv-info); }
+        .qitem-status-done     { color: var(--iv-success); }
+        .qitem-status-failed   { color: var(--iv-danger); }
+
+        /* ---- Section head ---- */
+        .sect-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .sect-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .sect-count {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg-muted);
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 500;
+        }
+
+        /* ---- Docs table ---- */
+        .docs {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .doc-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            transition: var(--iv-transition);
+        }
+
+        .doc-row:last-child { border-bottom: none; }
+        .doc-row:hover { background: var(--iv-bg-subtle); }
+
+        .doc-icon {
+            width: 40px; height: 40px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .doc-body { flex: 1; min-width: 0; }
+
+        .doc-name {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .doc-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .doc-meta-dot { opacity: 0.5; }
+
+        .doc-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .doc-btn {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: transparent;
+            border: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12.5px;
+            transition: var(--iv-transition);
+        }
+
+        .doc-btn:hover {
+            background: var(--iv-bg-muted);
+            color: var(--iv-text);
+        }
+
+        .doc-btn-danger:hover {
+            background: var(--iv-danger-bg);
+            border-color: var(--iv-danger-border);
+            color: var(--iv-danger);
+        }
+
+        /* ---- Empty ---- */
+        .empty {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .empty-title {
+            font-size: 15px; font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .empty-text {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            max-width: 420px;
+            margin-left: auto; margin-right: auto;
+            line-height: 1.55;
+        }
+
+        /* ---- Aside explainer ---- */
+        .aside {
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            position: sticky;
+            top: calc(var(--iv-topbar-h) + var(--iv-s-4));
+        }
+
+        .aside-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .aside-step {
+            display: flex;
+            gap: var(--iv-s-3);
+            padding-bottom: var(--iv-s-4);
+            margin-bottom: var(--iv-s-4);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .aside-step:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .aside-step-num {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .aside-step-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .aside-step-text {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        .aside-tip {
+            margin-top: var(--iv-s-4);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-warning-bg);
+            border: 1px solid var(--iv-warning-border);
+            border-radius: var(--iv-r-sm);
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            line-height: 1.55;
+            display: flex;
+            gap: 8px;
+        }
+
+        .aside-tip i { color: var(--iv-warning); margin-top: 2px; flex-shrink: 0; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 1000px) {
+            .corpus-layout { grid-template-columns: 1fr; }
+            .aside { position: static; order: -1; }
+        }
+
+        @media (max-width: 600px) {
+            .doc-row { padding: var(--iv-s-3) var(--iv-s-4); gap: var(--iv-s-3); }
+            .doc-icon { width: 34px; height: 34px; font-size: 13px; }
+            .upload-zone { padding: var(--iv-s-6) var(--iv-s-4); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const MAX_SIZE = 7 * 1024 * 1024;  // 7 MB
+    const ALLOWED = ['pdf', 'docx', 'txt'];
+
+    const state = {
+        documents: [],
+        uploading: false
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('supervisor');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/supervisor/corpus.html',
+            title: 'Reference Corpus',
+            subtitle: 'Upload past projects and documents that new submissions are checked against',
+            actions: `
+                <a href="/supervisor/dashboard.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireUpload();
+        await load();
+    })();
+
+    // ============================================================
+    // MARKUP
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="info-banner">
+                <div class="info-banner-icon"><i class="fas fa-info-circle"></i></div>
+                <div class="info-banner-body">
+                    <div class="info-banner-title">This is the comparison set</div>
+                    <div class="info-banner-text">
+                        Every document uploaded here becomes part of the reference corpus.
+                        When a student runs a plagiarism scan, the engine compares their file
+                        against every document in this corpus and returns a similarity score.
+                        Upload past approved projects, academic papers, or any material you want
+                        to detect overlap against.
+                    </div>
+                </div>
+            </div>
+
+            <div class="corpus-layout">
+                <div>
+                    <div class="iv-card iv-mb-6">
+                        <div class="iv-card-header">
+                            <div>
+                                <div class="iv-card-title">Add reference documents</div>
+                                <div class="iv-card-subtitle">
+                                    Drag and drop multiple files, or click to browse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-zone" id="uploadZone">
+                            <div class="upload-zone-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-zone-title">Drop files here</div>
+                            <div class="upload-zone-sub">or tap to browse</div>
+                            <div class="upload-zone-formats">
+                                <span>PDF</span>
+                                <span>DOCX</span>
+                                <span>TXT</span>
+                            </div>
+                            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" multiple />
+                        </div>
+
+                        <div class="queue" id="queue"></div>
+                    </div>
+
+                    <div class="sect-head">
+                        <div class="sect-title">Corpus documents</div>
+                        <div id="docsCount"></div>
+                    </div>
+
+                    <div id="docsArea">
+                        <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+                    </div>
+                </div>
+
+                ${aside()}
+            </div>
+        `;
+    }
+
+    function aside() {
+        return `
+            <aside class="aside">
+                <div class="aside-title">How the corpus works</div>
+
+                <div class="aside-step">
+                    <div class="aside-step-num">1</div>
+                    <div>
+                        <div class="aside-step-title">Upload reference material</div>
+                        <div class="aside-step-text">
+                            Past projects, papers, department archives — anything you want to compare against.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aside-step">
+                    <div class="aside-step-num">2</div>
+                    <div>
+                        <div class="aside-step-title">Text is extracted</div>
+                        <div class="aside-step-text">
+                            Each document is parsed into plain text and stored alongside the original.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aside-step">
+                    <div class="aside-step-num">3</div>
+                    <div>
+                        <div class="aside-step-title">Students run scans</div>
+                        <div class="aside-step-text">
+                            Their submissions are compared via TF-IDF and 3-gram Jaccard similarity.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aside-step">
+                    <div class="aside-step-num">4</div>
+                    <div>
+                        <div class="aside-step-title">You review matches</div>
+                        <div class="aside-step-text">
+                            Every scan shows the top matching documents and the overlapping phrases.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aside-tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div>
+                        <strong>Tip:</strong> Aim for 20–50 reference documents.
+                        With a larger corpus, similarity scores become more meaningful
+                        and less prone to false positives.
+                    </div>
+                </div>
+            </aside>
+        `;
+    }
+
+    // ============================================================
+    // UPLOAD
+    // ============================================================
+
+    function wireUpload() {
+        const zone = document.getElementById('uploadZone');
+        const input = document.getElementById('fileInput');
+
+        zone.onclick = () => input.click();
+
+        input.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                queueFiles(Array.from(e.target.files));
+                input.value = '';
+            }
+        });
+
+        ['dragenter', 'dragover'].forEach(evt =>
+            zone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                zone.classList.add('upload-zone-drag');
+            })
+        );
+
+        ['dragleave', 'drop'].forEach(evt =>
+            zone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                zone.classList.remove('upload-zone-drag');
+            })
+        );
+
+        zone.addEventListener('drop', (e) => {
+            const files = Array.from(e.dataTransfer.files || []);
+            if (files.length) queueFiles(files);
+        });
+    }
+
+    async function queueFiles(files) {
+        if (state.uploading) {
+            window.toast('Please wait for the current upload to finish.', 'warning');
+            return;
+        }
+
+        // Validate all files first
+        const valid = [];
+        for (const f of files) {
+            const ext = (f.name.split('.').pop() || '').toLowerCase();
+            if (!ALLOWED.includes(ext)) {
+                window.toast(`Skipped "${f.name}": unsupported format.`, 'error');
+                continue;
+            }
+            if (f.size > MAX_SIZE) {
+                window.toast(`Skipped "${f.name}": exceeds 7 MB.`, 'error');
+                continue;
+            }
+            valid.push(f);
+        }
+
+        if (!valid.length) return;
+
+        state.uploading = true;
+        renderQueue(valid.map(f => ({ file: f, status: 'pending' })));
+
+        // Upload sequentially — keeps the backend from getting hammered
+        for (let i = 0; i < valid.length; i++) {
+            await uploadOne(valid[i], i);
+        }
+
+        state.uploading = false;
+        await load();
+
+        // Clear queue after a short delay
+        setTimeout(() => {
+            const q = document.getElementById('queue');
+            if (q) q.innerHTML = '';
+        }, 2000);
+    }
+
+    function renderQueue(items) {
+        const q = document.getElementById('queue');
+        q.innerHTML = items.map((it, i) => qitem(it, i)).join('');
+    }
+
+    function qitem(it, i) {
+        const f = it.file;
+        const kb = (f.size / 1024).toFixed(1);
+        const ext = (f.name.split('.').pop() || '').toLowerCase();
+
+        const statusMap = {
+            pending:   { cls: 'qitem-status-pending',   icon: 'fa-clock',           label: 'Pending' },
+            uploading: { cls: 'qitem-status-uploading', icon: 'fa-spinner fa-spin', label: 'Uploading…' },
+            done:      { cls: 'qitem-status-done',      icon: 'fa-check-circle',    label: 'Done' },
+            failed:    { cls: 'qitem-status-failed',    icon: 'fa-times-circle',    label: 'Failed' }
+        };
+
+        const st = statusMap[it.status] || statusMap.pending;
+
+        return `
+            <div class="qitem" id="qitem-${i}">
+                <div class="qitem-icon"><i class="fas ${fileIcon(ext)}"></i></div>
+                <div class="qitem-body">
+                    <div class="qitem-name">${window.escapeHTML(f.name)}</div>
+                    <div class="qitem-meta">${kb} KB · ${ext.toUpperCase()}</div>
+                </div>
+                <div class="qitem-status ${st.cls}" id="qstatus-${i}">
+                    <i class="fas ${st.icon}"></i>
+                    ${st.label}
+                </div>
+            </div>
+        `;
+    }
+
+    function setQueueStatus(index, status, errorMsg) {
+        const el = document.getElementById('qstatus-' + index);
+        if (!el) return;
+
+        if (status === 'uploading') {
+            el.className = 'qitem-status qitem-status-uploading';
+            el.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Uploading…`;
+        } else if (status === 'done') {
+            el.className = 'qitem-status qitem-status-done';
+            el.innerHTML = `<i class="fas fa-check-circle"></i> Done`;
+        } else if (status === 'failed') {
+            el.className = 'qitem-status qitem-status-failed';
+            el.innerHTML = `<i class="fas fa-times-circle"></i> ${window.escapeHTML(errorMsg || 'Failed')}`;
+        }
+    }
+
+    async function uploadOne(file, index) {
+        setQueueStatus(index, 'uploading');
+        try {
+            const base64 = await fileToBase64(file);
+            await window.api('/api/corpus', {
+                method: 'POST',
+                body: {
+                    filename: file.name,
+                    mime: file.type || guessMime(file.name),
+                    base64
+                }
+            });
+            setQueueStatus(index, 'done');
+            window.toast(`Uploaded: ${file.name}`, 'success');
+        } catch (err) {
+            console.error(err);
+            setQueueStatus(index, 'failed', 'Failed');
+            window.toast(`Failed: ${file.name} — ${err.message}`, 'error', 5000);
+        }
+    }
+
+    // ============================================================
+    // DOCUMENTS LIST
+    // ============================================================
+
+    async function load() {
+        const area = document.getElementById('docsArea');
+        const count = document.getElementById('docsCount');
+
+        try {
+            const res = await window.api('/api/corpus');
+            state.documents = res.documents || [];
+
+            if (state.documents.length) {
+                count.innerHTML = `<span class="sect-count">${state.documents.length}</span>`;
+                area.innerHTML = list(state.documents);
+                wireList();
+            } else {
+                count.innerHTML = '';
+                area.innerHTML = emptyState();
+            }
+        } catch (err) {
+            console.error(err);
+            count.innerHTML = '';
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="empty-title">Could not load corpus documents</div>
+                    <div class="empty-text">${window.escapeHTML(err.message)}</div>
+                    <button class="iv-btn iv-btn-primary" onclick="load()">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    window.load = load;
+
+    function list(docs) {
+        return `
+            <div class="docs">
+                ${docs.map(d => row(d)).join('')}
+            </div>
+        `;
+    }
+
+    function row(d) {
+        const ext = (d.file_format || '').toLowerCase();
+        const kb = d.file_size ? (d.file_size / 1024).toFixed(1) + ' KB' : null;
+        const words = d.word_count ? `${Number(d.word_count).toLocaleString()} words` : null;
+        const uploader = d.uploader?.full_name || d.uploader?.email || 'Unknown';
+        const when = window.formatDate(d.created_at);
+
+        const metaParts = [
+            ext.toUpperCase(),
+            kb,
+            words,
+            `by ${uploader}`,
+            when
+        ].filter(Boolean);
+
+        return `
+            <div class="doc-row" data-id="${window.escapeHTML(d.id)}">
+                <div class="doc-icon">
+                    <i class="fas ${fileIcon(ext)}"></i>
+                </div>
+                <div class="doc-body">
+                    <div class="doc-name">${window.escapeHTML(d.filename || 'Untitled')}</div>
+                    <div class="doc-meta">
+                        ${metaParts.map((p, i) =>
+                            (i > 0 ? `<span class="doc-meta-dot">·</span>` : '') +
+                            `<span>${window.escapeHTML(p)}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+                <div class="doc-actions">
+                    <button class="doc-btn" data-action="download"
+                            data-id="${window.escapeHTML(d.id)}" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="doc-btn doc-btn-danger" data-action="delete"
+                            data-id="${window.escapeHTML(d.id)}"
+                            data-name="${window.escapeHTML(d.filename)}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function emptyState() {
+        return `
+            <div class="empty">
+                <div class="empty-icon"><i class="fas fa-database"></i></div>
+                <div class="empty-title">Corpus is empty</div>
+                <div class="empty-text">
+                    Upload reference documents above to start building your corpus.
+                    Until you do, plagiarism scans will return a score of 0 for every submission,
+                    because there is nothing to compare against.
+                </div>
+            </div>
+        `;
+    }
+
+    function wireList() {
+        document.querySelectorAll('[data-action="download"]').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    const res = await window.api('/api/corpus/' + id + '/download');
+                    window.open(res.url, '_blank');
+                    window.toast('Download link opened.', 'success');
+                } catch (err) {
+                    window.toast(err.message || 'Download failed.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-download"></i>`;
+                }
+            };
+        });
+
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                const name = btn.dataset.name;
+
+                const ok = await window.confirmDialog({
+                    title: 'Delete reference document?',
+                    message: `"${name}" will be removed from the corpus. Future scans will no longer compare against it. This cannot be undone.`,
+                    confirmLabel: 'Delete',
+                    danger: true
+                });
+                if (!ok) return;
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    await window.api('/api/corpus/' + id, { method: 'DELETE' });
+                    window.toast('Document removed from corpus.', 'success');
+                    await load();
+                } catch (err) {
+                    window.toast(err.message || 'Delete failed.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-trash"></i>`;
+                }
+            };
+        });
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result || '';
+                const idx = result.indexOf(',');
+                resolve(idx >= 0 ? result.slice(idx + 1) : result);
+            };
+            reader.onerror = () => reject(new Error('Could not read the file.'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function guessMime(filename) {
+        const ext = (filename.split('.').pop() || '').toLowerCase();
+        if (ext === 'pdf')  return 'application/pdf';
+        if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        if (ext === 'txt')  return 'text/plain';
+        return 'application/octet-stream';
+    }
+
+    function fileIcon(ext) {
+        if (ext === 'pdf')  return 'fa-file-pdf';
+        if (ext === 'docx') return 'fa-file-word';
+        if (ext === 'txt')  return 'fa-file-lines';
+        return 'fa-file';
+    }
+</script>
+
+</body>
+</html>
