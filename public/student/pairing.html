@@ -14,7 +14,6 @@
     <script src="/assets/js/core.js"></script>
 
     <style>
-        /* ---- Code card ---- */
         .code-card {
             background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
             color: #fafafa;
@@ -77,7 +76,6 @@
             background: rgba(255,255,255,0.18);
         }
 
-        /* ---- Section header ---- */
         .sect-head {
             display: flex;
             align-items: center;
@@ -100,7 +98,6 @@
             font-weight: 500;
         }
 
-        /* ---- Supervisor list ---- */
         .sup-list {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -158,6 +155,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
         .sup-source {
@@ -193,7 +191,6 @@
             color: var(--iv-danger);
         }
 
-        /* ---- Empty state ---- */
         .empty {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -230,7 +227,6 @@
             line-height: 1.55;
         }
 
-        /* ---- How it works ---- */
         .how {
             margin-top: var(--iv-s-6);
             background: var(--iv-bg-subtle);
@@ -349,11 +345,11 @@
     function errorState(message) {
         return `
             <div class="empty">
-                <div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="empty-icon"><i class="fas fa-triangle-exclamation"></i></div>
                 <div class="empty-title">Could not load pairing details</div>
                 <div class="empty-text">${window.escapeHTML(message || 'Please try again.')}</div>
                 <button class="iv-btn iv-btn-primary" id="retryBtn" style="margin-top: var(--iv-s-4);">
-                    <i class="fas fa-sync-alt"></i> Retry
+                    <i class="fas fa-rotate-right"></i> Retry
                 </button>
             </div>
         `;
@@ -419,7 +415,7 @@
                                 </div>
                             </div>
                             <button class="sup-unlink" data-action="unlink" data-id="${window.escapeHTML(s.assignment_id)}" data-name="${window.escapeHTML(name)}">
-                                <i class="fas fa-unlink"></i>
+                                <i class="fas fa-link-slash"></i>
                                 <span>Unlink</span>
                             </button>
                         </div>
@@ -537,7 +533,7 @@
                     console.error(err);
                     window.toast(err.message || 'Could not unlink.', 'error');
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fas fa-unlink"></i> <span>Unlink</span>`;
+                    btn.innerHTML = `<i class="fas fa-link-slash"></i> <span>Unlink</span>`;
                 }
             };
         });
