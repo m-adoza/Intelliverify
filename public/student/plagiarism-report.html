@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plagiarism Scan — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Upload card ---- */
+        .upload-zone {
+            border: 2px dashed var(--iv-border-strong);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--iv-transition);
+            background: var(--iv-bg-subtle);
+        }
+
+        .upload-zone:hover,
+        .upload-zone-drag {
+            border-color: var(--iv-focus);
+            background: var(--iv-info-bg);
+        }
+
+        .upload-zone-icon {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            color: var(--iv-text-2);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .upload-zone-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .upload-zone-sub {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+        }
+
+        .upload-zone-formats {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: var(--iv-s-4);
+            display: flex; gap: 8px; justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .upload-zone-formats span {
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            font-weight: 500;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ---- Selected file strip ---- */
+        .file-strip {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4);
+            background: var(--iv-info-bg);
+            border: 1px solid var(--iv-info-border);
+            border-radius: var(--iv-r-md);
+            margin-top: var(--iv-s-4);
+        }
+
+        .file-strip-icon {
+            width: 40px; height: 40px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            color: var(--iv-info);
+            flex-shrink: 0;
+        }
+
+        .file-strip-body { flex: 1; min-width: 0; }
+
+        .file-strip-name {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-strip-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .file-strip-remove {
+            background: transparent;
+            border: none;
+            color: var(--iv-text-3);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: var(--iv-r-sm);
+        }
+
+        .file-strip-remove:hover {
+            background: rgba(0,0,0,0.05);
+            color: var(--iv-danger);
+        }
+
+        /* ---- Scan button bar ---- */
+        .scan-bar {
+            display: flex;
+            gap: var(--iv-s-3);
+            margin-top: var(--iv-s-5);
+            flex-wrap: wrap;
+        }
+
+        /* ---- Progress ---- */
+        .progress-wrap {
+            margin-top: var(--iv-s-5);
+            padding: var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-md);
+        }
+
+        .progress-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--iv-s-3);
+            font-size: 13.5px;
+        }
+
+        .progress-head strong {
+            color: var(--iv-text);
+            font-weight: 600;
+        }
+
+        .progress-head span {
+            color: var(--iv-text-3);
+            font-family: var(--iv-font-mono);
+            font-size: 12px;
+        }
+
+        .progress-track {
+            height: 6px;
+            background: var(--iv-bg-muted);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--iv-accent);
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* ---- Result ---- */
+        .result-card {
+            margin-top: var(--iv-s-5);
+            padding: var(--iv-s-6);
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+        }
+
+        .result-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-5);
+            flex-wrap: wrap;
+        }
+
+        .result-head-text {
+            font-size: 13px;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 500;
+        }
+
+        .score-grid {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-6);
+            flex-wrap: wrap;
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .score-circle {
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            font-family: var(--iv-font-mono);
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .score-circle.low    { background: var(--iv-success-bg); color: var(--iv-success); border: 2px solid var(--iv-success-border); }
+        .score-circle.medium { background: var(--iv-warning-bg); color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
+        .score-circle.high   { background: var(--iv-danger-bg);  color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
+
+        .score-meta { flex: 1; min-width: 200px; }
+
+        .score-meta-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .score-meta-sub {
+            font-size: 13px;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .score-meta-stats {
+            display: flex;
+            gap: var(--iv-s-5);
+            flex-wrap: wrap;
+            padding-top: var(--iv-s-3);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .score-meta-stat-label {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+        }
+
+        .score-meta-stat-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+            margin-top: 2px;
+        }
+
+        /* ---- Recommendation ---- */
+        .rec {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-radius: var(--iv-r-md);
+            border-left: 3px solid var(--iv-info);
+            background: var(--iv-info-bg);
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: var(--iv-text-2);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .rec.rec-success { border-color: var(--iv-success); background: var(--iv-success-bg); }
+        .rec.rec-warning { border-color: var(--iv-warning); background: var(--iv-warning-bg); }
+        .rec.rec-danger  { border-color: var(--iv-danger);  background: var(--iv-danger-bg); }
+
+        .rec strong {
+            display: block;
+            color: var(--iv-text);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        /* ---- Subsections ---- */
+        .subsect {
+            margin-top: var(--iv-s-5);
+            padding-top: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .subsect-head {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--iv-text);
+            margin-bottom: var(--iv-s-3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ---- Matches ---- */
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-2);
+        }
+
+        .match {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            border-left: 3px solid var(--iv-border-strong);
+        }
+
+        .match.match-warning { border-left-color: var(--iv-warning); }
+        .match.match-danger  { border-left-color: var(--iv-danger); }
+        .match.match-success { border-left-color: var(--iv-success); }
+
+        .match-body { flex: 1; min-width: 0; }
+
+        .match-title {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .match-phrases {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+            line-height: 1.5;
+        }
+
+        .match-score {
+            font-family: var(--iv-font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ---- Keywords ---- */
+        .kw-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .kw {
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            font-size: 12px;
+            color: var(--iv-text-2);
+            font-weight: 500;
+        }
+
+        /* ---- Recent scans ---- */
+        .scan-list {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .scan-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .scan-row:last-child { border-bottom: none; }
+
+        .scan-row-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .scan-row-body { flex: 1; min-width: 0; }
+
+        .scan-row-name {
+            font-size: 13.5px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .scan-row-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .scan-row-score {
+            font-family: var(--iv-font-mono);
+            font-size: 13.5px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .scan-row-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .scan-row-btn {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            background: transparent;
+            border: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            transition: var(--iv-transition);
+        }
+
+        .scan-row-btn:hover { background: var(--iv-bg-muted); }
+
+        .mini-empty {
+            padding: var(--iv-s-8) var(--iv-s-5);
+            text-align: center;
+            color: var(--iv-text-3);
+            font-size: 13px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+        }
+
+        .mini-empty i { font-size: 24px; opacity: 0.4; display: block; margin-bottom: var(--iv-s-2); }
+
+        @media (max-width: 600px) {
+            .score-grid { gap: var(--iv-s-4); }
+            .score-circle { width: 96px; height: 96px; font-size: 26px; }
+            .result-card { padding: var(--iv-s-4); }
+            .scan-row { padding: var(--iv-s-3) var(--iv-s-4); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    let state = {
+        file: null,
+        scanning: false,
+        lastReport: null,
+        history: []
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/plagiarism-report.html',
+            title: 'Plagiarism Scan',
+            subtitle: 'Upload a document to check its similarity against the reference corpus',
+            actions: `
+                <a href="/student/submit-topic.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-paper-plane"></i> Submit topic
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireUpload();
+        loadHistory();
+    })();
+
+    // ============================================================
+    // MAIN PAGE MARKUP
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="iv-card iv-mb-6">
+                <div class="iv-card-header">
+                    <div>
+                        <div class="iv-card-title">Upload a document</div>
+                        <div class="iv-card-subtitle">
+                            Your file is scanned against supervisor-uploaded reference documents.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-zone-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="upload-zone-title">Drop your document here</div>
+                    <div class="upload-zone-sub">or tap to browse</div>
+                    <div class="upload-zone-formats">
+                        <span>PDF</span>
+                        <span>DOCX</span>
+                        <span>TXT</span>
+                    </div>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.txt" />
+                </div>
+
+                <div id="fileStrip"></div>
+
+                <div class="scan-bar" id="scanBar" style="display: none;">
+                    <button class="iv-btn iv-btn-primary" id="scanBtn">
+                        <i class="fas fa-microchip"></i>
+                        <span>Run similarity scan</span>
+                    </button>
+                    <button class="iv-btn iv-btn-secondary" id="clearBtn">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+
+                <div id="progressArea"></div>
+                <div id="resultArea"></div>
+            </div>
+
+            <div class="iv-row-between iv-mb-4">
+                <div class="iv-card-title">Scan history</div>
+                <button class="iv-btn iv-btn-ghost iv-btn-sm" id="refreshHistory">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div id="historyArea"></div>
+        `;
+    }
+
+    // ============================================================
+    // UPLOAD HANDLING
+    // ============================================================
+
+    function wireUpload() {
+        const zone = document.getElementById('uploadZone');
+        const input = document.getElementById('fileInput');
+
+        zone.addEventListener('click', () => input.click());
+        input.addEventListener('change', (e) => {
+            if (e.target.files[0]) selectFile(e.target.files[0]);
+        });
+
+        ['dragenter', 'dragover'].forEach(evt =>
+            zone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                zone.classList.add('upload-zone-drag');
+            })
+        );
+
+        ['dragleave', 'drop'].forEach(evt =>
+            zone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                zone.classList.remove('upload-zone-drag');
+            })
+        );
+
+        zone.addEventListener('drop', (e) => {
+            const f = e.dataTransfer.files[0];
+            if (f) selectFile(f);
+        });
+
+        document.getElementById('scanBtn').onclick = runScan;
+        document.getElementById('clearBtn').onclick = clearSelection;
+        document.getElementById('refreshHistory').onclick = loadHistory;
+    }
+
+    const MAX_SIZE = 7 * 1024 * 1024; // 7 MB
+    const ALLOWED = ['pdf', 'docx', 'txt'];
+
+    function selectFile(file) {
+        const ext = (file.name.split('.').pop() || '').toLowerCase();
+        if (!ALLOWED.includes(ext)) {
+            window.toast('Only PDF, DOCX, and TXT files are supported.', 'error');
+            return;
+        }
+        if (file.size > MAX_SIZE) {
+            window.toast('File is too large. Maximum size is 7 MB.', 'error');
+            return;
+        }
+        state.file = file;
+        renderFileStrip();
+    }
+
+    function renderFileStrip() {
+        const wrap = document.getElementById('fileStrip');
+        const bar = document.getElementById('scanBar');
+
+        if (!state.file) {
+            wrap.innerHTML = '';
+            bar.style.display = 'none';
+            return;
+        }
+
+        const f = state.file;
+        const kb = (f.size / 1024).toFixed(1);
+        const ext = (f.name.split('.').pop() || '').toUpperCase();
+
+        wrap.innerHTML = `
+            <div class="file-strip">
+                <div class="file-strip-icon"><i class="fas ${fileIcon(ext.toLowerCase())}"></i></div>
+                <div class="file-strip-body">
+                    <div class="file-strip-name">${window.escapeHTML(f.name)}</div>
+                    <div class="file-strip-meta">${kb} KB · ${ext}</div>
+                </div>
+                <button class="file-strip-remove" id="removeFile" aria-label="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        document.getElementById('removeFile').onclick = clearSelection;
+        bar.style.display = 'flex';
+    }
+
+    function clearSelection() {
+        state.file = null;
+        state.lastReport = null;
+        document.getElementById('fileInput').value = '';
+        renderFileStrip();
+        document.getElementById('progressArea').innerHTML = '';
+        document.getElementById('resultArea').innerHTML = '';
+    }
+
+    function fileIcon(ext) {
+        if (ext === 'pdf')  return 'fa-file-pdf';
+        if (ext === 'docx') return 'fa-file-word';
+        if (ext === 'txt')  return 'fa-file-lines';
+        return 'fa-file';
+    }
+
+    // ============================================================
+    // SCAN
+    // ============================================================
+
+    async function runScan() {
+        if (!state.file || state.scanning) return;
+
+        state.scanning = true;
+        const scanBtn = document.getElementById('scanBtn');
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Scanning…</span>`;
+        document.getElementById('resultArea').innerHTML = '';
+
+        const progress = startProgress();
+        try {
+            const base64 = await fileToBase64(state.file);
+            progress.update(35, 'Uploading file');
+
+            const res = await window.api('/api/reports/scan', {
+                method: 'POST',
+                body: {
+                    filename: state.file.name,
+                    mime: state.file.type || guessMime(state.file.name),
+                    base64
+                }
+            });
+
+            progress.update(85, 'Analyzing matches');
+            await wait(250);
+            progress.update(100, 'Done');
+            await wait(200);
+            progress.hide();
+
+            state.lastReport = res.report;
+            document.getElementById('resultArea').innerHTML = renderResult(res.report);
+            wireResultActions();
+
+            window.toast('Scan completed.', 'success');
+
+            // Clear file selection, keep result
+            state.file = null;
+            document.getElementById('fileInput').value = '';
+            renderFileStrip();
+
+            loadHistory();
+
+        } catch (err) {
+            progress.hide();
+            console.error(err);
+            document.getElementById('resultArea').innerHTML = errorCard(err.message);
+            window.toast(err.message || 'Scan failed.', 'error');
+        } finally {
+            state.scanning = false;
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = `<i class="fas fa-microchip"></i> <span>Run similarity scan</span>`;
+        }
+    }
+
+    function startProgress() {
+        const area = document.getElementById('progressArea');
+        area.innerHTML = `
+            <div class="progress-wrap">
+                <div class="progress-head">
+                    <strong>Analyzing document…</strong>
+                    <span id="progressPct">0%</span>
+                </div>
+                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+        `;
+        const fill = document.getElementById('progressFill');
+        const pct = document.getElementById('progressPct');
+
+        return {
+            update(value, label) {
+                fill.style.width = value + '%';
+                pct.textContent = value + '%';
+                if (label) {
+                    const head = area.querySelector('.progress-head strong');
+                    if (head) head.textContent = label + '…';
+                }
+            },
+            hide() {
+                area.innerHTML = '';
+            }
+        };
+    }
+
+    // ============================================================
+    // RESULT RENDERING
+    // ============================================================
+
+    function renderResult(report) {
+        const score = Number(report.similarity_score || 0);
+        const risk = (report.risk_level || 'low').toLowerCase();
+        const riskLabel = risk.toUpperCase() + ' RISK';
+        const stats = report.statistics || {};
+        const matches = Array.isArray(report.matches) ? report.matches : [];
+        const keywords = Array.isArray(report.keywords) ? report.keywords : [];
+
+        const recClass =
+            risk === 'high'   ? 'rec-danger'  :
+            risk === 'medium' ? 'rec-warning' :
+                                'rec-success';
+
+        const canAttach = score <= 30;
+
+        return `
+            <div class="result-card">
+                <div class="result-head">
+                    <div class="result-head-text">Scan result</div>
+                    <span class="iv-badge iv-badge-${risk}">${riskLabel}</span>
+                </div>
+
+                <div class="score-grid">
+                    <div class="score-circle ${risk}">${score}%</div>
+                    <div class="score-meta">
+                        <div class="score-meta-title">${window.escapeHTML(report.filename || 'Document')}</div>
+                        <div class="score-meta-sub">
+                            ${window.escapeHTML((report.file_format || '').toUpperCase())}
+                            · ${window.formatDateTime(report.created_at)}
+                        </div>
+                        <div class="score-meta-stats">
+                            <div>
+                                <div class="score-meta-stat-label">Words</div>
+                                <div class="score-meta-stat-value">${stats.words || 0}</div>
+                            </div>
+                            <div>
+                                <div class="score-meta-stat-label">Docs compared</div>
+                                <div class="score-meta-stat-value">${stats.matches_checked || 0}</div>
+                            </div>
+                            <div>
+                                <div class="score-meta-stat-label">Shared phrases</div>
+                                <div class="score-meta-stat-value">${stats.phrases_matched || 0}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rec ${recClass}">
+                    <strong><i class="fas fa-lightbulb"></i> Recommendation</strong>
+                    ${window.escapeHTML(report.recommendation || '—')}
+                </div>
+
+                ${matches.length ? `
+                    <div class="subsect">
+                        <div class="subsect-head">
+                            <i class="fas fa-project-diagram" style="color: var(--iv-focus);"></i>
+                            Top matches (${matches.length})
+                        </div>
+                        <div class="match-list">
+                            ${matches.map(m => {
+                                const s = Number(m.similarity || 0);
+                                const cls =
+                                    s >= 60 ? 'match-danger'  :
+                                    s >= 30 ? 'match-warning' :
+                                              'match-success';
+                                const color =
+                                    s >= 60 ? 'var(--iv-danger)'  :
+                                    s >= 30 ? 'var(--iv-warning)' :
+                                              'var(--iv-success)';
+                                return `
+                                    <div class="match ${cls}">
+                                        <div class="match-body">
+                                            <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
+                                            ${Array.isArray(m.phrases) && m.phrases.length ? `
+                                                <div class="match-phrases">
+                                                    Shared: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        <div class="match-score" style="color: ${color};">${s}%</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${keywords.length ? `
+                    <div class="subsect">
+                        <div class="subsect-head">
+                            <i class="fas fa-tags" style="color: var(--iv-focus);"></i>
+                            Key terms detected
+                        </div>
+                        <div class="kw-wrap">
+                            ${keywords.map(k => `<span class="kw">${window.escapeHTML(k)}</span>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="subsect">
+                    <div class="scan-bar">
+                        ${canAttach ? `
+                            <button class="iv-btn iv-btn-primary" id="attachBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                Attach to topic
+                            </button>
+                        ` : `
+                            <button class="iv-btn iv-btn-secondary" disabled title="Similarity must be 30% or below to attach">
+                                <i class="fas fa-lock"></i>
+                                Cannot attach (>30%)
+                            </button>
+                        `}
+                        <button class="iv-btn iv-btn-secondary" id="againBtn">
+                            <i class="fas fa-redo"></i> Scan another document
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function wireResultActions() {
+        const attach = document.getElementById('attachBtn');
+        if (attach) {
+            attach.onclick = () => {
+                if (!state.lastReport) return;
+                window.location.href =
+                    '/student/submit-topic.html?report_id=' +
+                    encodeURIComponent(state.lastReport.report_id);
+            };
+        }
+
+        const again = document.getElementById('againBtn');
+        if (again) again.onclick = () => {
+            document.getElementById('uploadZone').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('fileInput').click();
+        };
+    }
+
+    function errorCard(message) {
+        return `
+            <div class="result-card" style="border-color: var(--iv-danger-border); background: var(--iv-danger-bg);">
+                <div class="subsect-head" style="color: var(--iv-danger);">
+                    <i class="fas fa-exclamation-triangle"></i> Scan failed
+                </div>
+                <p style="font-size: 13.5px; color: var(--iv-text-2); line-height: 1.55;">
+                    ${window.escapeHTML(message || 'Something went wrong. Please try again.')}
+                </p>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // HISTORY
+    // ============================================================
+
+    async function loadHistory() {
+        const area = document.getElementById('historyArea');
+        area.innerHTML = `<div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>`;
+        try {
+            const res = await window.api('/api/reports');
+            const reports = res.reports || [];
+            area.innerHTML = reports.length ? historyList(reports) : historyEmpty();
+            wireHistoryActions(reports);
+        } catch (err) {
+            console.error(err);
+            area.innerHTML = `<div class="mini-empty"><i class="fas fa-exclamation-triangle"></i>Could not load scan history.</div>`;
+        }
+    }
+
+    function historyList(reports) {
+        return `
+            <div class="scan-list">
+                ${reports.map(r => {
+                    const score = Number(r.similarity_score || 0);
+                    const risk = (r.risk_level || 'low').toLowerCase();
+                    const color =
+                        risk === 'high'   ? 'var(--iv-danger)'  :
+                        risk === 'medium' ? 'var(--iv-warning)' :
+                                            'var(--iv-success)';
+                    const ext = (r.file_format || '').toLowerCase();
+
+                    return `
+                        <div class="scan-row">
+                            <div class="scan-row-icon"><i class="fas ${fileIcon(ext)}"></i></div>
+                            <div class="scan-row-body">
+                                <div class="scan-row-name">${window.escapeHTML(r.filename || 'Document')}</div>
+                                <div class="scan-row-meta">
+                                    ${window.escapeHTML((r.file_format || '').toUpperCase())}
+                                    · ${window.formatDate(r.created_at)}
+                                </div>
+                            </div>
+                            <div class="scan-row-score" style="color: ${color};">${score}%</div>
+                            <div class="scan-row-actions">
+                                <button class="scan-row-btn" data-action="download" data-id="${window.escapeHTML(r.report_id)}" title="Download original">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button class="scan-row-btn" data-action="delete" data-id="${window.escapeHTML(r.report_id)}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function historyEmpty() {
+        return `
+            <div class="mini-empty">
+                <i class="fas fa-file-shield"></i>
+                No scans yet. Upload a document above to get started.
+            </div>
+        `;
+    }
+
+    function wireHistoryActions(reports) {
+        document.querySelectorAll('[data-action="download"]').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                try {
+                    btn.disabled = true;
+                    const res = await window.api('/api/reports/' + id + '/download');
+                    window.open(res.url, '_blank');
+                    window.toast('Download link opened.', 'success');
+                } catch (err) {
+                    window.toast(err.message || 'Download failed.', 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            };
+        });
+
+        document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                const ok = await window.confirmDialog({
+                    title: 'Delete scan?',
+                    message: 'This removes the scan and the stored file. This action cannot be undone.',
+                    confirmLabel: 'Delete',
+                    danger: true
+                });
+                if (!ok) return;
+                try {
+                    await window.api('/api/reports/' + id, { method: 'DELETE' });
+                    window.toast('Scan deleted.', 'success');
+                    loadHistory();
+                } catch (err) {
+                    window.toast(err.message || 'Delete failed.', 'error');
+                }
+            };
+        });
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result || '';
+                // strip the "data:...;base64," prefix
+                const idx = result.indexOf(',');
+                resolve(idx >= 0 ? result.slice(idx + 1) : result);
+            };
+            reader.onerror = () => reject(new Error('Could not read the file.'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function guessMime(filename) {
+        const ext = (filename.split('.').pop() || '').toLowerCase();
+        if (ext === 'pdf')  return 'application/pdf';
+        if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        if (ext === 'txt')  return 'text/plain';
+        return 'application/octet-stream';
+    }
+
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+
+</body>
+  </html>
