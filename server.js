@@ -46,27 +46,67 @@ app.use(helmet({
 // ------------------------------------------------------------
 // CORS
 // ------------------------------------------------------------
-// Only allow the configured frontend origin(s). In development
-// we also allow localhost.
+// Same-origin requests (frontend and backend on the same host)
+// don't actually need CORS — the browser trusts itself. But
+// modern browsers still send an Origin header for POSTs, so we
+// must not reject them.
+//
+// Strategy:
+//   • Requests with no Origin (curl, server-to-server) → allow
+//   • Same-origin (Origin host matches request Host) → allow
+//   • Configured FRONTEND_URL → allow
+//   • localhost variants → allow
+//   • any *.onrender.com → allow (dev convenience, same-tenant)
+//   • anything else → no CORS headers (browser blocks it)
 
-const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:5500'
-].filter(Boolean);
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
 
-app.use(cors({
-    origin: (origin, cb) => {
-        // Allow same-origin requests (no Origin header)
-        if (!origin) return cb(null, true);
-        if (allowedOrigins.includes(origin)) return cb(null, true);
-        return cb(new Error(`CORS blocked: ${origin}`));
-    },
-    credentials: true
-}));
+    // No origin → not a browser CORS request
+    if (!origin) return next();
 
+    // Same-origin check: compare Origin host to our Host header
+    let isSameOrigin = false;
+    try {
+        const originHost = new URL(origin).host;
+        const ourHost = req.headers.host;
+        isSameOrigin = originHost === ourHost;
+    } catch (_) { /* malformed origin */ }
+
+    const isConfigured =
+        allowedOrigins.includes(origin);
+
+    const isRenderSubdomain =
+        origin.endsWith('.onrender.com');
+
+    const isLocalhost =
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+    const allow =
+        isSameOrigin ||
+        isConfigured ||
+        isRenderSubdomain ||
+        isLocalhost;
+
+    if (allow) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods',
+            'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers',
+            'Content-Type, Authorization');
+        res.setHeader('Vary', 'Origin');
+    } else {
+        console.warn('[CORS] Blocked origin:', origin);
+    }
+
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+
+    next();
+});
 // ------------------------------------------------------------
 // BODY PARSERS
 // ------------------------------------------------------------
