@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page not found — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+        }
+
+        .notfound {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .notfound-mark {
+            width: 56px; height: 56px;
+            border-radius: var(--iv-r-md);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-5);
+        }
+
+        .notfound-code {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            color: var(--iv-text);
+            line-height: 1;
+        }
+
+        .notfound-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-top: var(--iv-s-3);
+        }
+
+        .notfound-text {
+            font-size: 14px;
+            color: var(--iv-text-3);
+            margin-top: var(--iv-s-2);
+            line-height: 1.55;
+        }
+
+        .notfound-actions {
+            margin-top: var(--iv-s-6);
+            display: flex;
+            gap: var(--iv-s-3);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="notfound">
+    <div class="notfound-mark"><i class="fas fa-map-signs"></i></div>
+    <div class="notfound-code">404</div>
+    <div class="notfound-title">Page not found</div>
+    <div class="notfound-text">
+        The page you're looking for doesn't exist or has been moved.
+    </div>
+    <div class="notfound-actions">
+        <a href="/index.html" class="iv-btn iv-btn-primary">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <button class="iv-btn iv-btn-secondary" id="backBtn">
+            <i class="fas fa-arrow-left"></i> Go back
+        </button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('backBtn').onclick = () => {
+        if (window.history.length > 1) window.history.back();
+        else window.location.href = '/index.html';
+    };
+</script>
+
+</body>
+</html>
