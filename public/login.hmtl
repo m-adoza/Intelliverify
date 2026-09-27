@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-8);
+            box-shadow: var(--iv-shadow-sm);
+        }
+
+        .auth-head {
+            text-align: center;
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .auth-mark {
+            width: 44px; height: 44px;
+            border-radius: var(--iv-r-md);
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .auth-title {
+            font-size: 20px; font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .auth-sub {
+            font-size: 13px; color: var(--iv-text-3);
+        }
+
+        .auth-error {
+            display: none;
+            padding: 10px 12px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-danger-bg);
+            border: 1px solid var(--iv-danger-border);
+            color: var(--iv-danger);
+            font-size: 13px;
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .auth-error-show { display: block; }
+
+        .auth-foot {
+            text-align: center;
+            margin-top: var(--iv-s-5);
+            padding-top: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+            font-size: 13px;
+            color: var(--iv-text-3);
+        }
+
+        .auth-foot a {
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-foot a:hover { text-decoration: underline; }
+
+        .auth-back {
+            display: block;
+            text-align: center;
+            margin-top: var(--iv-s-4);
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            text-decoration: none;
+        }
+
+        .auth-back:hover { color: var(--iv-text-2); }
+    </style>
+</head>
+<body>
+
+<form class="auth-card" id="loginForm" autocomplete="on">
+    <div class="auth-head">
+        <div class="auth-mark"><i class="fas fa-shield-alt"></i></div>
+        <div class="auth-title">Welcome back</div>
+        <div class="auth-sub">Sign in to IntelliVerify</div>
+    </div>
+
+    <div class="auth-error" id="errorBox"></div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="email">Email address</label>
+        <input class="iv-input" type="email" id="email" required
+               autocomplete="email" placeholder="you@university.edu" />
+    </div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="password">Password</label>
+        <input class="iv-input" type="password" id="password" required
+               autocomplete="current-password" placeholder="••••••••" />
+    </div>
+
+    <button type="submit" class="iv-btn iv-btn-primary iv-btn-lg" id="submitBtn"
+            style="width: 100%; margin-top: var(--iv-s-2);">
+        <i class="fas fa-sign-in-alt"></i>
+        <span id="submitLabel">Sign in</span>
+    </button>
+
+    <div class="auth-foot">
+        Don't have an account? <a href="/register.html">Create one</a>
+    </div>
+
+    <a href="/index.html" class="auth-back">
+        <i class="fas fa-arrow-left"></i> Back to home
+    </a>
+</form>
+
+<script>
+    const form     = document.getElementById('loginForm');
+    const emailEl  = document.getElementById('email');
+    const passEl   = document.getElementById('password');
+    const btn      = document.getElementById('submitBtn');
+    const label    = document.getElementById('submitLabel');
+    const errorBox = document.getElementById('errorBox');
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.add('auth-error-show');
+    }
+
+    function clearError() {
+        errorBox.classList.remove('auth-error-show');
+    }
+
+    // If already signed in, redirect immediately
+    (async () => {
+        const ctx = await window.getCurrentUser();
+        if (!ctx) return;
+        redirectByRole(ctx.profile.role);
+    })();
+
+    function redirectByRole(role) {
+        if (role === 'admin')      window.location.href = '/admin/dashboard.html';
+        else if (role === 'supervisor') window.location.href = '/supervisor/dashboard.html';
+        else                        window.location.href = '/student/dashboard.html';
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+
+        const email = emailEl.value.trim();
+        const password = passEl.value;
+
+        if (!email || !password) {
+            showError('Please enter your email and password.');
+            return;
+        }
+
+        btn.disabled = true;
+        label.textContent = 'Signing in…';
+
+        try {
+            const { data, error } = await window.sb.auth.signInWithPassword({
+                email, password
+            });
+
+            if (error) throw error;
+            if (!data?.user) throw new Error('Login failed. No session created.');
+
+            // Fetch profile to determine role
+            const { data: profile, error: profileError } = await window.sb
+                .from('profiles')
+                .select('id, role')
+                .eq('id', data.user.id)
+                .single();
+
+            if (profileError || !profile) {
+                throw new Error('Signed in, but no profile was found for this account.');
+            }
+
+            window.toast('Signed in. Loading dashboard…', 'success', 1500);
+            redirectByRole(profile.role);
+
+        } catch (err) {
+            console.error('[login]', err);
+            const message = err?.message || 'Sign in failed. Please try again.';
+            // Friendly message for common Supabase errors
+            if (message.toLowerCase().includes('invalid login')) {
+                showError('Incorrect email or password.');
+            } else if (message.toLowerCase().includes('email not confirmed')) {
+                showError('Please confirm your email before signing in.');
+            } else {
+                showError(message);
+            }
+            btn.disabled = false;
+            label.textContent = 'Sign in';
+        }
+    });
+</script>
+
+</body>
+</html>
