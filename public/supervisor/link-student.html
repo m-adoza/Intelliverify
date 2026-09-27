@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Student — IntelliVerify Supervisor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Hero code-entry card ---- */
+        .link-hero {
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            color: #fafafa;
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-8) var(--iv-s-6);
+            margin-bottom: var(--iv-s-5);
+            text-align: center;
+        }
+
+        .link-hero-icon {
+            width: 52px; height: 52px;
+            border-radius: var(--iv-r-md);
+            background: rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .link-hero-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--iv-s-2);
+        }
+
+        .link-hero-sub {
+            font-size: 13.5px;
+            opacity: 0.7;
+            max-width: 460px;
+            margin: 0 auto var(--iv-s-6);
+            line-height: 1.55;
+        }
+
+        .code-input-wrap {
+            max-width: 380px;
+            margin: 0 auto;
+            display: flex;
+            gap: var(--iv-s-2);
+        }
+
+        .code-input {
+            flex: 1;
+            height: 52px;
+            padding: 0 18px;
+            border-radius: var(--iv-r-md);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fafafa;
+            font-family: var(--iv-font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-align: center;
+            outline: none;
+            transition: var(--iv-transition);
+        }
+
+        .code-input::placeholder {
+            color: rgba(255,255,255,0.3);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        .code-input:focus {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.08);
+        }
+
+        .code-input-ok {
+            border-color: rgba(34, 197, 94, 0.6) !important;
+            background: rgba(34, 197, 94, 0.12) !important;
+        }
+
+        .code-input-err {
+            border-color: rgba(220, 38, 38, 0.6) !important;
+            background: rgba(220, 38, 38, 0.12) !important;
+        }
+
+        .code-submit {
+            height: 52px;
+            padding: 0 22px;
+            border-radius: var(--iv-r-md);
+            background: #fafafa;
+            color: #18181b;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--iv-transition);
+            flex-shrink: 0;
+        }
+
+        .code-submit:hover:not(:disabled) {
+            background: #e4e4e7;
+        }
+
+        .code-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ---- Inline result flash ---- */
+        .flash {
+            margin: var(--iv-s-5) auto 0;
+            max-width: 460px;
+            padding: var(--iv-s-3) var(--iv-s-4);
+            border-radius: var(--iv-r-sm);
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .flash-success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        .flash-error {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #fca5a5;
+        }
+
+        .flash i {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ---- Section head ---- */
+        .sect-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .sect-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .sect-count {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg-muted);
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 500;
+        }
+
+        /* ---- Students list ---- */
+        .stu-list {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .stu-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            transition: var(--iv-transition);
+        }
+
+        .stu-row:last-child { border-bottom: none; }
+
+        .stu-row:hover { background: var(--iv-bg-subtle); }
+
+        .stu-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .stu-body { flex: 1; min-width: 0; }
+
+        .stu-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stu-email {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stu-meta {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .stu-source {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            font-weight: 500;
+        }
+
+        .stu-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .stu-btn {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: transparent;
+            border: 1px solid var(--iv-border);
+            color: var(--iv-text-2);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12.5px;
+            transition: var(--iv-transition);
+        }
+
+        .stu-btn:hover {
+            background: var(--iv-bg-muted);
+            color: var(--iv-text);
+        }
+
+        .stu-btn-danger:hover {
+            background: var(--iv-danger-bg);
+            border-color: var(--iv-danger-border);
+            color: var(--iv-danger);
+        }
+
+        /* ---- Empty state ---- */
+        .empty {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .empty-title {
+            font-size: 15px; font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .empty-text {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            max-width: 380px;
+            margin-left: auto; margin-right: auto;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 600px) {
+            .link-hero { padding: var(--iv-s-6) var(--iv-s-4); }
+            .link-hero-title { font-size: 17px; }
+            .code-input-wrap { flex-direction: column; }
+            .code-input, .code-submit { width: 100%; }
+            .code-submit { justify-content: center; }
+            .stu-row { padding: var(--iv-s-3) var(--iv-s-4); gap: var(--iv-s-3); }
+            .stu-avatar { width: 38px; height: 38px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const state = {
+        students: [],
+        linking: false
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('supervisor');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/supervisor/link-student.html',
+            title: 'Link Student',
+            subtitle: 'Add a student to your supervision using their pairing code',
+            actions: `
+                <a href="/supervisor/assigned-students.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-users"></i> My students
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireForm();
+        await loadStudents();
+    })();
+
+    // ============================================================
+    // MARKUP
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="link-hero">
+                <div class="link-hero-icon"><i class="fas fa-link"></i></div>
+                <div class="link-hero-title">Enter a student's pairing code</div>
+                <div class="link-hero-sub">
+                    Ask your student for their 8-character pairing code, then enter it below.
+                    You'll start supervising them immediately.
+                </div>
+
+                <form id="linkForm" class="code-input-wrap" autocomplete="off">
+                    <input
+                        type="text"
+                        id="codeInput"
+                        class="code-input"
+                        placeholder="IV-XXXXXX"
+                        maxlength="12"
+                        spellcheck="false"
+                        autocapitalize="characters"
+                        autocomplete="off"
+                        inputmode="text"
+                    />
+                    <button type="submit" class="code-submit" id="linkBtn" disabled>
+                        <i class="fas fa-link"></i>
+                        <span>Link student</span>
+                    </button>
+                </form>
+
+                <div id="flashArea"></div>
+            </div>
+
+            <div class="sect-head">
+                <div class="sect-title">Your supervised students</div>
+                <div id="studentsCount"></div>
+            </div>
+
+            <div id="studentsArea">
+                <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // FORM WIRING
+    // ============================================================
+
+    function wireForm() {
+        const input = document.getElementById('codeInput');
+        const btn = document.getElementById('linkBtn');
+
+        // Auto-uppercase, auto-insert IV- prefix, limit length
+        input.addEventListener('input', () => {
+            let raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+            // If the user typed IV at start, strip it so we can re-add cleanly
+            if (raw.startsWith('IV')) raw = raw.slice(2);
+
+            // Trim to 6 body chars
+            raw = raw.slice(0, 6);
+
+            input.value = raw ? 'IV-' + raw : '';
+
+            clearFlash();
+            input.classList.remove('code-input-ok', 'code-input-err');
+
+            // Enable button only when we have at least 3 body chars
+            btn.disabled = raw.length < 3 || state.linking;
+        });
+
+        // Handle paste of a code without IV-
+        input.addEventListener('paste', (e) => {
+            setTimeout(() => {
+                const v = input.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                const body = v.startsWith('IV') ? v.slice(2, 8) : v.slice(0, 6);
+                input.value = body ? 'IV-' + body : '';
+                btn.disabled = body.length < 3;
+                clearFlash();
+                input.classList.remove('code-input-ok', 'code-input-err');
+            }, 0);
+        });
+
+        document.getElementById('linkForm').onsubmit = handleSubmit;
+    }
+
+    function clearFlash() {
+        const area = document.getElementById('flashArea');
+        if (area) area.innerHTML = '';
+    }
+
+    function flash(type, icon, message) {
+        const area = document.getElementById('flashArea');
+        if (!area) return;
+        area.innerHTML = `
+            <div class="flash flash-${type}">
+                <i class="fas ${icon}"></i>
+                <div>${window.escapeHTML(message)}</div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // SUBMIT
+    // ============================================================
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        if (state.linking) return;
+
+        const input = document.getElementById('codeInput');
+        const btn = document.getElementById('linkBtn');
+        const code = input.value.trim().toUpperCase();
+
+        if (!code || code.length < 5) {
+            flash('error', 'fa-exclamation-circle', 'Please enter a valid pairing code.');
+            return;
+        }
+
+        state.linking = true;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Linking…</span>`;
+        clearFlash();
+        input.classList.remove('code-input-ok', 'code-input-err');
+
+        try {
+            const res = await window.api('/api/pairing/redeem', {
+                method: 'POST',
+                body: { code }
+            });
+
+            const student = res.assignment?.student || {};
+            const name = student.full_name || student.email || 'Student';
+
+            input.classList.add('code-input-ok');
+            flash('success', 'fa-check-circle', `${name} is now under your supervision.`);
+
+            // Clear input and reload list
+            input.value = '';
+            await loadStudents();
+
+            window.toast('Student linked.', 'success');
+
+        } catch (err) {
+            console.error(err);
+            input.classList.add('code-input-err');
+
+            // Friendly error messages based on status code
+            let msg = err.message || 'Could not link student.';
+            if (err.status === 404) msg = 'No student found with that code. Please double-check.';
+            else if (err.status === 409) msg = 'You are already supervising this student.';
+            else if (err.status === 400 && msg.toLowerCase().includes('own')) {
+                msg = 'You cannot link to your own account.';
+            }
+
+            flash('error', 'fa-exclamation-triangle', msg);
+        } finally {
+            state.linking = false;
+            btn.disabled = input.value.trim().length < 5;
+            btn.innerHTML = `<i class="fas fa-link"></i> <span>Link student</span>`;
+            input.focus();
+        }
+    }
+
+    // ============================================================
+    // STUDENTS LIST
+    // ============================================================
+
+    async function loadStudents() {
+        const area = document.getElementById('studentsArea');
+        const count = document.getElementById('studentsCount');
+
+        try {
+            const res = await window.api('/api/pairing/students');
+            state.students = res.students || [];
+
+            if (state.students.length) {
+                count.innerHTML = `<span class="sect-count">${state.students.length}</span>`;
+                area.innerHTML = list(state.students);
+                wireListActions();
+            } else {
+                count.innerHTML = '';
+                area.innerHTML = emptyState();
+            }
+
+        } catch (err) {
+            console.error(err);
+            count.innerHTML = '';
+            area.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="empty-title">Could not load your students</div>
+                    <div class="empty-text">${window.escapeHTML(err.message)}</div>
+                </div>
+            `;
+        }
+    }
+
+    function list(students) {
+        return `
+            <div class="stu-list">
+                ${students.map(s => row(s)).join('')}
+            </div>
+        `;
+    }
+
+    function row(s) {
+        const stu = s.student || {};
+        const name = stu.full_name || 'Student';
+        const email = stu.email || '';
+        const linked = window.formatDate(s.linked_at);
+        const via = s.linked_by === 'admin' ? 'Assigned by admin' : 'Linked via code';
+        const dept = stu.department ? `· ${stu.department}` : '';
+
+        return `
+            <div class="stu-row" data-id="${window.escapeHTML(s.assignment_id)}">
+                <div class="stu-avatar">${window.escapeHTML(window.initials(name))}</div>
+                <div class="stu-body">
+                    <div class="stu-name">${window.escapeHTML(name)}</div>
+                    <div class="stu-email">${window.escapeHTML(email)}</div>
+                    <div class="stu-meta">
+                        <span class="stu-source">
+                            <i class="fas ${s.linked_by === 'admin' ? 'fa-user-shield' : 'fa-link'}"></i>
+                            ${window.escapeHTML(via)}
+                        </span>
+                        · Linked ${window.escapeHTML(linked)}
+                        ${dept ? `· ${window.escapeHTML(dept)}` : ''}
+                    </div>
+                </div>
+                <div class="stu-actions">
+                    <button class="stu-btn" data-action="message"
+                            data-id="${window.escapeHTML(stu.id)}"
+                            title="Send message">
+                        <i class="fas fa-comment"></i>
+                    </button>
+                    <button class="stu-btn stu-btn-danger" data-action="unlink"
+                            data-assign="${window.escapeHTML(s.assignment_id)}"
+                            data-name="${window.escapeHTML(name)}"
+                            title="Unlink">
+                        <i class="fas fa-unlink"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function emptyState() {
+        return `
+            <div class="empty">
+                <div class="empty-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="empty-title">No students linked yet</div>
+                <div class="empty-text">
+                    Ask your first student for their pairing code.
+                    You can find it on their dashboard. Enter it above to start supervising.
+                </div>
+            </div>
+        `;
+    }
+
+    function wireListActions() {
+        document.querySelectorAll('[data-action="unlink"]').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                const assignmentId = btn.dataset.assign;
+                const name = btn.dataset.name;
+
+                const ok = await window.confirmDialog({
+                    title: 'Unlink this student?',
+                    message: `You will no longer see ${name}'s topics, scans, or messages. They can re-link with a new code at any time.`,
+                    confirmLabel: 'Unlink',
+                    danger: true
+                });
+                if (!ok) return;
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+                    await window.api('/api/pairing/' + assignmentId, { method: 'DELETE' });
+                    window.toast('Student unlinked.', 'success');
+                    await loadStudents();
+                } catch (err) {
+                    console.error(err);
+                    window.toast(err.message || 'Could not unlink.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-unlink"></i>`;
+                }
+            };
+        });
+
+        document.querySelectorAll('[data-action="message"]').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                window.location.href = '/supervisor/messages.html?student=' + encodeURIComponent(id);
+            };
+        });
+    }
+</script>
+
+</body>
+</html>
