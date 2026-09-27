@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IntelliVerify — Academic Project Verification</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        body { background: var(--iv-bg); }
+
+        .landing-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--iv-s-6) var(--iv-s-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .landing-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .landing-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            text-decoration: none;
+            color: var(--iv-text);
+        }
+
+        .landing-brand-mark {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+
+        .landing-nav-links {
+            display: flex;
+            gap: var(--iv-s-2);
+        }
+
+        .landing-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--iv-s-12) 0;
+        }
+
+        .landing-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            border: 1px solid var(--iv-border);
+            font-size: 12px;
+            color: var(--iv-text-2);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .landing-eyebrow-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--iv-success);
+        }
+
+        .landing-h1 {
+            font-size: clamp(28px, 5vw, 46px);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            max-width: 720px;
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .landing-h1-accent {
+            color: var(--iv-text-3);
+        }
+
+        .landing-lede {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--iv-text-2);
+            max-width: 620px;
+            margin-bottom: var(--iv-s-8);
+        }
+
+        .landing-ctas {
+            display: flex;
+            gap: var(--iv-s-3);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .landing-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--iv-s-5);
+            margin-top: var(--iv-s-12);
+            padding-top: var(--iv-s-10);
+            border-top: 1px solid var(--iv-border);
+            width: 100%;
+        }
+
+        .landing-feature-icon {
+            width: 36px; height: 36px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .landing-feature-title {
+            font-size: 14px; font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .landing-feature-text {
+            font-size: 13px; color: var(--iv-text-3);
+            line-height: 1.5;
+        }
+
+        .landing-footer {
+            padding-top: var(--iv-s-6);
+            border-top: 1px solid var(--iv-border);
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .landing-features { grid-template-columns: 1fr; }
+            .landing-nav-links .iv-btn span { display: none; }
+            .landing-nav-links .iv-btn { padding: 0 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="landing-wrap">
+
+    <nav class="landing-nav">
+        <a href="/index.html" class="landing-brand">
+            <span class="landing-brand-mark"><i class="fas fa-shield-alt"></i></span>
+            IntelliVerify
+        </a>
+        <div class="landing-nav-links" id="navLinks">
+            <a href="/login.html" class="iv-btn iv-btn-secondary">
+                <i class="fas fa-sign-in-alt"></i> <span>Sign in</span>
+            </a>
+            <a href="/register.html" class="iv-btn iv-btn-primary">
+                <i class="fas fa-user-plus"></i> <span>Create account</span>
+            </a>
+        </div>
+    </nav>
+
+    <section class="landing-hero">
+        <div class="landing-eyebrow">
+            <span class="landing-eyebrow-dot"></span>
+            Final Year Project Verification Platform
+        </div>
+
+        <h1 class="landing-h1">
+            Intelligent topic approval
+            <span class="landing-h1-accent"> &amp; plagiarism detection.</span>
+        </h1>
+
+        <p class="landing-lede">
+            IntelliVerify streamlines final year project submissions. Students
+            upload proposals, get instant similarity scores, and submit for
+            supervisor review. Supervisors approve topics and compare documents
+            against a curated institutional corpus.
+        </p>
+
+        <div class="landing-ctas">
+            <a href="/login.html" class="iv-btn iv-btn-primary iv-btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Sign in to your account
+            </a>
+            <a href="/register.html" class="iv-btn iv-btn-secondary iv-btn-lg">
+                <i class="fas fa-user-plus"></i> Create an account
+            </a>
+        </div>
+
+        <div class="landing-features">
+            <div>
+                <div class="landing-feature-icon"><i class="fas fa-microchip"></i></div>
+                <div class="landing-feature-title">Automated similarity scan</div>
+                <div class="landing-feature-text">
+                    TF-IDF and n-gram comparison against reference documents.
+                </div>
+            </div>
+            <div>
+                <div class="landing-feature-icon"><i class="fas fa-link"></i></div>
+                <div class="landing-feature-title">Supervisor pairing</div>
+                <div class="landing-feature-text">
+                    Students share a code. Supervisors link in one click.
+                </div>
+            </div>
+            <div>
+                <div class="landing-feature-icon"><i class="fas fa-tasks"></i></div>
+                <div class="landing-feature-title">Guided approval workflow</div>
+                <div class="landing-feature-text">
+                    Approve, request revision, or reject — with a full audit trail.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        © <span id="yr"></span> IntelliVerify — Final Year Project Verification System
+    </footer>
+
+</div>
+
+<script>
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    (async () => {
+        // If already logged in, swap the nav links for "Go to dashboard"
+        const ctx = await window.getCurrentUser();
+        if (!ctx) return;
+
+        const role = ctx.profile.role;
+        const dash =
+            role === 'admin'      ? '/admin/dashboard.html' :
+            role === 'supervisor' ? '/supervisor/dashboard.html' :
+                                    '/student/dashboard.html';
+
+        document.getElementById('navLinks').innerHTML = `
+            <a href="${dash}" class="iv-btn iv-btn-primary">
+                <i class="fas fa-th-large"></i> <span>Dashboard</span>
+            </a>
+        `;
+    })();
+</script>
+
+</body>
+  </html>
