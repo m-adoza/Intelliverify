@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Review Topic — IntelliVerify Supervisor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Page header ---- */
+        .topic-hero {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-6);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-4);
+            flex-wrap: wrap;
+        }
+
+        .hero-eyebrow {
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-eyebrow-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--iv-text-3);
+        }
+
+        .hero-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--iv-text);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--iv-s-4);
+            margin-top: var(--iv-s-4);
+            padding-top: var(--iv-s-4);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .hero-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            color: var(--iv-text-3);
+        }
+
+        .hero-meta-item i { font-size: 11px; }
+
+        .hero-meta-item strong {
+            color: var(--iv-text-2);
+            font-weight: 500;
+        }
+
+        /* ---- Layout ---- */
+        .review-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 360px;
+            gap: var(--iv-s-5);
+            align-items: start;
+        }
+
+        /* ---- Sections ---- */
+        .section-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            margin-bottom: var(--iv-s-4);
+            overflow: hidden;
+        }
+
+        .section-head {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            background: var(--iv-bg-subtle);
+        }
+
+        .section-head i {
+            color: var(--iv-text-3);
+            font-size: 14px;
+        }
+
+        .section-head-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+            letter-spacing: -0.01em;
+        }
+
+        .section-body {
+            padding: var(--iv-s-5);
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--iv-text-2);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .section-body-empty {
+            color: var(--iv-text-3);
+            font-style: italic;
+        }
+
+        /* ---- Student card ---- */
+        .student-card {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+        }
+
+        .student-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .student-body { min-width: 0; flex: 1; }
+
+        .student-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+            letter-spacing: -0.01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .student-email {
+            font-size: 13px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .student-dept {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+        }
+
+        /* ---- Report section ---- */
+        .report-header {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            flex-wrap: wrap;
+        }
+
+        .report-file-icon {
+            width: 44px; height: 44px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .report-file-body { flex: 1; min-width: 0; }
+
+        .report-file-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .report-file-meta {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+        }
+
+        .report-score-badge {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            flex-shrink: 0;
+        }
+
+        .report-score-circle {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700;
+            font-family: var(--iv-font-mono);
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+        }
+
+        .report-score-circle.low    { background: var(--iv-success-bg); color: var(--iv-success); border: 2px solid var(--iv-success-border); }
+        .report-score-circle.medium { background: var(--iv-warning-bg); color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
+        .report-score-circle.high   { background: var(--iv-danger-bg);  color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
+
+        .report-actions {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+            display: flex;
+            gap: var(--iv-s-2);
+            flex-wrap: wrap;
+        }
+
+        /* ---- Report details ---- */
+        .report-details {
+            padding: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .report-rec {
+            padding: var(--iv-s-3) var(--iv-s-4);
+            border-radius: var(--iv-r-sm);
+            font-size: 13px;
+            line-height: 1.55;
+            border-left: 3px solid var(--iv-info);
+            background: var(--iv-info-bg);
+            color: var(--iv-text-2);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .report-rec.rec-success { border-color: var(--iv-success); background: var(--iv-success-bg); }
+        .report-rec.rec-warning { border-color: var(--iv-warning); background: var(--iv-warning-bg); }
+        .report-rec.rec-danger  { border-color: var(--iv-danger);  background: var(--iv-danger-bg); }
+
+        .report-rec strong {
+            display: block;
+            color: var(--iv-text);
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .report-subhead {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .match-row {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            border-left: 3px solid var(--iv-border-strong);
+            margin-bottom: var(--iv-s-2);
+        }
+
+        .match-row.match-warning { border-left-color: var(--iv-warning); }
+        .match-row.match-danger  { border-left-color: var(--iv-danger); }
+        .match-row.match-success { border-left-color: var(--iv-success); }
+
+        .match-body { flex: 1; min-width: 0; }
+
+        .match-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text);
+            word-break: break-word;
+        }
+
+        .match-phrases {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .match-score {
+            font-family: var(--iv-font-mono);
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ---- Timeline ---- */
+        .timeline {
+            position: relative;
+            padding-left: var(--iv-s-5);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: var(--iv-border);
+            border-radius: 2px;
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: var(--iv-s-4);
+        }
+
+        .tl-item:last-child { padding-bottom: 0; }
+
+        .tl-dot {
+            position: absolute;
+            left: -22px; top: 4px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--iv-bg);
+            border: 2px solid var(--iv-border-strong);
+        }
+
+        .tl-dot-pending  { border-color: var(--iv-warning); }
+        .tl-dot-approved { border-color: var(--iv-success); background: var(--iv-success); }
+        .tl-dot-revision { border-color: var(--iv-info); }
+        .tl-dot-rejected { border-color: var(--iv-danger); background: var(--iv-danger); }
+
+        .tl-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .tl-title strong { text-transform: capitalize; }
+
+        .tl-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .tl-comment {
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ---- Review panel (aside) ---- */
+        .review-panel {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            position: sticky;
+            top: calc(var(--iv-topbar-h) + var(--iv-s-4));
+        }
+
+        .review-panel-head {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            background: var(--iv-bg-subtle);
+        }
+
+        .review-panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .review-panel-sub {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .review-panel-body { padding: var(--iv-s-5); }
+
+        .comment-input {
+            width: 100%;
+            min-height: 100px;
+            padding: var(--iv-s-3);
+            border-radius: var(--iv-r-sm);
+            border: 1px solid var(--iv-border-strong);
+            background: var(--iv-bg);
+            font-family: inherit;
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: var(--iv-text);
+            outline: none;
+            resize: vertical;
+            transition: var(--iv-transition);
+        }
+
+        .comment-input:focus {
+            border-color: var(--iv-focus);
+            box-shadow: 0 0 0 3px var(--iv-focus-ring);
+        }
+
+        .comment-help {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-2);
+            margin-top: var(--iv-s-5);
+        }
+
+        .action-btn {
+            height: 42px;
+            padding: 0 var(--iv-s-4);
+            border-radius: var(--iv-r-sm);
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid transparent;
+            transition: var(--iv-transition);
+            width: 100%;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn-primary {
+            background: var(--iv-success);
+            color: #fff;
+        }
+        .action-btn-primary:hover:not(:disabled) { background: #15803d; }
+
+        .action-btn-warning {
+            background: var(--iv-warning);
+            color: #fff;
+        }
+        .action-btn-warning:hover:not(:disabled) { background: #a16207; }
+
+        .action-btn-danger {
+            background: var(--iv-danger);
+            color: #fff;
+        }
+        .action-btn-danger:hover:not(:disabled) { background: #b91c1c; }
+
+        /* ---- Locked panel ---- */
+        .locked-panel {
+            padding: var(--iv-s-5);
+            text-align: center;
+        }
+
+        .locked-icon {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-3);
+        }
+
+        .locked-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+            margin-bottom: 4px;
+        }
+
+        .locked-text {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            line-height: 1.5;
+        }
+
+        /* ---- Loading / error ---- */
+        .page-error {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 1000px) {
+            .review-layout { grid-template-columns: 1fr; }
+            .review-panel { position: static; }
+        }
+
+        @media (max-width: 600px) {
+            .topic-hero { padding: var(--iv-s-4); }
+            .hero-title { font-size: 18px; }
+            .section-body { padding: var(--iv-s-4); }
+            .report-header { padding: var(--iv-s-4); }
+            .report-score-circle { width: 52px; height: 52px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const topicId = urlParams.get('id');
+
+    const state = {
+        topic: null,
+        history: [],
+        submitting: false
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('supervisor');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/supervisor/dashboard.html',
+            title: 'Review Topic',
+            subtitle: 'Examine details, plagiarism report, and decide'
+        });
+
+        if (!topicId) {
+            content.innerHTML = noIdState();
+            return;
+        }
+
+        content.innerHTML = `<div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>`;
+
+        await load();
+    })();
+
+    function noIdState() {
+        return `
+            <div class="page-error">
+                <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg); margin: 0 auto var(--iv-s-4);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div style="font-size: 15px; font-weight: 600; color: var(--iv-text);">
+                    No topic ID provided
+                </div>
+                <div style="font-size: 13.5px; color: var(--iv-text-3); margin-top: 6px;">
+                    This page expects a topic to review. Go back to your dashboard and pick one.
+                </div>
+                <a href="/supervisor/dashboard.html" class="iv-btn iv-btn-primary" style="margin-top: var(--iv-s-5);">
+                    <i class="fas fa-arrow-left"></i> Back to dashboard
+                </a>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // DATA
+    // ============================================================
+
+    async function load() {
+        const content = document.getElementById('iv-content');
+        try {
+            const res = await window.api('/api/topics/' + topicId);
+            state.topic = res.topic;
+            state.history = res.history || [];
+            render();
+        } catch (err) {
+            console.error(err);
+            content.innerHTML = `
+                <div class="page-error">
+                    <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg); margin: 0 auto var(--iv-s-4);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div style="font-size: 15px; font-weight: 600; color: var(--iv-text);">
+                        Could not load topic
+                    </div>
+                    <div style="font-size: 13.5px; color: var(--iv-text-3); margin-top: 6px;">
+                        ${window.escapeHTML(err.message)}
+                    </div>
+                    <a href="/supervisor/dashboard.html" class="iv-btn iv-btn-primary" style="margin-top: var(--iv-s-5);">
+                        <i class="fas fa-arrow-left"></i> Back to dashboard
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
+
+    function render() {
+        const content = document.getElementById('iv-content');
+        const t = state.topic;
+        const status = (t.status || 'pending').toLowerCase();
+        const isLocked = status === 'approved' || status === 'rejected';
+
+        content.innerHTML = `
+            ${hero(t, status)}
+
+            <div class="review-layout">
+                <div>
+                    ${studentSection(t)}
+                    ${topicSection(t)}
+                    ${reportSection(t)}
+                    ${timelineSection()}
+                </div>
+
+                <div>
+                    ${isLocked ? lockedPanel(status) : reviewPanel(status)}
+                </div>
+            </div>
+        `;
+
+        // Wire download buttons
+        wireReportActions();
+
+        // Wire review panel if applicable
+        if (!isLocked) wireReviewPanel();
+    }
+
+    // ============================================================
+    // HERO
+    // ============================================================
+
+    function hero(t, status) {
+        const short = String(t.topic_id || '').slice(0, 8);
+
+        return `
+            <div class="topic-hero">
+                <div class="hero-top">
+                    <div style="min-width: 0; flex: 1;">
+                        <div class="hero-eyebrow">
+                            Topic #${window.escapeHTML(short)}
+                            <span class="hero-eyebrow-dot"></span>
+                            Submitted ${window.formatDate(t.submitted_at)}
+                        </div>
+                        <div class="hero-title">${window.escapeHTML(t.title || 'Untitled')}</div>
+                    </div>
+                    <span class="iv-badge iv-badge-${status}">${window.escapeHTML(status)}</span>
+                </div>
+
+                <div class="hero-meta">
+                    <div class="hero-meta-item">
+                        <i class="fas fa-flask"></i>
+                        <strong>${window.escapeHTML(t.research_area || 'Unspecified')}</strong>
+                    </div>
+                    ${t.reviewed_at ? `
+                        <div class="hero-meta-item">
+                            <i class="fas fa-check-circle"></i>
+                            Reviewed <strong>${window.formatDate(t.reviewed_at)}</strong>
+                        </div>
+                    ` : ''}
+                    ${t.keywords ? `
+                        <div class="hero-meta-item">
+                            <i class="fas fa-tags"></i>
+                            <strong>${window.escapeHTML(t.keywords)}</strong>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // SECTIONS
+    // ============================================================
+
+    function studentSection(t) {
+        const s = t.student || {};
+        const name = s.full_name || s.email || 'Student';
+
+        return `
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-user-graduate"></i>
+                    <div class="section-head-title">Student</div>
+                </div>
+                <div class="section-body">
+                    <div class="student-card">
+                        <div class="student-avatar">${window.escapeHTML(window.initials(name))}</div>
+                        <div class="student-body">
+                            <div class="student-name">${window.escapeHTML(name)}</div>
+                            <div class="student-email">${window.escapeHTML(s.email || '')}</div>
+                            ${s.department ? `<div class="student-dept">${window.escapeHTML(s.department)}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function topicSection(t) {
+        return `
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="section-head-title">Problem statement</div>
+                </div>
+                <div class="section-body ${t.problem_statement ? '' : 'section-body-empty'}">
+                    ${window.escapeHTML(t.problem_statement || 'No problem statement provided.')}
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-bullseye"></i>
+                    <div class="section-head-title">Objectives</div>
+                </div>
+                <div class="section-body ${t.objectives ? '' : 'section-body-empty'}">
+                    ${window.escapeHTML(t.objectives || 'No objectives provided.')}
+                </div>
+            </div>
+        `;
+    }
+
+    function reportSection(t) {
+        const report = t.report || (Array.isArray(t.report) ? t.report[0] : null);
+
+        if (!report) {
+            return `
+                <div class="section-card">
+                    <div class="section-head">
+                        <i class="fas fa-file-shield"></i>
+                        <div class="section-head-title">Plagiarism report</div>
+                    </div>
+                    <div class="section-body section-body-empty">
+                        No plagiarism report was attached to this submission.
+                    </div>
+                </div>
+            `;
+        }
+
+        const score = Number(report.similarity_score || 0);
+        const risk = (report.risk_level || 'low').toLowerCase();
+        const ext = (report.file_format || '').toLowerCase();
+        const matches = Array.isArray(report.matches) ? report.matches : [];
+
+        const recClass =
+            risk === 'high'   ? 'rec-danger'  :
+            risk === 'medium' ? 'rec-warning' :
+                                'rec-success';
+
+        return `
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-file-shield"></i>
+                    <div class="section-head-title">Attached plagiarism report</div>
+                    <span class="iv-badge iv-badge-${risk}" style="margin-left: auto;">
+                        ${window.escapeHTML(risk)}
+                    </span>
+                </div>
+
+                <div class="report-header">
+                    <div class="report-file-icon">
+                        <i class="fas ${fileIcon(ext)}"></i>
+                    </div>
+                    <div class="report-file-body">
+                        <div class="report-file-name">${window.escapeHTML(report.filename || 'Document')}</div>
+                        <div class="report-file-meta">
+                            ${window.escapeHTML(ext.toUpperCase())}
+                            · Scanned ${window.formatDate(report.created_at)}
+                        </div>
+                    </div>
+                    <div class="report-score-badge">
+                        <div class="report-score-circle ${risk}">${score}%</div>
+                    </div>
+                </div>
+
+                <div class="report-actions">
+                    <button class="iv-btn iv-btn-secondary iv-btn-sm" id="downloadReportBtn" data-report-id="${window.escapeHTML(report.report_id)}">
+                        <i class="fas fa-download"></i> Download original document
+                    </button>
+                </div>
+
+                <div class="report-details">
+                    <div class="report-rec ${recClass}">
+                        <strong><i class="fas fa-lightbulb"></i> AI recommendation</strong>
+                        ${window.escapeHTML(report.recommendation || 'No recommendation recorded.')}
+                    </div>
+
+                    ${matches.length ? `
+                        <div class="report-subhead">
+                            Top matches (${matches.length})
+                        </div>
+                        ${matches.slice(0, 8).map(m => matchRow(m)).join('')}
+                    ` : `
+                        <div class="report-subhead">Top matches</div>
+                        <div style="font-size: 12.5px; color: var(--iv-text-3); font-style: italic;">
+                            No overlapping documents were found in the corpus.
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    }
+
+    function matchRow(m) {
+        const s = Number(m.similarity || 0);
+        const cls =
+            s >= 60 ? 'match-danger'  :
+            s >= 30 ? 'match-warning' :
+                      'match-success';
+        const color =
+            s >= 60 ? 'var(--iv-danger)'  :
+            s >= 30 ? 'var(--iv-warning)' :
+                      'var(--iv-success)';
+
+        return `
+            <div class="match-row ${cls}">
+                <div class="match-body">
+                    <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
+                    ${Array.isArray(m.phrases) && m.phrases.length ? `
+                        <div class="match-phrases">
+                            Shared phrases: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="match-score" style="color: ${color};">${s}%</div>
+            </div>
+        `;
+    }
+
+    function timelineSection() {
+        if (!state.history.length) return '';
+
+        return `
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-history"></i>
+                    <div class="section-head-title">Status history</div>
+                </div>
+                <div class="section-body">
+                    <div class="timeline">
+                        ${state.history.map(h => timelineItem(h)).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function timelineItem(h) {
+        const newStatus = String(h.new_status || '').toLowerCase();
+        const dotClass =
+            newStatus === 'approved' ? 'tl-dot-approved' :
+            newStatus === 'rejected' ? 'tl-dot-rejected' :
+            newStatus === 'revision' ? 'tl-dot-revision' :
+                                        'tl-dot-pending';
+
+        const actor = h.actor?.full_name || h.actor?.email || 'System';
+        const role = h.actor?.role || '';
+
+        return `
+            <div class="tl-item">
+                <div class="tl-dot ${dotClass}"></div>
+                <div>
+                    <div class="tl-title">
+                        Marked as <strong>${window.escapeHTML(newStatus)}</strong>
+                    </div>
+                    <div class="tl-meta">
+                        ${window.escapeHTML(actor)}
+                        ${role ? `· ${window.escapeHTML(role)}` : ''}
+                        · ${window.formatDateTime(h.created_at)}
+                    </div>
+                    ${h.comment ? `<div class="tl-comment">${window.escapeHTML(h.comment)}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // REVIEW PANEL
+    // ============================================================
+
+    function reviewPanel(status) {
+        const isRevision = status === 'revision';
+
+        return `
+            <div class="review-panel">
+                <div class="review-panel-head">
+                    <div class="review-panel-title">Review decision</div>
+                    <div class="review-panel-sub">
+                        ${isRevision
+                            ? 'This topic was returned for revision and can be re-reviewed.'
+                            : 'Take an action on this submission.'}
+                    </div>
+                </div>
+                <div class="review-panel-body">
+                    <label class="iv-label" for="commentInput">
+                        Comment <span class="iv-muted">(optional)</span>
+                    </label>
+                    <textarea class="comment-input" id="commentInput"
+                              placeholder="Add feedback for the student. Required if requesting revision or rejecting."></textarea>
+                    <div class="comment-help">
+                        This comment will be visible to the student and all other linked supervisors.
+                    </div>
+
+                    <div class="action-group">
+                        <button class="action-btn action-btn-primary" id="approveBtn">
+                            <i class="fas fa-check"></i> Approve topic
+                        </button>
+                        <button class="action-btn action-btn-warning" id="revisionBtn">
+                            <i class="fas fa-edit"></i> Request revision
+                        </button>
+                        <button class="action-btn action-btn-danger" id="rejectBtn">
+                            <i class="fas fa-times"></i> Reject topic
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function lockedPanel(status) {
+        const isApproved = status === 'approved';
+        return `
+            <div class="review-panel">
+                <div class="review-panel-head">
+                    <div class="review-panel-title">Final decision</div>
+                    <div class="review-panel-sub">
+                        This topic is already ${status}.
+                    </div>
+                </div>
+                <div class="locked-panel">
+                    <div class="locked-icon" style="color: ${isApproved ? 'var(--iv-success)' : 'var(--iv-danger)'}; background: ${isApproved ? 'var(--iv-success-bg)' : 'var(--iv-danger-bg)'};">
+                        <i class="fas ${isApproved ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                    </div>
+                    <div class="locked-title">
+                        ${isApproved ? 'Approved' : 'Rejected'}
+                    </div>
+                    <div class="locked-text">
+                        Once a topic is ${status}, its status is final and cannot be changed.
+                        The student has been notified.
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // WIRING
+    // ============================================================
+
+    function wireReportActions() {
+        const dl = document.getElementById('downloadReportBtn');
+        if (dl) {
+            dl.onclick = async () => {
+                try {
+                    dl.disabled = true;
+                    dl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Preparing…`;
+                    const res = await window.api('/api/reports/' + dl.dataset.reportId + '/download');
+                    window.open(res.url, '_blank');
+                    window.toast('Download opened.', 'success');
+                } catch (err) {
+                    window.toast(err.message || 'Download failed.', 'error');
+                } finally {
+                    dl.disabled = false;
+                    dl.innerHTML = `<i class="fas fa-download"></i> Download original document`;
+                }
+            };
+        }
+    }
+
+    function wireReviewPanel() {
+        document.getElementById('approveBtn').onclick = () => submitReview('approved');
+        document.getElementById('revisionBtn').onclick = () => submitReview('revision');
+        document.getElementById('rejectBtn').onclick = () => submitReview('rejected');
+    }
+
+    async function submitReview(action) {
+        if (state.submitting) return;
+
+        const comment = document.getElementById('commentInput').value.trim();
+
+        // Require a comment for revision or rejection
+        if ((action === 'revision' || action === 'rejected') && comment.length < 5) {
+            window.toast('Please add a comment explaining your decision.', 'warning');
+            document.getElementById('commentInput').focus();
+            return;
+        }
+
+        // Confirm
+        const actionLabels = {
+            approved:  'Approve this topic?',
+            revision:  'Request a revision?',
+            rejected:  'Reject this topic?'
+        };
+        const actionMessages = {
+            approved: 'The student will be notified and the topic will be marked as approved.',
+            revision: 'The student will be notified and asked to revise the topic before resubmitting.',
+            rejected: 'The student will be notified and the topic will be permanently rejected.'
+        };
+
+        const ok = await window.confirmDialog({
+            title: actionLabels[action],
+            message: actionMessages[action],
+            confirmLabel: action === 'approved' ? 'Approve' : action === 'revision' ? 'Request revision' : 'Reject',
+            danger: action === 'rejected'
+        });
+        if (!ok) return;
+
+        state.submitting = true;
+        const btnMap = {
+            approved: document.getElementById('approveBtn'),
+            revision: document.getElementById('revisionBtn'),
+            rejected: document.getElementById('rejectBtn')
+        };
+        const activeBtn = btnMap[action];
+        activeBtn.disabled = true;
+        activeBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Submitting…`;
+
+        try {
+            await window.api('/api/topics/' + state.topic.topic_id + '/review', {
+                method: 'POST',
+                body: { action, comment: comment || null }
+            });
+
+            window.toast(`Topic ${action}.`, 'success', 1500);
+
+            setTimeout(() => {
+                window.location.href = '/supervisor/dashboard.html';
+            }, 900);
+
+        } catch (err) {
+            console.error(err);
+            window.toast(err.message || 'Could not submit review.', 'error');
+            activeBtn.disabled = false;
+
+            const iconMap = {
+                approved: 'fa-check',
+                revision: 'fa-edit',
+                rejected: 'fa-times'
+            };
+            const labelMap = {
+                approved: 'Approve topic',
+                revision: 'Request revision',
+                rejected: 'Reject topic'
+            };
+            activeBtn.innerHTML = `<i class="fas ${iconMap[action]}"></i> ${labelMap[action]}`;
+            state.submitting = false;
+        }
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function fileIcon(ext) {
+        if (ext === 'pdf')  return 'fa-file-pdf';
+        if (ext === 'docx') return 'fa-file-word';
+        if (ext === 'txt')  return 'fa-file-lines';
+        return 'fa-file';
+    }
+</script>
+
+</body>
+</html>
