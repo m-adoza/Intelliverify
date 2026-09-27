@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submit Topic — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        .form-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-6);
+            max-width: 780px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--iv-s-4);
+        }
+
+        .form-grid .full { grid-column: 1 / -1; }
+
+        .counter {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--iv-text-3);
+        }
+
+        .counter-warn { color: var(--iv-warning); }
+        .counter-danger { color: var(--iv-danger); }
+
+        /* ---- Report selector ---- */
+        .report-notice {
+            padding: var(--iv-s-3) var(--iv-s-4);
+            border-radius: var(--iv-r-sm);
+            font-size: 12.5px;
+            line-height: 1.5;
+            margin-top: var(--iv-s-2);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .report-notice-info {
+            background: var(--iv-info-bg);
+            border: 1px solid var(--iv-info-border);
+            color: var(--iv-info);
+        }
+
+        .report-notice-warn {
+            background: var(--iv-warning-bg);
+            border: 1px solid var(--iv-warning-border);
+            color: var(--iv-warning);
+        }
+
+        .report-notice-success {
+            background: var(--iv-success-bg);
+            border: 1px solid var(--iv-success-border);
+            color: var(--iv-success);
+        }
+
+        .report-notice-danger {
+            background: var(--iv-danger-bg);
+            border: 1px solid var(--iv-danger-border);
+            color: var(--iv-danger);
+        }
+
+        .report-notice i { margin-top: 2px; flex-shrink: 0; }
+
+        .report-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: 6px;
+        }
+
+        .report-pill-low    { background: var(--iv-success-bg); color: var(--iv-success); }
+        .report-pill-medium { background: var(--iv-warning-bg); color: var(--iv-warning); }
+        .report-pill-high   { background: var(--iv-danger-bg);  color: var(--iv-danger); }
+
+        /* ---- Attached badge ---- */
+        .attached-card {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4);
+            background: var(--iv-success-bg);
+            border: 1px solid var(--iv-success-border);
+            border-radius: var(--iv-r-md);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .attached-card i.attached-icon {
+            font-size: 20px;
+            color: var(--iv-success);
+            flex-shrink: 0;
+        }
+
+        .attached-card-body { flex: 1; min-width: 0; }
+
+        .attached-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-success);
+        }
+
+        .attached-meta {
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ---- Form actions ---- */
+        .form-actions {
+            display: flex;
+            gap: var(--iv-s-3);
+            padding-top: var(--iv-s-5);
+            margin-top: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+            flex-wrap: wrap;
+        }
+
+        /* ---- Info sidebar ---- */
+        .info-aside {
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            position: sticky;
+            top: calc(var(--iv-topbar-h) + var(--iv-s-4));
+        }
+
+        .info-aside-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .info-step {
+            display: flex;
+            gap: var(--iv-s-3);
+            padding-bottom: var(--iv-s-4);
+            margin-bottom: var(--iv-s-4);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .info-step:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+        .info-step-num {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .info-step-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .info-step-text {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            line-height: 1.5;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: var(--iv-s-5);
+            align-items: start;
+        }
+
+        @media (max-width: 1000px) {
+            .layout { grid-template-columns: 1fr; }
+            .info-aside { position: static; }
+        }
+
+        @media (max-width: 700px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-card { padding: var(--iv-s-4); }
+            .form-actions { flex-direction: column; }
+            .form-actions .iv-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const preselectedReportId = urlParams.get('report_id');
+
+    let state = {
+        reports: [],
+        submitting: false
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/submit-topic.html',
+            title: 'Submit Topic',
+            subtitle: 'Send a new project proposal to your supervisor for review',
+            actions: `
+                <a href="/student/approval-status.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-tasks"></i> Approval status
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wireForm();
+
+        await loadReports();
+    })();
+
+    // ============================================================
+    // MARKUP
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="layout">
+                <form class="form-card" id="topicForm" autocomplete="off">
+                    <div id="attachedNotice"></div>
+
+                    <div class="form-grid">
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="title">Project title</label>
+                            <input class="iv-input" id="title" required maxlength="180"
+                                   placeholder="e.g. Intelligent Final Year Project Topic Approval System" />
+                            <div class="counter">
+                                <span>Choose a clear, specific title</span>
+                                <span id="titleCount">0 / 180</span>
+                            </div>
+                        </div>
+
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="research_area">Research area / domain</label>
+                            <input class="iv-input" id="research_area" required maxlength="120"
+                                   placeholder="e.g. Artificial Intelligence, Software Engineering" />
+                        </div>
+
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="problem_statement">Problem statement</label>
+                            <textarea class="iv-textarea" id="problem_statement" required maxlength="2000"
+                                placeholder="Describe the specific problem your project intends to solve. Be concrete about the current gap or pain point."></textarea>
+                            <div class="counter">
+                                <span>Minimum 30 characters</span>
+                                <span id="problemCount">0 / 2000</span>
+                            </div>
+                        </div>
+
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="objectives">Project objectives</label>
+                            <textarea class="iv-textarea" id="objectives" required maxlength="2000"
+                                placeholder="List the main objectives of the project. e.g.&#10;1. Design a web platform that…&#10;2. Implement a TF-IDF similarity engine…&#10;3. Evaluate against a corpus of…"></textarea>
+                            <div class="counter">
+                                <span>Minimum 30 characters</span>
+                                <span id="objectivesCount">0 / 2000</span>
+                            </div>
+                        </div>
+
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="keywords">Keywords <span class="iv-muted">(optional)</span></label>
+                            <input class="iv-input" id="keywords" maxlength="200"
+                                   placeholder="e.g. plagiarism detection, TF-IDF, academic integrity" />
+                            <div class="iv-help">Comma-separated. Helps supervisors search and categorise.</div>
+                        </div>
+
+                        <div class="iv-form-group full">
+                            <label class="iv-label" for="plagiarism_report_id">
+                                Attached plagiarism report
+                            </label>
+                            <select class="iv-select" id="plagiarism_report_id">
+                                <option value="">— No report attached —</option>
+                            </select>
+                            <div id="reportNotice"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="iv-btn iv-btn-primary iv-btn-lg" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span id="submitLabel">Submit topic for review</span>
+                        </button>
+                        <a href="/student/dashboard.html" class="iv-btn iv-btn-secondary iv-btn-lg">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+                ${infoAside()}
+            </div>
+        `;
+    }
+
+    function infoAside() {
+        return `
+            <aside class="info-aside">
+                <div class="info-aside-title">Submission workflow</div>
+
+                <div class="info-step">
+                    <div class="info-step-num">1</div>
+                    <div>
+                        <div class="info-step-title">Run a plagiarism scan</div>
+                        <div class="info-step-text">
+                            Upload a draft document first. Only scans with 30% or less similarity can be attached.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-num">2</div>
+                    <div>
+                        <div class="info-step-title">Fill this form</div>
+                        <div class="info-step-text">
+                            Complete every required field and select your approved scan.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-num">3</div>
+                    <div>
+                        <div class="info-step-title">Supervisor review</div>
+                        <div class="info-step-text">
+                            Every linked supervisor is notified. The first to act sets the final status.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-step">
+                    <div class="info-step-num">4</div>
+                    <div>
+                        <div class="info-step-title">Track the result</div>
+                        <div class="info-step-text">
+                            Approved, revision requested, or rejected — plus comments from the reviewer.
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        `;
+    }
+
+    // ============================================================
+    // WIRING
+    // ============================================================
+
+    function wireForm() {
+        const form = document.getElementById('topicForm');
+        const titleEl = document.getElementById('title');
+        const problemEl = document.getElementById('problem_statement');
+        const objectEl = document.getElementById('objectives');
+
+        const updateCount = (el, countEl, max) => {
+            const len = el.value.length;
+            countEl.textContent = `${len} / ${max}`;
+            countEl.className = '';
+            if (len > max * 0.9) countEl.className = 'counter-warn';
+            if (len >= max) countEl.className = 'counter-danger';
+        };
+
+        titleEl.addEventListener('input', () => updateCount(titleEl, document.getElementById('titleCount'), 180));
+        problemEl.addEventListener('input', () => updateCount(problemEl, document.getElementById('problemCount'), 2000));
+        objectEl.addEventListener('input', () => updateCount(objectEl, document.getElementById('objectivesCount'), 2000));
+
+        document.getElementById('plagiarism_report_id')
+            .addEventListener('change', updateReportNotice);
+
+        form.addEventListener('submit', handleSubmit);
+    }
+
+    // ============================================================
+    // REPORTS
+    // ============================================================
+
+    async function loadReports() {
+        const select = document.getElementById('plagiarism_report_id');
+        try {
+            const res = await window.api('/api/reports');
+            const reports = res.reports || [];
+
+            // Only completed scans
+            const eligible = reports.filter(r => r.scan_status === 'completed');
+
+            if (!eligible.length) {
+                select.innerHTML = `<option value="">— No scans available —</option>`;
+                select.disabled = true;
+                document.getElementById('reportNotice').innerHTML = `
+                    <div class="report-notice report-notice-info">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            You haven't run any plagiarism scans yet.
+                            <a href="/student/plagiarism-report.html" style="color: inherit; text-decoration: underline;">Run a scan first</a>
+                            if you want to attach a report to this submission. You can also submit without one.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            state.reports = eligible;
+
+            select.innerHTML = `
+                <option value="">— No report attached —</option>
+                ${eligible.map(r => {
+                    const score = Number(r.similarity_score || 0);
+                    const risk = (r.risk_level || 'low').toUpperCase();
+                    return `
+                        <option value="${window.escapeHTML(r.report_id)}">
+                            ${window.escapeHTML(r.filename)} — ${score}% (${risk})
+                        </option>
+                    `;
+                }).join('')}
+            `;
+
+            // Preselect if URL had ?report_id=
+            if (preselectedReportId) {
+                const exists = eligible.some(r => r.report_id === preselectedReportId);
+                if (exists) {
+                    select.value = preselectedReportId;
+                } else {
+                    window.toast(
+                        'The selected report was not found in your account or is not completed.',
+                        'warning'
+                    );
+                }
+            }
+
+            updateReportNotice();
+
+        } catch (err) {
+            console.error(err);
+            select.innerHTML = `<option value="">— Could not load scans —</option>`;
+            select.disabled = true;
+            document.getElementById('reportNotice').innerHTML = `
+                <div class="report-notice report-notice-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>Failed to load your scans: ${window.escapeHTML(err.message)}</div>
+                </div>
+            `;
+        }
+    }
+
+    function updateReportNotice() {
+        const select = document.getElementById('plagiarism_report_id');
+        const notice = document.getElementById('reportNotice');
+        const attached = document.getElementById('attachedNotice');
+        const id = select.value;
+
+        if (!id) {
+            notice.innerHTML = '';
+            attached.innerHTML = '';
+            return;
+        }
+
+        const report = state.reports.find(r => r.report_id === id);
+        if (!report) {
+            notice.innerHTML = '';
+            attached.innerHTML = '';
+            return;
+        }
+
+        const score = Number(report.similarity_score || 0);
+        const risk = (report.risk_level || 'low').toLowerCase();
+        const eligible = score <= 30;
+
+        notice.innerHTML = `
+            <div class="report-notice ${eligible ? 'report-notice-success' : 'report-notice-danger'}">
+                <i class="fas ${eligible ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                <div>
+                    ${eligible
+                        ? `This scan qualifies for attachment (${score}% similarity).`
+                        : `This scan cannot be attached — similarity is ${score}%, above the 30% limit. Please scan a revised version of your document.`
+                    }
+                </div>
+            </div>
+        `;
+
+        attached.innerHTML = `
+            <div class="attached-card">
+                <i class="fas fa-file-shield attached-icon"></i>
+                <div class="attached-card-body">
+                    <div class="attached-title">
+                        Report attached
+                        <span class="report-pill report-pill-${risk}">${risk}</span>
+                    </div>
+                    <div class="attached-meta">
+                        ${window.escapeHTML(report.filename)} — ${score}% similarity
+                        · scanned ${window.formatDate(report.created_at)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // SUBMIT
+    // ============================================================
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        if (state.submitting) return;
+
+        const title            = document.getElementById('title').value.trim();
+        const research_area    = document.getElementById('research_area').value.trim();
+        const problem_statement = document.getElementById('problem_statement').value.trim();
+        const objectives       = document.getElementById('objectives').value.trim();
+        const keywords         = document.getElementById('keywords').value.trim();
+        const reportId         = document.getElementById('plagiarism_report_id').value || null;
+
+        // Client-side validation
+        if (title.length < 5) {
+            window.toast('Please enter a longer title (min 5 characters).', 'error');
+            return;
+        }
+        if (research_area.length < 3) {
+            window.toast('Please enter a research area.', 'error');
+            return;
+        }
+        if (problem_statement.length < 30) {
+            window.toast('Problem statement must be at least 30 characters.', 'error');
+            return;
+        }
+        if (objectives.length < 30) {
+            window.toast('Objectives must be at least 30 characters.', 'error');
+            return;
+        }
+
+        // If a report is attached, validate similarity
+        if (reportId) {
+            const report = state.reports.find(r => r.report_id === reportId);
+            if (!report) {
+                window.toast('Invalid report selected.', 'error');
+                return;
+            }
+            if (Number(report.similarity_score || 0) > 30) {
+                window.toast('This report cannot be attached — similarity is above 30%.', 'error');
+                return;
+            }
+        }
+
+        const btn = document.getElementById('submitBtn');
+        const label = document.getElementById('submitLabel');
+        state.submitting = true;
+        btn.disabled = true;
+        label.textContent = 'Submitting…';
+
+        try {
+            await window.api('/api/topics', {
+                method: 'POST',
+                body: {
+                    title,
+                    research_area,
+                    problem_statement,
+                    objectives,
+                    keywords: keywords || null,
+                    plagiarism_report_id: reportId
+                }
+            });
+
+            window.toast('Topic submitted. Redirecting…', 'success', 1400);
+            setTimeout(() => {
+                window.location.href = '/student/approval-status.html';
+            }, 1000);
+
+        } catch (err) {
+            console.error(err);
+            window.toast(err.message || 'Submission failed.', 'error');
+            btn.disabled = false;
+            label.textContent = 'Submit topic for review';
+            state.submitting = false;
+        }
+    }
+</script>
+
+</body>
+  </html>
