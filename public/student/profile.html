@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        .profile-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: var(--iv-s-5);
+            align-items: start;
+        }
+
+        .p-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            margin-bottom: var(--iv-s-4);
+            overflow: hidden;
+        }
+
+        .p-card-head {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--iv-s-3);
+        }
+
+        .p-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--iv-text);
+        }
+
+        .p-card-sub {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .p-card-body { padding: var(--iv-s-5); }
+
+        /* ---- Identity header ---- */
+        .identity {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .identity-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .identity-body { min-width: 0; flex: 1; }
+
+        .identity-name {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .identity-sub {
+            font-size: 13px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ---- Read-only rows ---- */
+        .ro-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-3);
+        }
+
+        .ro-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding-bottom: var(--iv-s-3);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .ro-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .ro-label {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+        }
+
+        .ro-value {
+            font-size: 13.5px;
+            color: var(--iv-text);
+            font-weight: 500;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .ro-value-mono {
+            font-family: var(--iv-font-mono);
+            letter-spacing: 0.02em;
+        }
+
+        /* ---- Pairing code block ---- */
+        .pair-code {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-md);
+        }
+
+        .pair-code-value {
+            font-family: var(--iv-font-mono);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--iv-text);
+        }
+
+        .pair-code-btn {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border-strong);
+            color: var(--iv-text-2);
+            padding: 7px 12px;
+            border-radius: var(--iv-r-sm);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--iv-transition);
+        }
+
+        .pair-code-btn:hover { background: var(--iv-bg-muted); color: var(--iv-text); }
+
+        /* ---- Password block ---- */
+        .pw-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            color: var(--iv-focus);
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+            font-weight: 500;
+        }
+
+        .pw-toggle:hover { text-decoration: underline; }
+
+        .pw-requirements {
+            margin-top: var(--iv-s-2);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+            font-size: 12px;
+            color: var(--iv-text-3);
+            line-height: 1.6;
+        }
+
+        .pw-requirements strong { color: var(--iv-text-2); }
+
+        /* ---- Danger zone ---- */
+        .danger-card {
+            background: var(--iv-danger-bg);
+            border: 1px solid var(--iv-danger-border);
+        }
+
+        .danger-card .p-card-head {
+            border-bottom-color: rgba(220, 38, 38, 0.15);
+        }
+
+        .danger-card .p-card-title { color: var(--iv-danger); }
+
+        .danger-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--iv-s-4);
+            padding-bottom: var(--iv-s-4);
+            margin-bottom: var(--iv-s-4);
+            border-bottom: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .danger-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        .danger-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .danger-text {
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            margin-top: 3px;
+            line-height: 1.5;
+        }
+
+        /* ---- Aside summary card ---- */
+        .aside-summary {
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            position: sticky;
+            top: calc(var(--iv-topbar-h) + var(--iv-s-4));
+        }
+
+        .aside-summary-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .aside-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--iv-s-3) 0;
+            border-bottom: 1px solid var(--iv-border);
+            font-size: 13px;
+        }
+
+        .aside-stat:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .aside-stat-label { color: var(--iv-text-3); }
+        .aside-stat-value {
+            font-weight: 600;
+            color: var(--iv-text);
+            font-family: var(--iv-font-mono);
+        }
+
+        /* ---- Form actions ---- */
+        .p-actions {
+            display: flex;
+            gap: var(--iv-s-2);
+            padding-top: var(--iv-s-4);
+            margin-top: var(--iv-s-4);
+            border-top: 1px solid var(--iv-border);
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 1000px) {
+            .profile-layout { grid-template-columns: 1fr; }
+            .aside-summary { position: static; order: -1; }
+        }
+
+        @media (max-width: 600px) {
+            .p-card-body { padding: var(--iv-s-4); }
+            .identity-avatar { width: 52px; height: 52px; font-size: 18px; }
+            .pair-code { flex-direction: column; align-items: flex-start; }
+            .p-actions { flex-direction: column-reverse; }
+            .p-actions .iv-btn { width: 100%; justify-content: center; }
+            .danger-row { flex-direction: column; align-items: flex-start; }
+            .danger-row .iv-btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    const state = {
+        profile: null,
+        stats: { topics: 0, scans: 0, supervisors: 0 }
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        state.profile = ctx.profile;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/profile.html',
+            title: 'Profile',
+            subtitle: 'Manage your account details and security',
+            actions: `
+                <a href="/student/dashboard.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        wirePage();
+        await loadStats();
+        await loadProfileFields();
+    })();
+
+    // ============================================================
+    // MARKUP
+    // ============================================================
+
+    function page() {
+        const p = state.profile;
+        const name = p.full_name || p.email;
+        const initials = window.initials(name);
+
+        return `
+            <div class="profile-layout">
+
+                <div>
+                    <!-- Identity -->
+                    <div class="p-card">
+                        <div class="p-card-body">
+                            <div class="identity">
+                                <div class="identity-avatar">${window.escapeHTML(initials)}</div>
+                                <div class="identity-body">
+                                    <div class="identity-name">${window.escapeHTML(name)}</div>
+                                    <div class="identity-sub">${window.escapeHTML(p.email || '')}</div>
+                                </div>
+                                <span class="iv-badge iv-badge-neutral" style="text-transform: capitalize;">
+                                    ${window.escapeHTML(p.role || 'student')}
+                                </span>
+                            </div>
+
+                            <div class="ro-list">
+                                <div class="ro-row">
+                                    <div class="ro-label">Account ID</div>
+                                    <div class="ro-value ro-value-mono">${window.escapeHTML(String(p.id || '').slice(0, 8))}…</div>
+                                </div>
+                                <div class="ro-row">
+                                    <div class="ro-label">Email</div>
+                                    <div class="ro-value">${window.escapeHTML(p.email || '—')}</div>
+                                </div>
+                                <div class="ro-row">
+                                    <div class="ro-label">Role</div>
+                                    <div class="ro-value" style="text-transform: capitalize;">
+                                        ${window.escapeHTML(p.role || 'student')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Editable details -->
+                    <div class="p-card">
+                        <div class="p-card-head">
+                            <div>
+                                <div class="p-card-title">Personal details</div>
+                                <div class="p-card-sub">Update your name and department</div>
+                            </div>
+                        </div>
+                        <div class="p-card-body">
+                            <form id="detailsForm" autocomplete="off">
+                                <div class="iv-form-group">
+                                    <label class="iv-label" for="fullName">Full name</label>
+                                    <input class="iv-input" id="fullName" required maxlength="120"
+                                           value="${window.escapeHTML(p.full_name || '')}"
+                                           placeholder="e.g. Muhammad Adamu Adoza" />
+                                </div>
+
+                                <div class="iv-form-group">
+                                    <label class="iv-label" for="department">Department</label>
+                                    <input class="iv-input" id="department" maxlength="120"
+                                           value="${window.escapeHTML(p.department || '')}"
+                                           placeholder="e.g. Computer Science" />
+                                </div>
+
+                                <div class="p-actions">
+                                    <button type="button" class="iv-btn iv-btn-secondary" id="resetDetails">
+                                        Reset
+                                    </button>
+                                    <button type="submit" class="iv-btn iv-btn-primary" id="saveDetails">
+                                        <i class="fas fa-save"></i>
+                                        <span>Save changes</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Pairing code -->
+                    <div class="p-card">
+                        <div class="p-card-head">
+                            <div>
+                                <div class="p-card-title">Supervisor pairing code</div>
+                                <div class="p-card-sub">Share with supervisors so they can link to you</div>
+                            </div>
+                        </div>
+                        <div class="p-card-body">
+                            <div class="pair-code">
+                                <div class="pair-code-value" id="pairCodeValue">
+                                    ${window.escapeHTML(p.pairing_code || '—')}
+                                </div>
+                                <button class="pair-code-btn" id="copyPairCode">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Copy</span>
+                                </button>
+                            </div>
+                            <div class="iv-help" style="margin-top: 12px;">
+                                Need to manage who is linked?
+                                <a href="/student/pairing.html" style="color: var(--iv-focus); text-decoration: none; font-weight: 500;">
+                                    Open pairing page →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="p-card">
+                        <div class="p-card-head">
+                            <div>
+                                <div class="p-card-title">Password</div>
+                                <div class="p-card-sub">Change the password you use to sign in</div>
+                            </div>
+                            <button class="pw-toggle" id="togglePassword" type="button">
+                                <i class="fas fa-chevron-down"></i>
+                                <span>Change password</span>
+                            </button>
+                        </div>
+                        <div class="p-card-body" id="passwordBody" style="display: none;">
+                            <form id="passwordForm" autocomplete="off">
+                                <div class="iv-form-group">
+                                    <label class="iv-label" for="currentPassword">Current password</label>
+                                    <input class="iv-input" type="password" id="currentPassword"
+                                           autocomplete="current-password" placeholder="••••••••" />
+                                </div>
+
+                                <div class="iv-form-group">
+                                    <label class="iv-label" for="newPassword">New password</label>
+                                    <input class="iv-input" type="password" id="newPassword"
+                                           autocomplete="new-password" placeholder="At least 8 characters"
+                                           minlength="8" />
+                                </div>
+
+                                <div class="iv-form-group">
+                                    <label class="iv-label" for="confirmPassword">Confirm new password</label>
+                                    <input class="iv-input" type="password" id="confirmPassword"
+                                           autocomplete="new-password" placeholder="Repeat the new password"
+                                           minlength="8" />
+                                </div>
+
+                                <div class="pw-requirements">
+                                    <strong>Password must:</strong>
+                                    <ul style="margin: 6px 0 0 18px; padding: 0;">
+                                        <li>Be at least 8 characters long</li>
+                                        <li>Contain a mix of letters and numbers (recommended)</li>
+                                        <li>Not match your previous password</li>
+                                    </ul>
+                                </div>
+
+                                <div class="p-actions">
+                                    <button type="button" class="iv-btn iv-btn-secondary" id="cancelPassword">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="iv-btn iv-btn-primary" id="savePassword">
+                                        <i class="fas fa-key"></i>
+                                        <span>Update password</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Danger zone -->
+                    <div class="p-card danger-card">
+                        <div class="p-card-head">
+                            <div>
+                                <div class="p-card-title">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Sign out everywhere
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-card-body">
+                            <div class="danger-row">
+                                <div>
+                                    <div class="danger-title">End all sessions</div>
+                                    <div class="danger-text">
+                                        Signs you out on every device where you're currently logged in.
+                                        You'll be returned to the home page.
+                                    </div>
+                                </div>
+                                <button class="iv-btn iv-btn-danger" id="signOutAll">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Sign out all
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aside summary -->
+                <aside class="aside-summary">
+                    <div class="aside-summary-title">Account summary</div>
+                    <div class="aside-stat">
+                        <span class="aside-stat-label">Topics submitted</span>
+                        <span class="aside-stat-value" id="statTopics">—</span>
+                    </div>
+                    <div class="aside-stat">
+                        <span class="aside-stat-label">Scans run</span>
+                        <span class="aside-stat-value" id="statScans">—</span>
+                    </div>
+                    <div class="aside-stat">
+                        <span class="aside-stat-label">Linked supervisors</span>
+                        <span class="aside-stat-value" id="statSupervisors">—</span>
+                    </div>
+                </aside>
+
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // WIRING
+    // ============================================================
+
+    function wirePage() {
+        // --- Details form ---
+        const detailsForm = document.getElementById('detailsForm');
+        const fullNameEl = document.getElementById('fullName');
+        const departmentEl = document.getElementById('department');
+        const saveDetailsBtn = document.getElementById('saveDetails');
+        const resetDetailsBtn = document.getElementById('resetDetails');
+
+        resetDetailsBtn.onclick = () => {
+            fullNameEl.value = state.profile.full_name || '';
+            departmentEl.value = state.profile.department || '';
+            window.toast('Form reset.', 'info');
+        };
+
+        detailsForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const fullName = fullNameEl.value.trim();
+            const department = departmentEl.value.trim();
+
+            if (fullName.length < 2) {
+                window.toast('Please enter your full name.', 'error');
+                return;
+            }
+
+            saveDetailsBtn.disabled = true;
+            saveDetailsBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Saving…</span>`;
+
+            try {
+                const { error } = await window.sb
+                    .from('profiles')
+                    .update({
+                        full_name: fullName,
+                        department: department || null
+                    })
+                    .eq('id', state.profile.id);
+
+                if (error) throw error;
+
+                state.profile.full_name = fullName;
+                state.profile.department = department || null;
+
+                window.toast('Profile updated.', 'success');
+                refreshIdentity();
+            } catch (err) {
+                console.error(err);
+                window.toast(err.message || 'Could not save changes.', 'error');
+            } finally {
+                saveDetailsBtn.disabled = false;
+                saveDetailsBtn.innerHTML = `<i class="fas fa-save"></i> <span>Save changes</span>`;
+            }
+        };
+
+        // --- Copy pairing code ---
+        const copyBtn = document.getElementById('copyPairCode');
+        if (copyBtn) {
+            copyBtn.onclick = async () => {
+                const code = state.profile.pairing_code;
+                if (!code) return;
+                try {
+                    await navigator.clipboard.writeText(code);
+                    window.toast('Pairing code copied.', 'success');
+                } catch (_) {
+                    window.toast('Copy failed. Long-press the code to select it.', 'warning');
+                }
+            };
+        }
+
+        // --- Password section toggle ---
+        const toggle = document.getElementById('togglePassword');
+        const passwordBody = document.getElementById('passwordBody');
+        const toggleIcon = toggle.querySelector('i');
+        const toggleLabel = toggle.querySelector('span');
+
+        toggle.onclick = () => {
+            const open = passwordBody.style.display !== 'none';
+            if (open) {
+                passwordBody.style.display = 'none';
+                toggleIcon.className = 'fas fa-chevron-down';
+                toggleLabel.textContent = 'Change password';
+            } else {
+                passwordBody.style.display = 'block';
+                toggleIcon.className = 'fas fa-chevron-up';
+                toggleLabel.textContent = 'Cancel';
+            }
+        };
+
+        document.getElementById('cancelPassword').onclick = () => {
+            passwordBody.style.display = 'none';
+            toggleIcon.className = 'fas fa-chevron-down';
+            toggleLabel.textContent = 'Change password';
+            document.getElementById('passwordForm').reset();
+        };
+
+        // --- Password form ---
+        const pwForm = document.getElementById('passwordForm');
+        const savePwBtn = document.getElementById('savePassword');
+
+        pwForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const currentPw = document.getElementById('currentPassword').value;
+            const newPw = document.getElementById('newPassword').value;
+            const confirmPw = document.getElementById('confirmPassword').value;
+
+            if (!currentPw) {
+                window.toast('Please enter your current password.', 'error');
+                return;
+            }
+            if (newPw.length < 8) {
+                window.toast('New password must be at least 8 characters.', 'error');
+                return;
+            }
+            if (newPw !== confirmPw) {
+                window.toast('New password and confirmation do not match.', 'error');
+                return;
+            }
+            if (newPw === currentPw) {
+                window.toast('New password must be different from the current one.', 'error');
+                return;
+            }
+
+            savePwBtn.disabled = true;
+            savePwBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Updating…</span>`;
+
+            try {
+                // 1. Verify current password by re-authenticating
+                const { data: userData } = await window.sb.auth.getUser();
+                const email = userData?.user?.email;
+                if (!email) throw new Error('Could not determine your email.');
+
+                const { error: signInErr } = await window.sb.auth.signInWithPassword({
+                    email,
+                    password: currentPw
+                });
+
+                if (signInErr) {
+                    throw new Error('Current password is incorrect.');
+                }
+
+                // 2. Update password
+                const { error: updateErr } = await window.sb.auth.updateUser({
+                    password: newPw
+                });
+
+                if (updateErr) throw updateErr;
+
+                window.toast('Password updated successfully.', 'success');
+                pwForm.reset();
+                passwordBody.style.display = 'none';
+                toggleIcon.className = 'fas fa-chevron-down';
+                toggleLabel.textContent = 'Change password';
+
+            } catch (err) {
+                console.error(err);
+                window.toast(err.message || 'Could not update password.', 'error');
+            } finally {
+                savePwBtn.disabled = false;
+                savePwBtn.innerHTML = `<i class="fas fa-key"></i> <span>Update password</span>`;
+            }
+        };
+
+        // --- Sign out everywhere ---
+        document.getElementById('signOutAll').onclick = async () => {
+            const ok = await window.confirmDialog({
+                title: 'Sign out of all devices?',
+                message: 'You will be signed out on every device where your account is currently active.',
+                confirmLabel: 'Sign out all',
+                danger: true
+            });
+            if (!ok) return;
+
+            try {
+                // scope: 'global' ends every session for this user
+                await window.sb.auth.signOut({ scope: 'global' });
+            } catch (err) {
+                console.error(err);
+            }
+            window.location.href = '/index.html';
+        };
+    }
+
+    // ============================================================
+    // IDENTITY REFRESH (after saving details)
+    // ============================================================
+
+    function refreshIdentity() {
+        const name = state.profile.full_name || state.profile.email;
+        const initials = window.initials(name);
+
+        document.querySelector('.identity-avatar').textContent = initials;
+        document.querySelector('.identity-name').textContent = name;
+
+        // Update topbar name + avatar too
+        const topbarName = document.querySelector('.iv-user-name');
+        const topbarAvatar = document.querySelector('.iv-user-avatar');
+        if (topbarName) topbarName.textContent = name;
+        if (topbarAvatar) topbarAvatar.textContent = initials;
+
+        const dropdownName = document.querySelector('.iv-user-dropdown-name');
+        if (dropdownName) dropdownName.textContent = name;
+    }
+
+    // ============================================================
+    // FIELD PRELOAD (refresh from DB in case another tab changed it)
+    // ============================================================
+
+    async function loadProfileFields() {
+        try {
+            const { data, error } = await window.sb
+                .from('profiles')
+                .select('full_name, department, pairing_code')
+                .eq('id', state.profile.id)
+                .single();
+
+            if (error || !data) return;
+
+            state.profile.full_name = data.full_name || '';
+            state.profile.department = data.department || '';
+            state.profile.pairing_code = data.pairing_code || null;
+
+            document.getElementById('fullName').value = state.profile.full_name;
+            document.getElementById('department').value = state.profile.department;
+            document.getElementById('pairCodeValue').textContent =
+                state.profile.pairing_code || '—';
+
+        } catch (_) { /* silent */ }
+    }
+
+    // ============================================================
+    // STATS
+    // ============================================================
+
+    async function loadStats() {
+        try {
+            const [topicsRes, reportsRes, pairingRes] = await Promise.all([
+                window.api('/api/topics').catch(() => ({ topics: [] })),
+                window.api('/api/reports').catch(() => ({ reports: [] })),
+                window.api('/api/pairing/me').catch(() => ({ supervisors: [] }))
+            ]);
+
+            const topics = topicsRes.topics || [];
+            const reports = reportsRes.reports || [];
+            const supervisors = pairingRes.supervisors || [];
+
+            document.getElementById('statTopics').textContent = topics.length;
+            document.getElementById('statScans').textContent = reports.length;
+            document.getElementById('statSupervisors').textContent = supervisors.length;
+        } catch (_) {
+            document.getElementById('statTopics').textContent = '—';
+            document.getElementById('statScans').textContent = '—';
+            document.getElementById('statSupervisors').textContent = '—';
+        }
+    }
+</script>
+
+</body>
+</html>
