@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Approval Status — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Filter tabs ---- */
+        .filter-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: var(--iv-bg-muted);
+            border-radius: var(--iv-r-md);
+            margin-bottom: var(--iv-s-5);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            flex: 0 0 auto;
+            padding: 7px 14px;
+            border-radius: var(--iv-r-sm);
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text-2);
+            cursor: pointer;
+            transition: var(--iv-transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .filter-tab:hover { color: var(--iv-text); }
+
+        .filter-tab-active,
+        .filter-tab-active:hover {
+            background: var(--iv-bg);
+            color: var(--iv-text);
+            box-shadow: var(--iv-shadow-xs);
+        }
+
+        .filter-tab-count {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg);
+            border-radius: 999px;
+            padding: 1px 7px;
+            font-weight: 600;
+        }
+
+        .filter-tab-active .filter-tab-count {
+            background: var(--iv-bg-muted);
+        }
+
+        /* ---- Topic rows ---- */
+        .topic-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--iv-s-3);
+        }
+
+        .topic-card {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+            transition: var(--iv-transition);
+            cursor: pointer;
+        }
+
+        .topic-card:hover {
+            border-color: var(--iv-border-strong);
+            box-shadow: var(--iv-shadow-sm);
+        }
+
+        .topic-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .topic-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+            line-height: 1.35;
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+
+        .topic-id {
+            font-family: var(--iv-font-mono);
+            font-size: 11px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+        }
+
+        .topic-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--iv-s-4);
+            padding-top: var(--iv-s-3);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .topic-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+        }
+
+        .topic-meta-item i { font-size: 11px; }
+
+        .topic-meta-item strong {
+            color: var(--iv-text-2);
+            font-weight: 500;
+        }
+
+        /* ---- Comment preview ---- */
+        .topic-comment {
+            margin-top: var(--iv-s-3);
+            padding: 10px 12px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-subtle);
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            line-height: 1.5;
+            border-left: 3px solid var(--iv-border-strong);
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .topic-comment i { margin-top: 2px; flex-shrink: 0; color: var(--iv-text-3); }
+
+        .topic-comment-review { border-left-color: var(--iv-info); background: var(--iv-info-bg); }
+        .topic-comment-approved { border-left-color: var(--iv-success); background: var(--iv-success-bg); }
+        .topic-comment-rejected { border-left-color: var(--iv-danger); background: var(--iv-danger-bg); }
+        .topic-comment-revision { border-left-color: var(--iv-warning); background: var(--iv-warning-bg); }
+
+        /* ---- Empty states ---- */
+        .mini-empty {
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+            color: var(--iv-text-3);
+            font-size: 13px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+        }
+
+        .mini-empty i { font-size: 28px; opacity: 0.4; display: block; margin-bottom: var(--iv-s-3); }
+        .mini-empty-title { font-size: 14.5px; font-weight: 600; color: var(--iv-text-2); margin-bottom: 4px; }
+        .mini-empty-text { font-size: 13px; line-height: 1.5; max-width: 360px; margin: 0 auto; }
+        .mini-empty .iv-btn { margin-top: var(--iv-s-4); }
+
+        /* ---- Modal body bits ---- */
+        .m-section {
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .m-section:last-child { margin-bottom: 0; }
+
+        .m-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--iv-text-3);
+            margin-bottom: 6px;
+        }
+
+        .m-value {
+            font-size: 14px;
+            color: var(--iv-text);
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .m-value-muted { color: var(--iv-text-2); }
+
+        .m-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--iv-s-4);
+        }
+
+        .m-report {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+        }
+
+        .m-report-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .m-report-body { flex: 1; min-width: 0; }
+
+        .m-report-name {
+            font-size: 13px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .m-report-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .m-report-score {
+            font-family: var(--iv-font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ---- Timeline ---- */
+        .timeline {
+            position: relative;
+            padding-left: var(--iv-s-5);
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 7px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: var(--iv-border);
+            border-radius: 2px;
+        }
+
+        .tl-item {
+            position: relative;
+            padding-bottom: var(--iv-s-4);
+        }
+
+        .tl-item:last-child { padding-bottom: 0; }
+
+        .tl-dot {
+            position: absolute;
+            left: -22px; top: 4px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--iv-bg);
+            border: 2px solid var(--iv-border-strong);
+        }
+
+        .tl-dot-pending  { border-color: var(--iv-warning); }
+        .tl-dot-approved { border-color: var(--iv-success); background: var(--iv-success); }
+        .tl-dot-revision { border-color: var(--iv-info); }
+        .tl-dot-rejected { border-color: var(--iv-danger); background: var(--iv-danger); }
+
+        .tl-body { padding-left: 0; }
+
+        .tl-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .tl-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .tl-comment {
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            font-size: 12.5px;
+            color: var(--iv-text-2);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ---- Modal footer actions ---- */
+        .m-actions {
+            display: flex;
+            gap: var(--iv-s-2);
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) {
+            .m-grid { grid-template-columns: 1fr; }
+            .topic-card { padding: var(--iv-s-4); }
+            .topic-head { flex-direction: column; align-items: flex-start; }
+            .topic-meta { gap: var(--iv-s-3); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    let state = {
+        topics: [],
+        activeFilter: 'all'
+    };
+
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/approval-status.html',
+            title: 'Approval Status',
+            subtitle: 'Track every topic you submitted and its reviewer feedback',
+            actions: `
+                <a href="/student/submit-topic.html" class="iv-btn iv-btn-primary iv-btn-sm">
+                    <i class="fas fa-plus"></i> New topic
+                </a>
+            `
+        });
+
+        content.innerHTML = page();
+        await load();
+    })();
+
+    // ============================================================
+    // PAGE
+    // ============================================================
+
+    function page() {
+        return `
+            <div class="filter-tabs" id="filterTabs"></div>
+            <div id="listArea">
+                <div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // DATA
+    // ============================================================
+
+    async function load() {
+        const area = document.getElementById('listArea');
+        try {
+            const res = await window.api('/api/topics');
+            state.topics = res.topics || [];
+            render();
+        } catch (err) {
+            console.error(err);
+            area.innerHTML = `
+                <div class="mini-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="mini-empty-title">Could not load your topics</div>
+                    <div class="mini-empty-text">${window.escapeHTML(err.message)}</div>
+                    <button class="iv-btn iv-btn-primary" onclick="load()">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    window.load = load;
+
+    function render() {
+        renderTabs();
+        renderList();
+    }
+
+    function renderTabs() {
+        const counts = {
+            all:      state.topics.length,
+            pending:  state.topics.filter(t => t.status === 'pending').length,
+            approved: state.topics.filter(t => t.status === 'approved').length,
+            revision: state.topics.filter(t => t.status === 'revision').length,
+            rejected: state.topics.filter(t => t.status === 'rejected').length
+        };
+
+        const tabs = [
+            { key: 'all',      label: 'All' },
+            { key: 'pending',  label: 'Pending' },
+            { key: 'approved', label: 'Approved' },
+            { key: 'revision', label: 'Revision' },
+            { key: 'rejected', label: 'Rejected' }
+        ];
+
+        document.getElementById('filterTabs').innerHTML = tabs.map(t => `
+            <button class="filter-tab ${state.activeFilter === t.key ? 'filter-tab-active' : ''}"
+                    data-filter="${t.key}">
+                ${window.escapeHTML(t.label)}
+                <span class="filter-tab-count">${counts[t.key]}</span>
+            </button>
+        `).join('');
+
+        document.querySelectorAll('.filter-tab').forEach(el => {
+            el.onclick = () => {
+                state.activeFilter = el.dataset.filter;
+                render();
+            };
+        });
+    }
+
+    function renderList() {
+        const area = document.getElementById('listArea');
+        const filtered = state.activeFilter === 'all'
+            ? state.topics
+            : state.topics.filter(t => t.status === state.activeFilter);
+
+        if (!state.topics.length) {
+            area.innerHTML = noTopicsEmpty();
+            return;
+        }
+
+        if (!filtered.length) {
+            area.innerHTML = filterEmpty(state.activeFilter);
+            return;
+        }
+
+        area.innerHTML = `
+            <div class="topic-list">
+                ${filtered.map(t => topicCard(t)).join('')}
+            </div>
+        `;
+
+        document.querySelectorAll('.topic-card').forEach(card => {
+            card.onclick = () => openTopicModal(card.dataset.id);
+        });
+    }
+
+    // ============================================================
+    // CARD
+    // ============================================================
+
+    function topicCard(t) {
+        const status = (t.status || 'pending').toLowerCase();
+        const reviewerComment = (t.reviewer_comment || '').trim();
+        const commentClass =
+            status === 'approved' ? 'topic-comment-approved' :
+            status === 'rejected' ? 'topic-comment-rejected' :
+            status === 'revision' ? 'topic-comment-revision' :
+                                    'topic-comment-review';
+
+        return `
+            <article class="topic-card" data-id="${window.escapeHTML(t.topic_id)}">
+                <div class="topic-head">
+                    <div style="min-width: 0;">
+                        <div class="topic-title">${window.escapeHTML(t.title || 'Untitled')}</div>
+                        <div class="topic-id">#${window.escapeHTML(String(t.topic_id || '').slice(0, 8))}</div>
+                    </div>
+                    <span class="iv-badge iv-badge-${status}">${window.escapeHTML(status)}</span>
+                </div>
+
+                <div class="topic-meta">
+                    <div class="topic-meta-item">
+                        <i class="fas fa-flask"></i>
+                        <strong>${window.escapeHTML(t.research_area || 'Unspecified')}</strong>
+                    </div>
+                    <div class="topic-meta-item">
+                        <i class="fas fa-calendar"></i>
+                        Submitted <strong>${window.formatDate(t.submitted_at)}</strong>
+                    </div>
+                    ${t.reviewed_at ? `
+                        <div class="topic-meta-item">
+                            <i class="fas fa-check-circle"></i>
+                            Reviewed <strong>${window.formatDate(t.reviewed_at)}</strong>
+                        </div>
+                    ` : ''}
+                </div>
+
+                ${reviewerComment ? `
+                    <div class="topic-comment ${commentClass}">
+                        <i class="fas fa-comment-dots"></i>
+                        <div>${window.escapeHTML(reviewerComment)}</div>
+                    </div>
+                ` : ''}
+            </article>
+        `;
+    }
+
+    function noTopicsEmpty() {
+        return `
+            <div class="mini-empty">
+                <i class="fas fa-inbox"></i>
+                <div class="mini-empty-title">No topics submitted yet</div>
+                <div class="mini-empty-text">
+                    Start by submitting your first project proposal.
+                    Your supervisors will be notified automatically.
+                </div>
+                <a href="/student/submit-topic.html" class="iv-btn iv-btn-primary">
+                    <i class="fas fa-plus"></i> Submit a topic
+                </a>
+            </div>
+        `;
+    }
+
+    function filterEmpty(filter) {
+        const labels = {
+            pending:  'No pending topics',
+            approved: 'No approved topics',
+            revision: 'No topics awaiting revision',
+            rejected: 'No rejected topics'
+        };
+        return `
+            <div class="mini-empty">
+                <i class="fas fa-filter"></i>
+                <div class="mini-empty-title">${window.escapeHTML(labels[filter] || 'No results')}</div>
+                <div class="mini-empty-text">Try a different filter tab.</div>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    // MODAL
+    // ============================================================
+
+    async function openTopicModal(topicId) {
+        const body = document.createElement('div');
+        body.innerHTML = `<div class="iv-loading"><i class="fas fa-spinner fa-spin"></i></div>`;
+
+        // Build modal skeleton first with a loading body
+        const modalPromise = window.openModal({
+            title: 'Topic details',
+            body,
+            wide: true,
+            actions: [{ label: 'Close', variant: 'secondary', value: false }]
+        });
+
+        // Fetch detail
+        let topic, history;
+        try {
+            const res = await window.api('/api/topics/' + topicId);
+            topic = res.topic;
+            history = res.history || [];
+        } catch (err) {
+            body.innerHTML = `
+                <div class="m-value" style="color: var(--iv-danger);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Could not load topic: ${window.escapeHTML(err.message)}
+                </div>
+            `;
+            return modalPromise;
+        }
+
+        body.innerHTML = renderDetail(topic, history);
+        wireDetailActions(topic);
+
+        return modalPromise;
+    }
+
+    function renderDetail(topic, history) {
+        const status = (topic.status || 'pending').toLowerCase();
+        const canDelete = status === 'pending' || status === 'revision';
+        const report = topic.report || (Array.isArray(topic.report) ? topic.report[0] : null);
+
+        return `
+            <div class="m-section">
+                <div class="m-grid">
+                    <div>
+                        <div class="m-label">Status</div>
+                        <span class="iv-badge iv-badge-${status}">${window.escapeHTML(status)}</span>
+                    </div>
+                    <div>
+                        <div class="m-label">Research area</div>
+                        <div class="m-value">${window.escapeHTML(topic.research_area || '—')}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-section">
+                <div class="m-label">Title</div>
+                <div class="m-value">${window.escapeHTML(topic.title || '—')}</div>
+            </div>
+
+            <div class="m-section">
+                <div class="m-label">Problem statement</div>
+                <div class="m-value m-value-muted">${window.escapeHTML(topic.problem_statement || '—')}</div>
+            </div>
+
+            <div class="m-section">
+                <div class="m-label">Objectives</div>
+                <div class="m-value m-value-muted">${window.escapeHTML(topic.objectives || '—')}</div>
+            </div>
+
+            ${topic.keywords ? `
+                <div class="m-section">
+                    <div class="m-label">Keywords</div>
+                    <div class="m-value m-value-muted">${window.escapeHTML(topic.keywords)}</div>
+                </div>
+            ` : ''}
+
+            ${report ? `
+                <div class="m-section">
+                    <div class="m-label">Attached plagiarism report</div>
+                    <div class="m-report">
+                        <div class="m-report-icon">
+                            <i class="fas ${fileIcon(report.file_format)}"></i>
+                        </div>
+                        <div class="m-report-body">
+                            <div class="m-report-name">${window.escapeHTML(report.filename || 'Document')}</div>
+                            <div class="m-report-meta">
+                                ${window.escapeHTML(String(report.file_format || '').toUpperCase())}
+                                · ${window.formatDate(report.created_at)}
+                            </div>
+                        </div>
+                        <div class="m-report-score" style="color: ${scoreColor(report.risk_level)};">
+                            ${Number(report.similarity_score || 0)}%
+                        </div>
+                    </div>
+                    <div class="m-actions" style="margin-top: var(--iv-s-3);">
+                        <button class="iv-btn iv-btn-secondary iv-btn-sm" id="dlReportBtn" data-report-id="${window.escapeHTML(report.report_id)}">
+                            <i class="fas fa-download"></i> Download original
+                        </button>
+                    </div>
+                </div>
+            ` : `
+                <div class="m-section">
+                    <div class="m-label">Attached plagiarism report</div>
+                    <div class="m-value m-value-muted">No report was attached to this submission.</div>
+                </div>
+            `}
+
+            ${topic.reviewer_comment ? `
+                <div class="m-section">
+                    <div class="m-label">Reviewer comment</div>
+                    <div class="m-value m-value-muted">${window.escapeHTML(topic.reviewer_comment)}</div>
+                </div>
+            ` : ''}
+
+            ${history.length ? `
+                <div class="m-section">
+                    <div class="m-label">Status history</div>
+                    <div class="timeline">
+                        ${history.map(h => timelineItem(h)).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            ${canDelete ? `
+                <div class="m-section" style="padding-top: var(--iv-s-4); border-top: 1px solid var(--iv-border);">
+                    <button class="iv-btn iv-btn-danger" id="deleteTopicBtn" data-id="${window.escapeHTML(topic.topic_id)}">
+                        <i class="fas fa-trash"></i> Delete this topic
+                    </button>
+                    <div class="iv-help" style="margin-top: 6px;">
+                        You can only delete topics while they are pending or awaiting revision.
+                    </div>
+                </div>
+            ` : ''}
+        `;
+    }
+
+    function timelineItem(h) {
+        const newStatus = String(h.new_status || '').toLowerCase();
+        const dotClass =
+            newStatus === 'approved' ? 'tl-dot-approved' :
+            newStatus === 'rejected' ? 'tl-dot-rejected' :
+            newStatus === 'revision' ? 'tl-dot-revision' :
+                                        'tl-dot-pending';
+
+        const actor = h.actor?.full_name || h.actor?.email || 'System';
+        const role = h.actor?.role || '';
+
+        return `
+            <div class="tl-item">
+                <div class="tl-dot ${dotClass}"></div>
+                <div class="tl-body">
+                    <div class="tl-title">
+                        Marked as <strong>${window.escapeHTML(newStatus)}</strong>
+                    </div>
+                    <div class="tl-meta">
+                        ${window.escapeHTML(actor)}
+                        ${role ? `· ${window.escapeHTML(role)}` : ''}
+                        · ${window.formatDateTime(h.created_at)}
+                    </div>
+                    ${h.comment ? `<div class="tl-comment">${window.escapeHTML(h.comment)}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    function wireDetailActions(topic) {
+        const dl = document.getElementById('dlReportBtn');
+        if (dl) {
+            dl.onclick = async () => {
+                const id = dl.dataset.reportId;
+                try {
+                    dl.disabled = true;
+                    const res = await window.api('/api/reports/' + id + '/download');
+                    window.open(res.url, '_blank');
+                } catch (err) {
+                    window.toast(err.message || 'Download failed.', 'error');
+                } finally {
+                    dl.disabled = false;
+                }
+            };
+        }
+
+        const del = document.getElementById('deleteTopicBtn');
+        if (del) {
+            del.onclick = async () => {
+                const id = del.dataset.id;
+                const ok = await window.confirmDialog({
+                    title: 'Delete this topic?',
+                    message: 'The topic and its history will be permanently removed. This cannot be undone.',
+                    confirmLabel: 'Delete',
+                    danger: true
+                });
+                if (!ok) return;
+
+                try {
+                    del.disabled = true;
+                    del.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Deleting…`;
+                    await window.api('/api/topics/' + id, { method: 'DELETE' });
+                    window.toast('Topic deleted.', 'success');
+                    window.closeModal();
+                    await load();
+                } catch (err) {
+                    window.toast(err.message || 'Delete failed.', 'error');
+                    del.disabled = false;
+                    del.innerHTML = `<i class="fas fa-trash"></i> Delete this topic`;
+                }
+            };
+        }
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function fileIcon(fmt) {
+        const ext = String(fmt || '').toLowerCase();
+        if (ext === 'pdf')  return 'fa-file-pdf';
+        if (ext === 'docx') return 'fa-file-word';
+        if (ext === 'txt')  return 'fa-file-lines';
+        return 'fa-file';
+    }
+
+    function scoreColor(risk) {
+        const r = String(risk || 'low').toLowerCase();
+        if (r === 'high')   return 'var(--iv-danger)';
+        if (r === 'medium') return 'var(--iv-warning)';
+        return 'var(--iv-success)';
+    }
+</script>
+
+</body>
+</html>
