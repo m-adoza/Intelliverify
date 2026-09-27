@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create account — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 460px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-8);
+            box-shadow: var(--iv-shadow-sm);
+        }
+
+        .auth-head {
+            text-align: center;
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .auth-mark {
+            width: 44px; height: 44px;
+            border-radius: var(--iv-r-md);
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .auth-title {
+            font-size: 20px; font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .auth-sub {
+            font-size: 13px; color: var(--iv-text-3);
+        }
+
+        .auth-error {
+            display: none;
+            padding: 10px 12px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-danger-bg);
+            border: 1px solid var(--iv-danger-border);
+            color: var(--iv-danger);
+            font-size: 13px;
+            margin-bottom: var(--iv-s-4);
+            line-height: 1.5;
+        }
+
+        .auth-error-show { display: block; }
+
+        .auth-foot {
+            text-align: center;
+            margin-top: var(--iv-s-5);
+            padding-top: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+            font-size: 13px;
+            color: var(--iv-text-3);
+        }
+
+        .auth-foot a {
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-foot a:hover { text-decoration: underline; }
+
+        .auth-back {
+            display: block;
+            text-align: center;
+            margin-top: var(--iv-s-4);
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            text-decoration: none;
+        }
+
+        .role-picker {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--iv-s-3);
+        }
+
+        .role-option {
+            position: relative;
+            display: block;
+            padding: 12px var(--iv-s-3);
+            border: 1px solid var(--iv-border-strong);
+            border-radius: var(--iv-r-sm);
+            cursor: pointer;
+            text-align: center;
+            transition: var(--iv-transition);
+        }
+
+        .role-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .role-option-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px;
+        }
+
+        .role-option-text {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .role-option:hover { background: var(--iv-bg-muted); }
+
+        .role-option:has(input:checked) {
+            border-color: var(--iv-focus);
+            background: var(--iv-info-bg);
+            box-shadow: 0 0 0 3px var(--iv-focus-ring);
+        }
+    </style>
+</head>
+<body>
+
+<form class="auth-card" id="registerForm" autocomplete="on">
+    <div class="auth-head">
+        <div class="auth-mark"><i class="fas fa-user-plus"></i></div>
+        <div class="auth-title">Create your account</div>
+        <div class="auth-sub">Students and supervisors can self-register</div>
+    </div>
+
+    <div class="auth-error" id="errorBox"></div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="fullName">Full name</label>
+        <input class="iv-input" type="text" id="fullName" required
+               autocomplete="name" placeholder="e.g. Muhammad Adamu Adoza" />
+    </div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="email">Email address</label>
+        <input class="iv-input" type="email" id="email" required
+               autocomplete="email" placeholder="you@university.edu" />
+    </div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="department">Department</label>
+        <input class="iv-input" type="text" id="department" required
+               placeholder="e.g. Computer Science" />
+    </div>
+
+    <div class="iv-form-group">
+        <label class="iv-label">I am registering as</label>
+        <div class="role-picker">
+            <label class="role-option">
+                <input type="radio" name="role" value="student" checked />
+                <div class="role-option-title">
+                    <i class="fas fa-user-graduate"></i> Student
+                </div>
+                <div class="role-option-text">Submit topics &amp; scans</div>
+            </label>
+            <label class="role-option">
+                <input type="radio" name="role" value="supervisor" />
+                <div class="role-option-title">
+                    <i class="fas fa-chalkboard-user"></i> Supervisor
+                </div>
+                <div class="role-option-text">Review &amp; approve</div>
+            </label>
+        </div>
+        <div class="iv-help">
+            Admin accounts cannot be self-registered. Ask an existing admin
+            to promote you after registration.
+        </div>
+    </div>
+
+    <div class="iv-form-group">
+        <label class="iv-label" for="password">Password</label>
+        <input class="iv-input" type="password" id="password" required
+               autocomplete="new-password" placeholder="At least 8 characters" minlength="8" />
+    </div>
+
+    <button type="submit" class="iv-btn iv-btn-primary iv-btn-lg" id="submitBtn"
+            style="width: 100%; margin-top: var(--iv-s-2);">
+        <i class="fas fa-user-plus"></i>
+        <span id="submitLabel">Create account</span>
+    </button>
+
+    <div class="auth-foot">
+        Already have an account? <a href="/login.html">Sign in</a>
+    </div>
+
+    <a href="/index.html" class="auth-back">
+        <i class="fas fa-arrow-left"></i> Back to home
+    </a>
+</form>
+
+<script>
+    const form       = document.getElementById('registerForm');
+    const nameEl     = document.getElementById('fullName');
+    const emailEl    = document.getElementById('email');
+    const deptEl     = document.getElementById('department');
+    const passEl     = document.getElementById('password');
+    const btn        = document.getElementById('submitBtn');
+    const label      = document.getElementById('submitLabel');
+    const errorBox   = document.getElementById('errorBox');
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.classList.add('auth-error-show');
+    }
+
+    function clearError() {
+        errorBox.classList.remove('auth-error-show');
+    }
+
+    // Already signed in? Redirect.
+    (async () => {
+        const ctx = await window.getCurrentUser();
+        if (!ctx) return;
+        const role = ctx.profile.role;
+        if (role === 'admin')      window.location.href = '/admin/dashboard.html';
+        else if (role === 'supervisor') window.location.href = '/supervisor/dashboard.html';
+        else                        window.location.href = '/student/dashboard.html';
+    })();
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearError();
+
+        const fullName   = nameEl.value.trim();
+        const email      = emailEl.value.trim();
+        const department = deptEl.value.trim();
+        const password   = passEl.value;
+        const roleEl     = form.querySelector('input[name="role"]:checked');
+        const role       = roleEl ? roleEl.value : 'student';
+
+        if (!fullName || !email || !department || !password) {
+            showError('Please fill in every field.');
+            return;
+        }
+        if (password.length < 8) {
+            showError('Password must be at least 8 characters.');
+            return;
+        }
+
+        btn.disabled = true;
+        label.textContent = 'Creating account…';
+
+        try {
+            const { data, error } = await window.sb.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        role,        // trigger will accept 'student' or 'supervisor'
+                        department
+                    }
+                }
+            });
+
+            if (error) throw error;
+            if (!data?.user) throw new Error('Sign-up failed. No user returned.');
+
+            // If session exists (email confirmation disabled), sign in immediately.
+            // Otherwise show the "check your email" message.
+            if (data.session) {
+                window.toast('Account created. Welcome!', 'success', 1500);
+                setTimeout(() => {
+                    if (role === 'supervisor') {
+                        window.location.href = '/supervisor/dashboard.html';
+                    } else {
+                        window.location.href = '/student/dashboard.html';
+                    }
+                }, 800);
+            } else {
+                errorBox.style.background = 'var(--iv-info-bg)';
+                errorBox.style.borderColor = 'var(--iv-info-border)';
+                errorBox.style.color = 'var(--iv-info)';
+                errorBox.textContent =
+                    'Account created. Please check your email to confirm, ' +
+                    'then sign in.';
+                errorBox.classList.add('auth-error-show');
+                btn.disabled = false;
+                label.textContent = 'Create account';
+            }
+
+        } catch (err) {
+            console.error('[register]', err);
+            const message = err?.message || 'Registration failed.';
+            if (message.toLowerCase().includes('already registered') ||
+                message.toLowerCase().includes('user already')) {
+                showError('That email is already registered. Try signing in instead.');
+            } else if (message.toLowerCase().includes('password')) {
+                showError('Password is too weak. Use at least 8 characters.');
+            } else {
+                showError(message);
+            }
+            btn.disabled = false;
+            label.textContent = 'Create account';
+        }
+    });
+</script>
+
+</body>
+</html>
