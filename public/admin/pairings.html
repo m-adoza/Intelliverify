@@ -14,7 +14,6 @@
     <script src="/assets/js/core.js"></script>
 
     <style>
-        /* ---- Info banner ---- */
         .info-banner {
             display: flex;
             align-items: flex-start;
@@ -51,7 +50,6 @@
             line-height: 1.55;
         }
 
-        /* ---- Toolbar ---- */
         .toolbar {
             display: flex;
             gap: var(--iv-s-3);
@@ -96,7 +94,6 @@
             box-shadow: 0 0 0 3px var(--iv-focus-ring);
         }
 
-        /* ---- Pairs table ---- */
         .table-wrap {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -232,7 +229,6 @@
             justify-content: flex-end;
         }
 
-        /* ---- Empty ---- */
         .empty {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -265,7 +261,6 @@
             line-height: 1.55;
         }
 
-        /* ---- Modal form ---- */
         .m-form .iv-form-group:last-of-type { margin-bottom: 0; }
 
         .m-note {
@@ -279,7 +274,6 @@
             margin-top: var(--iv-s-2);
         }
 
-        /* ---- Responsive ---- */
         @media (max-width: 900px) {
             .pairs-table th:nth-child(4),
             .pairs-table td:nth-child(4) { display: none; }
@@ -296,7 +290,6 @@
             .pairs-table td:nth-child(2),
             .pairs-table th:nth-child(3),
             .pairs-table td:nth-child(3) { display: table-cell; }
-
             .person-email { display: none; }
         }
     </style>
@@ -334,14 +327,10 @@
         await load();
     })();
 
-    // ============================================================
-    // PAGE
-    // ============================================================
-
     function page() {
         return `
             <div class="info-banner">
-                <div class="info-banner-icon"><i class="fas fa-info-circle"></i></div>
+                <div class="info-banner-icon"><i class="fas fa-circle-info"></i></div>
                 <div class="info-banner-body">
                     <div class="info-banner-title">About pairings</div>
                     <div class="info-banner-text">
@@ -376,10 +365,6 @@
         document.getElementById('createPairBtn').onclick = openCreateModal;
     }
 
-    // ============================================================
-    // LOAD
-    // ============================================================
-
     async function load() {
         const area = document.getElementById('tableArea');
         try {
@@ -400,10 +385,6 @@
             if (retry) retry.onclick = load;
         }
     }
-
-    // ============================================================
-    // TABLE
-    // ============================================================
 
     function renderTable() {
         const area = document.getElementById('tableArea');
@@ -510,7 +491,7 @@
                                 data-stu="${window.escapeHTML(stuName)}"
                                 title="Unlink this pair"
                                 ${isBusy ? 'disabled' : ''}>
-                            <i class="fas fa-unlink"></i>
+                            <i class="fas fa-link-slash"></i>
                         </button>
                     </div>
                 </td>
@@ -546,7 +527,7 @@
                     console.error(err);
                     window.toast(err.message || 'Could not unlink.', 'error');
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fas fa-unlink"></i>`;
+                    btn.innerHTML = `<i class="fas fa-link-slash"></i>`;
                 } finally {
                     state.busyIds.delete(pairId);
                 }
@@ -570,12 +551,7 @@
         `;
     }
 
-    // ============================================================
-    // CREATE PAIRING MODAL
-    // ============================================================
-
     function openCreateModal() {
-        // Build the list of supervisors and students
         const supervisors = state.users.filter(u => u.role === 'supervisor');
         const students = state.users.filter(u => u.role === 'student');
 
@@ -616,7 +592,7 @@
             </div>
 
             <div class="m-note">
-                <i class="fas fa-info-circle"></i>
+                <i class="fas fa-circle-info"></i>
                 This creates a direct supervision link. The student and supervisor will be notified.
                 The supervisor will immediately gain access to the student's topics, scans, and messages.
             </div>
@@ -645,7 +621,6 @@
                             return;
                         }
 
-                        // Check for existing pair locally
                         const exists = state.pairings.some(p =>
                             p.supervisor?.id === supId && p.student?.id === stuId
                         );
@@ -671,20 +646,16 @@
         });
     }
 
-    // ============================================================
-    // ERROR
-    // ============================================================
-
     function errorState(msg) {
         return `
             <div class="empty">
                 <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg);">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="empty-title">Could not load pairings</div>
                 <div class="empty-text">${window.escapeHTML(msg || 'Please try again.')}</div>
                 <button class="iv-btn iv-btn-primary" id="retryBtn" style="margin-top: var(--iv-s-4);">
-                    <i class="fas fa-sync-alt"></i> Retry
+                    <i class="fas fa-rotate-right"></i> Retry
                 </button>
             </div>
         `;
