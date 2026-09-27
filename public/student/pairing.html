@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supervisor Pairing — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* ---- Code card ---- */
+        .code-card {
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            color: #fafafa;
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-8) var(--iv-s-6);
+            text-align: center;
+            margin-bottom: var(--iv-s-5);
+        }
+
+        .code-card-label {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .code-card-value {
+            font-family: var(--iv-font-mono);
+            font-size: 38px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin-bottom: var(--iv-s-2);
+        }
+
+        .code-card-help {
+            font-size: 13px;
+            opacity: 0.7;
+            max-width: 420px;
+            margin: 0 auto var(--iv-s-5);
+            line-height: 1.55;
+        }
+
+        .code-card-actions {
+            display: flex;
+            gap: var(--iv-s-2);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .code-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            border-radius: var(--iv-r-sm);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.1);
+            color: #fafafa;
+            transition: var(--iv-transition);
+        }
+
+        .code-btn:hover {
+            background: rgba(255,255,255,0.18);
+        }
+
+        /* ---- Section header ---- */
+        .sect-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .sect-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .sect-count {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            background: var(--iv-bg-muted);
+            padding: 2px 9px;
+            border-radius: 999px;
+            font-weight: 500;
+        }
+
+        /* ---- Supervisor list ---- */
+        .sup-list {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .sup-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .sup-row:last-child { border-bottom: none; }
+
+        .sup-avatar {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .sup-body { flex: 1; min-width: 0; }
+
+        .sup-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sup-email {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sup-meta {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sup-source {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            font-weight: 500;
+        }
+
+        .sup-unlink {
+            flex-shrink: 0;
+            background: transparent;
+            border: 1px solid var(--iv-border-strong);
+            color: var(--iv-text-2);
+            padding: 6px 12px;
+            border-radius: var(--iv-r-sm);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--iv-transition);
+        }
+
+        .sup-unlink:hover {
+            background: var(--iv-danger-bg);
+            border-color: var(--iv-danger-border);
+            color: var(--iv-danger);
+        }
+
+        /* ---- Empty state ---- */
+        .empty {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-10) var(--iv-s-5);
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: var(--iv-bg-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--iv-text-3);
+            margin: 0 auto var(--iv-s-4);
+        }
+
+        .empty-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .empty-text {
+            font-size: 13.5px;
+            color: var(--iv-text-3);
+            margin-top: 6px;
+            max-width: 380px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.55;
+        }
+
+        /* ---- How it works ---- */
+        .how {
+            margin-top: var(--iv-s-6);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+        }
+
+        .how-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--iv-text-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .how-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--iv-s-4);
+        }
+
+        .how-step-num {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--iv-accent);
+            color: var(--iv-text-inverse);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .how-step-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .how-step-text {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 800px) {
+            .how-steps { grid-template-columns: 1fr; gap: var(--iv-s-4); }
+        }
+
+        @media (max-width: 600px) {
+            .code-card { padding: var(--iv-s-6) var(--iv-s-4); }
+            .code-card-value { font-size: 28px; }
+            .sup-row { padding: var(--iv-s-3) var(--iv-s-4); gap: var(--iv-s-3); }
+            .sup-avatar { width: 38px; height: 38px; font-size: 12px; }
+            .sup-unlink span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    let state = { code: null, supervisors: [] };
+
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/pairing.html',
+            title: 'Supervisor Pairing',
+            subtitle: 'Share your code so supervisors can link to your project',
+            actions: `
+                <a href="/student/dashboard.html" class="iv-btn iv-btn-secondary iv-btn-sm">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+            `
+        });
+
+        content.innerHTML = skeleton();
+        await load();
+    })();
+
+    async function load() {
+        const content = document.getElementById('iv-content');
+        try {
+            const res = await window.api('/api/pairing/me');
+            state.code = res.pairing_code;
+            state.supervisors = res.supervisors || [];
+            content.innerHTML = page();
+            wire();
+        } catch (err) {
+            console.error(err);
+            content.innerHTML = errorState(err.message);
+            const retry = document.getElementById('retryBtn');
+            if (retry) retry.onclick = load;
+        }
+    }
+
+    function skeleton() {
+        return `
+            <div class="code-card">
+                <div class="code-card-label">Your pairing code</div>
+                <div class="code-card-value" style="opacity: 0.3;">IV-••••••</div>
+                <div class="code-card-help">Loading…</div>
+            </div>
+        `;
+    }
+
+    function errorState(message) {
+        return `
+            <div class="empty">
+                <div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="empty-title">Could not load pairing details</div>
+                <div class="empty-text">${window.escapeHTML(message || 'Please try again.')}</div>
+                <button class="iv-btn iv-btn-primary" id="retryBtn" style="margin-top: var(--iv-s-4);">
+                    <i class="fas fa-sync-alt"></i> Retry
+                </button>
+            </div>
+        `;
+    }
+
+    function page() {
+        const code = state.code || '—';
+        const supervisors = state.supervisors || [];
+        const hasSup = supervisors.length > 0;
+
+        return `
+            <div class="code-card">
+                <div class="code-card-label">Your supervisor pairing code</div>
+                <div class="code-card-value" id="codeValue">${window.escapeHTML(code)}</div>
+                <div class="code-card-help">
+                    ${hasSup
+                        ? 'Share this code with any other supervisor you want to add to your project.'
+                        : 'Share this code with your project supervisor. They will enter it on their end to link to your account.'}
+                </div>
+                <div class="code-card-actions">
+                    <button class="code-btn" id="copyBtn">
+                        <i class="fas fa-copy"></i> Copy code
+                    </button>
+                    <button class="code-btn" id="shareBtn">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+
+            <div class="sect-head">
+                <div class="sect-title">Linked supervisors</div>
+                ${hasSup ? `<span class="sect-count">${supervisors.length}</span>` : ''}
+            </div>
+
+            ${hasSup ? supervisorsList(supervisors) : emptyState()}
+
+            ${howItWorks()}
+        `;
+    }
+
+    function supervisorsList(supervisors) {
+        return `
+            <div class="sup-list">
+                ${supervisors.map(s => {
+                    const sup = s.supervisor || {};
+                    const name = sup.full_name || 'Supervisor';
+                    const email = sup.email || '';
+                    const linked = window.formatDate(s.linked_at);
+                    const via = s.linked_by === 'admin' ? 'Assigned by admin' : 'Linked via code';
+
+                    return `
+                        <div class="sup-row" data-id="${window.escapeHTML(s.assignment_id)}">
+                            <div class="sup-avatar">${window.escapeHTML(window.initials(name))}</div>
+                            <div class="sup-body">
+                                <div class="sup-name">${window.escapeHTML(name)}</div>
+                                <div class="sup-email">${window.escapeHTML(email)}</div>
+                                <div class="sup-meta">
+                                    <span class="sup-source">
+                                        <i class="fas ${s.linked_by === 'admin' ? 'fa-user-shield' : 'fa-link'}"></i>
+                                        ${window.escapeHTML(via)}
+                                    </span>
+                                    · Linked ${window.escapeHTML(linked)}
+                                </div>
+                            </div>
+                            <button class="sup-unlink" data-action="unlink" data-id="${window.escapeHTML(s.assignment_id)}" data-name="${window.escapeHTML(name)}">
+                                <i class="fas fa-unlink"></i>
+                                <span>Unlink</span>
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function emptyState() {
+        return `
+            <div class="empty">
+                <div class="empty-icon"><i class="fas fa-user-clock"></i></div>
+                <div class="empty-title">No supervisor linked yet</div>
+                <div class="empty-text">
+                    Share the pairing code above with your project supervisor.
+                    Once they enter it on their side, they will appear here automatically.
+                </div>
+            </div>
+        `;
+    }
+
+    function howItWorks() {
+        return `
+            <div class="how">
+                <div class="how-title">How pairing works</div>
+                <div class="how-steps">
+                    <div>
+                        <div class="how-step-num">1</div>
+                        <div class="how-step-title">Copy your code</div>
+                        <div class="how-step-text">
+                            Tap the copy button above to copy your unique pairing code.
+                        </div>
+                    </div>
+                    <div>
+                        <div class="how-step-num">2</div>
+                        <div class="how-step-title">Send it to your supervisor</div>
+                        <div class="how-step-text">
+                            Share the code via WhatsApp, email, or in person.
+                        </div>
+                    </div>
+                    <div>
+                        <div class="how-step-num">3</div>
+                        <div class="how-step-title">Supervisor links you</div>
+                        <div class="how-step-text">
+                            They enter the code on their Link Student page.
+                            You'll see them appear here instantly.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function wire() {
+        const copyBtn = document.getElementById('copyBtn');
+        if (copyBtn) {
+            copyBtn.onclick = async () => {
+                if (!state.code) return;
+                try {
+                    await navigator.clipboard.writeText(state.code);
+                    window.toast('Pairing code copied.', 'success');
+                } catch (_) {
+                    window.toast('Copy failed — long-press the code to select it.', 'warning');
+                }
+            };
+        }
+
+        const shareBtn = document.getElementById('shareBtn');
+        if (shareBtn) {
+            shareBtn.onclick = async () => {
+                if (!state.code) return;
+                const text =
+                    `My IntelliVerify supervisor pairing code is ${state.code}. ` +
+                    `Please enter it on your Link Student page to supervise my project.`;
+
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'IntelliVerify pairing code',
+                            text
+                        });
+                    } catch (_) { /* user cancelled */ }
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        window.toast('Message copied to clipboard.', 'success');
+                    } catch (_) {
+                        window.toast('Sharing is not available on this device.', 'warning');
+                    }
+                }
+            };
+        }
+
+        document.querySelectorAll('[data-action="unlink"]').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.dataset.id;
+                const name = btn.dataset.name;
+                const ok = await window.confirmDialog({
+                    title: 'Unlink supervisor?',
+                    message: `Remove ${name} from your project? They will no longer see your submissions or messages.`,
+                    confirmLabel: 'Unlink',
+                    danger: true
+                });
+                if (!ok) return;
+
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>Removing…</span>`;
+
+                try {
+                    await window.api('/api/pairing/' + id, { method: 'DELETE' });
+                    window.toast('Supervisor unlinked.', 'success');
+                    await load();
+                } catch (err) {
+                    console.error(err);
+                    window.toast(err.message || 'Could not unlink.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-unlink"></i> <span>Unlink</span>`;
+                }
+            };
+        });
+    }
+</script>
+
+</body>
+</html>
