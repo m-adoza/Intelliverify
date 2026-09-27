@@ -197,6 +197,21 @@
             text-transform: capitalize;
         }
 
+        /* Realtime debug badge (visible only while testing) */
+        .rt-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-3);
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .rt-badge-ok   { background: var(--iv-success-bg); color: var(--iv-success); }
+        .rt-badge-err  { background: var(--iv-danger-bg);  color: var(--iv-danger); }
+        .rt-badge-warn { background: var(--iv-warning-bg); color: var(--iv-warning); }
+
         .chat-body {
             flex: 1;
             overflow-y: auto;
@@ -380,6 +395,8 @@
             .chat-back { display: flex; }
 
             .bubble { max-width: 82%; }
+
+            .rt-badge { font-size: 10px; padding: 2px 7px; }
         }
     </style>
 </head>
@@ -447,6 +464,7 @@
                             <div class="chat-head-name" id="chatHeadName">—</div>
                             <div class="chat-head-role" id="chatHeadRole">—</div>
                         </div>
+                        <div class="rt-badge" id="rtBadge">RT: —</div>
                     </div>
 
                     <div class="chat-body" id="chatBody"></div>
@@ -797,9 +815,31 @@
                 },
                 (payload) => handleRealtimeInsert(payload.new)
             )
-            .subscribe((status) => {
-                console.log('[messages] realtime status:', status);
+            .subscribe((status, err) => {
+                console.log('[messages] realtime status:', status, err || '');
+                updateRtBadge(status);
             });
+    }
+
+    function updateRtBadge(status) {
+        const badge = document.getElementById('rtBadge');
+        if (!badge) return;
+
+        badge.classList.remove('rt-badge-ok', 'rt-badge-err', 'rt-badge-warn');
+
+        if (status === 'SUBSCRIBED') {
+            badge.textContent = 'RT: live';
+            badge.classList.add('rt-badge-ok');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            badge.textContent = 'RT: ' + status;
+            badge.classList.add('rt-badge-err');
+        } else if (status === 'CLOSED') {
+            badge.textContent = 'RT: closed';
+            badge.classList.add('rt-badge-warn');
+        } else {
+            badge.textContent = 'RT: ' + (status || '—');
+            badge.classList.add('rt-badge-warn');
+        }
     }
 
     function handleRealtimeInsert(msg) {
