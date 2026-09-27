@@ -94,15 +94,32 @@
             box-shadow: 0 0 0 3px var(--iv-focus-ring);
         }
 
+        /* Horizontal-scroll wrapper for narrow screens */
         .table-wrap {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
             border-radius: var(--iv-r-lg);
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrap::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: var(--iv-border-strong);
+            border-radius: 3px;
+        }
+
+        .table-wrap::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         .pairs-table {
             width: 100%;
+            min-width: 720px;
             border-collapse: collapse;
             font-size: 13.5px;
         }
@@ -181,6 +198,7 @@
             text-transform: uppercase;
             letter-spacing: 0.03em;
             border: 1px solid transparent;
+            white-space: nowrap;
         }
 
         .source-badge-code {
@@ -274,23 +292,10 @@
             margin-top: var(--iv-s-2);
         }
 
-        @media (max-width: 900px) {
-            .pairs-table th:nth-child(4),
-            .pairs-table td:nth-child(4) { display: none; }
-        }
-
         @media (max-width: 700px) {
             .toolbar { flex-direction: column; align-items: stretch; }
             .search-wrap { max-width: none; }
             .pairs-table th, .pairs-table td { padding: 12px var(--iv-s-3); }
-        }
-
-        @media (max-width: 550px) {
-            .pairs-table th:nth-child(2),
-            .pairs-table td:nth-child(2),
-            .pairs-table th:nth-child(3),
-            .pairs-table td:nth-child(3) { display: table-cell; }
-            .person-email { display: none; }
         }
     </style>
 </head>
