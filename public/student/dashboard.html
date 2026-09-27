@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — IntelliVerify</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/core.js"></script>
+
+    <style>
+        /* Pairing banner */
+        .pair-banner {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-5);
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            color: #fafafa;
+            border-radius: var(--iv-r-lg);
+            margin-bottom: var(--iv-s-5);
+            flex-wrap: wrap;
+        }
+
+        .pair-banner-icon {
+            width: 44px; height: 44px;
+            border-radius: var(--iv-r-md);
+            background: rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .pair-banner-body { flex: 1; min-width: 180px; }
+
+        .pair-banner-title {
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .pair-banner-code {
+            font-family: var(--iv-font-mono);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-top: 4px;
+        }
+
+        .pair-banner-help {
+            font-size: 12.5px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+
+        .pair-copy-btn {
+            background: rgba(255,255,255,0.12);
+            color: #fafafa;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 9px 16px;
+            border-radius: var(--iv-r-sm);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--iv-transition);
+        }
+
+        .pair-copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--iv-s-4);
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .stat {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            padding: var(--iv-s-5);
+        }
+
+        .stat-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .stat-label {
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .stat-icon {
+            width: 30px; height: 30px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--iv-text);
+            line-height: 1;
+        }
+
+        /* Quick actions */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--iv-s-3);
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .quick {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: var(--iv-s-2);
+            padding: var(--iv-s-4);
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-md);
+            text-decoration: none;
+            color: inherit;
+            transition: var(--iv-transition);
+        }
+
+        .quick:hover {
+            border-color: var(--iv-border-strong);
+            background: var(--iv-bg-subtle);
+            transform: translateY(-1px);
+        }
+
+        .quick-icon {
+            width: 34px; height: 34px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text);
+            font-size: 14px;
+        }
+
+        .quick-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .quick-sub {
+            font-size: 12px;
+            color: var(--iv-text-3);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: var(--iv-s-6);
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--iv-s-3);
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .section-link {
+            font-size: 13px;
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .section-link:hover { text-decoration: underline; }
+
+        /* Scan list */
+        .scan-list {
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+            overflow: hidden;
+        }
+
+        .scan-row {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4) var(--iv-s-5);
+            border-bottom: 1px solid var(--iv-border);
+        }
+
+        .scan-row:last-child { border-bottom: none; }
+
+        .scan-icon {
+            width: 36px; height: 36px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--iv-text-2);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .scan-body { flex: 1; min-width: 0; }
+
+        .scan-name {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .scan-meta {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 2px;
+        }
+
+        .scan-score {
+            font-family: var(--iv-font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* Empty state inside sections */
+        .mini-empty {
+            padding: var(--iv-s-8) var(--iv-s-5);
+            text-align: center;
+            color: var(--iv-text-3);
+            font-size: 13px;
+            background: var(--iv-bg);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-lg);
+        }
+
+        .mini-empty i {
+            font-size: 24px;
+            opacity: 0.4;
+            margin-bottom: var(--iv-s-2);
+            display: block;
+        }
+
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f4f4f5 0%, #e4e4e7 50%, #f4f4f5 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: var(--iv-r-sm);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-grid { grid-template-columns: 1fr 1fr; }
+            .pair-banner-code { font-size: 18px; }
+            .stat-value { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="iv-shell"></div>
+
+<script>
+    (async () => {
+        const ctx = await window.requireRole('student');
+        if (!ctx) return;
+
+        const content = await window.renderShell({
+            ctx,
+            activePath: '/student/dashboard.html',
+            title: 'Dashboard',
+            subtitle: 'Your project verification overview',
+            actions: `
+                <a href="/student/submit-topic.html" class="iv-btn iv-btn-primary iv-btn-sm">
+                    <i class="fas fa-plus"></i> New topic
+                </a>
+            `
+        });
+
+        // Initial render with skeletons
+        content.innerHTML = renderSkeleton();
+
+        // Fetch all dashboard data in parallel
+        let topics = [], reports = [], pairing = { pairing_code: null, supervisors: [] };
+        try {
+            const [tRes, rRes, pRes] = await Promise.all([
+                window.api('/api/topics').catch(() => ({ topics: [] })),
+                window.api('/api/reports').catch(() => ({ reports: [] })),
+                window.api('/api/pairing/me').catch(() => ({ supervisors: [] }))
+            ]);
+            topics = tRes.topics || [];
+            reports = rRes.reports || [];
+            pairing = pRes;
+        } catch (err) {
+            console.error(err);
+            window.toast('Could not load dashboard data.', 'error');
+        }
+
+        content.innerHTML = renderPage({ ctx, topics, reports, pairing });
+
+        // ---- Wiring ----
+        const copyBtn = document.getElementById('copyCodeBtn');
+        if (copyBtn) {
+            copyBtn.onclick = async () => {
+                const code = pairing.pairing_code || '';
+                try {
+                    await navigator.clipboard.writeText(code);
+                    window.toast('Pairing code copied.', 'success');
+                } catch (_) {
+                    window.toast('Copy failed — long-press to select.', 'warning');
+                }
+            };
+        }
+    })();
+
+    // ============================================================
+    // RENDER HELPERS
+    // ============================================================
+
+    function renderSkeleton() {
+        return `
+            <div class="pair-banner">
+                <div class="pair-banner-icon"><i class="fas fa-link"></i></div>
+                <div class="pair-banner-body">
+                    <div class="pair-banner-title">Your pairing code</div>
+                    <div class="skeleton" style="height: 26px; width: 160px; margin-top: 6px;"></div>
+                </div>
+            </div>
+            <div class="stat-grid">
+                ${[1,2,3,4].map(() => `
+                    <div class="stat">
+                        <div class="stat-head">
+                            <div class="skeleton" style="height: 12px; width: 80px;"></div>
+                            <div class="skeleton" style="height: 30px; width: 30px; border-radius: 6px;"></div>
+                        </div>
+                        <div class="skeleton" style="height: 28px; width: 50px;"></div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function renderPage({ ctx, topics, reports, pairing }) {
+        const pending = topics.filter(t => t.status === 'pending').length;
+        const approved = topics.filter(t => t.status === 'approved').length;
+        const supervisors = pairing.supervisors || [];
+        const hasSupervisor = supervisors.length > 0;
+
+        return `
+            ${renderPairBanner(pairing, hasSupervisor)}
+
+            <div class="stat-grid">
+                ${stat('Submitted topics', 'fa-file-alt', topics.length)}
+                ${stat('Pending review', 'fa-clock', pending)}
+                ${stat('Approved', 'fa-check-circle', approved)}
+                ${stat('Scans run', 'fa-shield-alt', reports.length)}
+            </div>
+
+            <div class="quick-grid">
+                ${quick('Submit new topic', 'Create a new proposal', 'fa-paper-plane', '/student/submit-topic.html')}
+                ${quick('Run plagiarism scan', 'Check document similarity', 'fa-microchip', '/student/plagiarism-report.html')}
+                ${quick('Approval status', 'Track your submissions', 'fa-tasks', '/student/approval-status.html')}
+                ${quick('Messages', 'Chat with supervisors', 'fa-comments', '/student/messages.html')}
+            </div>
+
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Recent topics</div>
+                    <a href="/student/approval-status.html" class="section-link">View all →</a>
+                </div>
+                ${renderTopicsTable(topics.slice(0, 5))}
+            </div>
+
+            <div class="section">
+                <div class="section-head">
+                    <div class="section-title">Recent scans</div>
+                    <a href="/student/plagiarism-report.html" class="section-link">New scan →</a>
+                </div>
+                ${renderScansList(reports.slice(0, 4))}
+            </div>
+        `;
+    }
+
+    function renderPairBanner(pairing, hasSupervisor) {
+        const code = pairing.pairing_code || '—';
+
+        // If no supervisor is linked, emphasise the code with a stronger CTA
+        const help = hasSupervisor
+            ? `Share this code with additional supervisors to link them to your project.`
+            : `You haven't linked a supervisor yet. Share this code so they can monitor your progress.`;
+
+        return `
+            <div class="pair-banner">
+                <div class="pair-banner-icon"><i class="fas fa-link"></i></div>
+                <div class="pair-banner-body">
+                    <div class="pair-banner-title">Your supervisor pairing code</div>
+                    <div class="pair-banner-code" id="pairingCodeText">${window.escapeHTML(code)}</div>
+                    <div class="pair-banner-help">${window.escapeHTML(help)}</div>
+                </div>
+                <button class="pair-copy-btn" id="copyCodeBtn">
+                    <i class="fas fa-copy"></i> Copy code
+                </button>
+            </div>
+        `;
+    }
+
+    function stat(label, icon, value) {
+        return `
+            <div class="stat">
+                <div class="stat-head">
+                    <span class="stat-label">${window.escapeHTML(label)}</span>
+                    <div class="stat-icon"><i class="fas ${icon}"></i></div>
+                </div>
+                <div class="stat-value">${Number(value) || 0}</div>
+            </div>
+        `;
+    }
+
+    function quick(title, sub, icon, href) {
+        return `
+            <a class="quick" href="${href}">
+                <div class="quick-icon"><i class="fas ${icon}"></i></div>
+                <div class="quick-title">${window.escapeHTML(title)}</div>
+                <div class="quick-sub">${window.escapeHTML(sub)}</div>
+            </a>
+        `;
+    }
+
+    function renderTopicsTable(topics) {
+        if (!topics.length) {
+            return `
+                <div class="mini-empty">
+                    <i class="fas fa-file-alt"></i>
+                    No topics submitted yet. Start with “Submit new topic”.
+                </div>
+            `;
+        }
+
+        return `
+            <div class="iv-table-wrap">
+                <table class="iv-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Research area</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${topics.map(t => `
+                            <tr>
+                                <td style="font-weight: 500; color: var(--iv-text);">
+                                    ${window.escapeHTML(t.title || 'Untitled')}
+                                </td>
+                                <td>${window.escapeHTML(t.research_area || '—')}</td>
+                                <td>${statusBadge(t.status)}</td>
+                                <td>${window.formatDate(t.submitted_at)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function renderScansList(reports) {
+        if (!reports.length) {
+            return `
+                <div class="mini-empty">
+                    <i class="fas fa-shield-alt"></i>
+                    No scans yet. Upload a document to check similarity.
+                </div>
+            `;
+        }
+
+        return `
+            <div class="scan-list">
+                ${reports.map(r => {
+                    const score = Number(r.similarity_score || 0);
+                    const risk = String(r.risk_level || 'low').toLowerCase();
+                    const scoreColor =
+                        risk === 'high'   ? 'var(--iv-danger)'  :
+                        risk === 'medium' ? 'var(--iv-warning)' :
+                                            'var(--iv-success)';
+
+                    const fileIcon =
+                        r.file_format === 'pdf'  ? 'fa-file-pdf' :
+                        r.file_format === 'docx' ? 'fa-file-word' :
+                        r.file_format === 'txt'  ? 'fa-file-lines' :
+                                                    'fa-file';
+
+                    return `
+                        <div class="scan-row">
+                            <div class="scan-icon"><i class="fas ${fileIcon}"></i></div>
+                            <div class="scan-body">
+                                <div class="scan-name">${window.escapeHTML(r.filename || 'Document')}</div>
+                                <div class="scan-meta">
+                                    ${window.escapeHTML(String(r.file_format || '').toUpperCase())}
+                                    · ${window.formatDate(r.created_at)}
+                                </div>
+                            </div>
+                            <div class="scan-score" style="color: ${scoreColor};">
+                                ${score}%
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function statusBadge(status) {
+        const s = String(status || 'pending').toLowerCase();
+        const map = {
+            pending:  'iv-badge-pending',
+            approved: 'iv-badge-approved',
+            revision: 'iv-badge-revision',
+            rejected: 'iv-badge-rejected'
+        };
+        const cls = map[s] || 'iv-badge-neutral';
+        return `<span class="iv-badge ${cls}">${window.escapeHTML(s)}</span>`;
+    }
+</script>
+
+</body>
+  </html>
