@@ -1,5 +1,5 @@
 // ============================================================
-// PLAGIARISM ENGINE
+// PLAGIARISM ENGINE  (v3 — corpus + AI + external sources)
 // ============================================================
 // Method:
 //   1. Clean + tokenize both documents
@@ -7,22 +7,28 @@
 //   3. Cosine similarity (semantic overlap)
 //   4. 3-gram Jaccard (verbatim phrase overlap)
 //   5. Hybrid score = 0.7 * cosine + 0.3 * jaccard
-//   6. Return risk band, matches, and extracted keywords
+//   6. NEW: AI-likelihood score via services/aiDetector.js
+//   7. NEW: External academic + reference matches via
+//           services/externalSources.js (OpenAlex, Wikipedia)
 //
-// This engine compares against a known corpus only. It does
-// not search the web.
+// External matching runs in parallel with corpus scanning.
+// If a source times out or errors, the scan still completes
+// with the other source's results and a status of 'partial'.
 // ============================================================
+
+// NEW — engines for the two new signals
+const { detectAI } = require('./aiDetector');
+const { findExternalMatches } = require('./externalSources');
 
 // ------------------------------------------------------------
 // CONFIG
 // ------------------------------------------------------------
 
 const CONFIG = {
-    minWords: 30,           // uploaded doc must have at least this many words
-    ngramSize: 3,           // phrase length for Jaccard
-    lowMax: 30,             // 0  – 30  → low (attachable)
-    mediumMax: 60,          // 31 – 60  → medium
-    //                       61 – 100 → high
+    minWords: 30,
+    ngramSize: 3,
+    lowMax: 30,
+    mediumMax: 60,
     cosineWeight: 0.7,
     jaccardWeight: 0.3,
     maxMatches: 10,
@@ -32,7 +38,6 @@ const CONFIG = {
 // ------------------------------------------------------------
 // STOP WORDS
 // ------------------------------------------------------------
-// Deliberately a curated short list. Keeps technical terms.
 
 const STOP_WORDS = new Set([
     'a','an','and','are','as','at','be','by','for','from','has','have',
@@ -74,18 +79,11 @@ function tokenize(text) {
         .map(stem);
 }
 
-// Light stemmer — just handles common plurals. Keeps technical
-// terms intact.
 function stem(word) {
     if (!word || word.length < 4) return word;
-
-    if (word.endsWith('ies') && word.length > 4) {
-        return word.slice(0, -3) + 'y';
-    }
+    if (word.endsWith('ies') && word.length > 4) return word.slice(0, -3) + 'y';
     if (word.endsWith('ss')) return word;
-    if (word.endsWith('s') && word.length > 4) {
-        return word.slice(0, -1);
-    }
+    if (word.endsWith('s') && word.length > 4) return word.slice(0, -1);
     return word;
 }
 
@@ -142,7 +140,6 @@ function documentFrequency(tokenizedDocs) {
 function inverseDocumentFrequency(df, totalDocs) {
     const idf = new Map();
     for (const [term, freq] of df) {
-        // Smoothed IDF
         idf.set(term, Math.log((totalDocs + 1) / (freq + 1)) + 1);
     }
     return idf;
@@ -221,9 +218,6 @@ function recommendation(score, risk) {
 // ------------------------------------------------------------
 // KEYWORD EXTRACTION
 // ------------------------------------------------------------
-// Returns the top N terms in the uploaded document by TF-IDF
-// weight. Useful for the supervisor and for the student's own
-// understanding of their proposal.
 
 function extractKeywords(vector, limit = CONFIG.maxKeywords) {
     return Array.from(vector.entries())
@@ -233,22 +227,10 @@ function extractKeywords(vector, limit = CONFIG.maxKeywords) {
 }
 
 // ------------------------------------------------------------
-// MAIN SCAN
+// MAIN SCAN  —  now async, merges 3 signals
 // ------------------------------------------------------------
-// documentText : string of the uploaded document
-// corpus       : [{ id, title, text }, ...]
-//
-// Returns:
-//   {
-//     similarity_score: 0-100,
-//     risk_level: 'low'|'medium'|'high',
-//     recommendation: string,
-//     matches: [{ id, title, similarity, word_overlap, phrase_count }],
-//     keywords: [ 'term1', ... ],
-//     statistics: { words, matches_checked, phrases_matched }
-//   }
 
-function scanDocument(documentText, corpus = []) {
+async function scanDocument(documentText, corpus = []) {
     if (typeof documentText !== 'string' || !documentText.trim()) {
         throw new Error('Document text is empty.');
     }
@@ -262,7 +244,10 @@ function scanDocument(documentText, corpus = []) {
         );
     }
 
-    // Build the corpus token lists
+    // --------------------------------------------------------
+    // A. Corpus comparison (existing logic, unchanged)
+    // --------------------------------------------------------
+
     const preparedCorpus = (Array.isArray(corpus) ? corpus : [])
         .filter(doc => doc && typeof doc.text === 'string' && doc.text.trim())
         .map(doc => ({
@@ -272,93 +257,131 @@ function scanDocument(documentText, corpus = []) {
         }))
         .filter(doc => doc.tokens.length >= 10);
 
-    // If the corpus is empty, we can't compare. Return a safe result.
+    let similarity_score = 0;
+    let risk = 'low';
+    let rec = '';
+    let matches = [];
+    let keywords = [];
+    let stats = {
+        words: tokens.length,
+        matches_checked: preparedCorpus.length,
+        phrases_matched: 0
+    };
+
     if (preparedCorpus.length === 0) {
-        return {
-            similarity_score: 0,
-            risk_level: 'low',
-            recommendation:
-                'No reference documents have been uploaded by your ' +
-                'supervisor yet. The scan found no matches to compare against.',
-            matches: [],
-            keywords: extractKeywords(tfidfVector(tokens, new Map([['__x__', 1]]))),
-            statistics: {
-                words: tokens.length,
-                matches_checked: 0,
-                phrases_matched: 0
+        similarity_score = 0;
+        risk = 'low';
+        rec =
+            'No reference documents have been uploaded by your ' +
+            'supervisor yet. The scan found no matches to compare against.';
+        matches = [];
+        keywords = extractKeywords(tfidfVector(tokens, new Map([['__x__', 1]])));
+    } else {
+        const allTokenLists = [tokens, ...preparedCorpus.map(d => d.tokens)];
+        const df = documentFrequency(allTokenLists);
+        const idf = inverseDocumentFrequency(df, allTokenLists.length);
+
+        const uploadedVector = tfidfVector(tokens, idf);
+        const uploadedNGrams = new Set(createNGrams(tokens));
+
+        matches = preparedCorpus.map(doc => {
+            const docVector = tfidfVector(doc.tokens, idf);
+            const cos = cosine(uploadedVector, docVector);
+
+            const docNGrams = new Set(createNGrams(doc.tokens));
+            const jac = jaccard(uploadedNGrams, docNGrams);
+
+            const hybrid =
+                CONFIG.cosineWeight * cos +
+                CONFIG.jaccardWeight * jac;
+
+            const percent = Math.round(hybrid * 100 * 100) / 100;
+
+            const sharedPhrases = [];
+            for (const gram of uploadedNGrams) {
+                if (docNGrams.has(gram)) {
+                    sharedPhrases.push(gram);
+                    if (sharedPhrases.length >= 5) break;
+                }
             }
+
+            return {
+                id: doc.id,
+                title: doc.title,
+                similarity: percent,
+                word_overlap: Math.round(jac * 100 * 100) / 100,
+                phrase_count: sharedPhrases.length,
+                phrases: sharedPhrases
+            };
+        });
+
+        matches.sort((a, b) => b.similarity - a.similarity);
+
+        similarity_score = matches.length ? matches[0].similarity : 0;
+        risk = riskLevel(similarity_score);
+        rec = recommendation(similarity_score, risk);
+        keywords = extractKeywords(uploadedVector);
+
+        stats.phrases_matched = matches.reduce(
+            (sum, m) => sum + m.phrase_count, 0
+        );
+
+        matches = matches.slice(0, CONFIG.maxMatches);
+    }
+
+    // --------------------------------------------------------
+    // B. NEW — AI-likelihood score (synchronous, local)
+    // --------------------------------------------------------
+
+    let aiResult;
+    try {
+        aiResult = detectAI(documentText);
+    } catch (err) {
+        console.warn('[plagiarism] AI detector failed:', err.message);
+        aiResult = {
+            score: 0,
+            indicators: { error: err.message }
         };
     }
 
-    // Compute IDF across corpus + uploaded doc
-    const allTokenLists = [tokens, ...preparedCorpus.map(d => d.tokens)];
-    const df = documentFrequency(allTokenLists);
-    const idf = inverseDocumentFrequency(df, allTokenLists.length);
+    // --------------------------------------------------------
+    // C. NEW — external sources (async, network)
+    // --------------------------------------------------------
 
-    // Vector for the uploaded doc
-    const uploadedVector = tfidfVector(tokens, idf);
-
-    // Uploaded doc's n-grams
-    const uploadedNGrams = new Set(createNGrams(tokens));
-
-    // Compare against each corpus document
-    const matches = preparedCorpus.map(doc => {
-        const docVector = tfidfVector(doc.tokens, idf);
-        const cos = cosine(uploadedVector, docVector);
-
-        const docNGrams = new Set(createNGrams(doc.tokens));
-        const jac = jaccard(uploadedNGrams, docNGrams);
-
-        // Hybrid score (0-1)
-        const hybrid =
-            CONFIG.cosineWeight * cos +
-            CONFIG.jaccardWeight * jac;
-
-        const percent = Math.round(hybrid * 100 * 100) / 100;
-
-        // Shared phrases (capped)
-        const sharedPhrases = [];
-        for (const gram of uploadedNGrams) {
-            if (docNGrams.has(gram)) {
-                sharedPhrases.push(gram);
-                if (sharedPhrases.length >= 5) break;
-            }
-        }
-
-        return {
-            id: doc.id,
-            title: doc.title,
-            similarity: percent,
-            word_overlap: Math.round(jac * 100 * 100) / 100,
-            phrase_count: sharedPhrases.length,
-            phrases: sharedPhrases
+    let externalResult;
+    try {
+        externalResult = await findExternalMatches(documentText);
+    } catch (err) {
+        console.warn('[plagiarism] External sources failed:', err.message);
+        externalResult = {
+            matches: [],
+            sources_checked: {},
+            status: 'failed',
+            note: err.message
         };
-    });
+    }
 
-    // Sort by highest similarity
-    matches.sort((a, b) => b.similarity - a.similarity);
-
-    const topScore = matches.length ? matches[0].similarity : 0;
-    const risk = riskLevel(topScore);
-    const rec = recommendation(topScore, risk);
-
-    // Distinct phrase count across all matches (for the statistics block)
-    const totalPhrasesMatched = matches.reduce(
-        (sum, m) => sum + m.phrase_count,
-        0
-    );
+    // --------------------------------------------------------
+    // D. Merged result
+    // --------------------------------------------------------
 
     return {
-        similarity_score: topScore,
+        // --- Existing fields (unchanged) ---
+        similarity_score,
         risk_level: risk,
         recommendation: rec,
-        matches: matches.slice(0, CONFIG.maxMatches),
-        keywords: extractKeywords(uploadedVector),
-        statistics: {
-            words: tokens.length,
-            matches_checked: preparedCorpus.length,
-            phrases_matched: totalPhrasesMatched
-        }
+        matches,
+        keywords,
+        statistics: stats,
+
+        // --- New: AI likelihood ---
+        ai_likelihood_score: aiResult.score,
+        ai_indicators: aiResult.indicators,
+
+        // --- New: external source matches ---
+        external_matches: externalResult.matches,
+        external_sources_checked: externalResult.sources_checked,
+        external_scan_status: externalResult.status
     };
 }
 
