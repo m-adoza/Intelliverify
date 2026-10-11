@@ -64,8 +64,10 @@ router.post(
             text: d.extracted_text
         }));
 
-        // Run the scan
-        const result = scanDocument(text, corpus);
+        // --------------------------------------------------------
+        // Run the full scan (corpus + AI + external sources)
+        // --------------------------------------------------------
+        const result = await scanDocument(text, corpus);
 
         // Upload the original file to Storage
         const ext = format;
@@ -79,7 +81,12 @@ router.post(
                 upsert: false
             });
 
-        if (uploadError) throw new ApiError(500, `Storage upload failed: ${uploadError.message}`);
+        if (uploadError) {
+            throw new ApiError(
+                500,
+                `Storage upload failed: ${uploadError.message}`
+            );
+        }
 
         // Insert the documents row
         const { data: docRow, error: docError } = await admin
@@ -100,7 +107,7 @@ router.post(
 
         if (docError) throw new ApiError(500, docError.message);
 
-        // Insert the plagiarism report
+        // Insert the plagiarism report — now with the 5 new fields
         const { data: report, error: reportError } = await admin
             .from('plagiarism_reports')
             .insert({
@@ -113,10 +120,20 @@ router.post(
                 storage_path: storagePath,
                 extracted_text: text,
                 word_count: wordCount,
+
+                // --- existing signals ---
                 similarity_score: result.similarity_score,
                 risk_level: result.risk_level,
                 matches: result.matches,
                 recommendation: result.recommendation,
+
+                // --- NEW signals ---
+                ai_likelihood_score: result.ai_likelihood_score,
+                ai_indicators: result.ai_indicators,
+                external_matches: result.external_matches,
+                external_sources_checked: result.external_sources_checked,
+                external_scan_status: result.external_scan_status,
+
                 scan_status: 'completed',
                 processed_at: new Date().toISOString()
             })
@@ -125,7 +142,7 @@ router.post(
 
         if (reportError) throw new ApiError(500, reportError.message);
 
-        // Notify linked supervisors (info only)
+        // Notify linked supervisors
         const { data: links } = await admin
             .from('assignments')
             .select('supervisor_id')
@@ -137,24 +154,39 @@ router.post(
                     user_id: l.supervisor_id,
                     type: 'scan_completed',
                     title: 'New scan submitted',
-                    body: `${req.user.profile.full_name || req.user.email} completed a plagiarism scan (${result.similarity_score}%).`,
+                    body:
+                        `${req.user.profile.full_name || req.user.email} ` +
+                        `completed a plagiarism scan (${result.similarity_score}% corpus).`,
                     link: '/supervisor/dashboard.html'
                 }))
             );
         }
 
+        // Full payload back to the client
         res.status(201).json({
             message: 'Scan completed.',
             report: {
                 report_id: report.report_id,
                 filename: report.filename,
                 file_format: report.file_format,
+
+                // Corpus
                 similarity_score: report.similarity_score,
                 risk_level: report.risk_level,
                 recommendation: report.recommendation,
                 matches: result.matches,
                 keywords: result.keywords,
                 statistics: result.statistics,
+
+                // AI
+                ai_likelihood_score: report.ai_likelihood_score,
+                ai_indicators: report.ai_indicators,
+
+                // External
+                external_matches: report.external_matches,
+                external_sources_checked: report.external_sources_checked,
+                external_scan_status: report.external_scan_status,
+
                 created_at: report.created_at
             }
         });
@@ -177,6 +209,8 @@ router.get(
             .select(`
                 report_id, filename, file_format, similarity_score,
                 risk_level, scan_status, recommendation, created_at,
+                ai_likelihood_score,
+                external_scan_status,
                 user:profiles!plagiarism_reports_user_id_fkey (
                     id, full_name, email
                 )
@@ -187,7 +221,6 @@ router.get(
         if (role === 'student') {
             query = query.eq('user_id', userId);
         } else if (role === 'supervisor') {
-            // All reports from students linked to this supervisor
             const { data: links } = await admin
                 .from('assignments')
                 .select('student_id')
@@ -197,7 +230,6 @@ router.get(
             if (!studentIds.length) return res.json({ reports: [] });
             query = query.in('user_id', studentIds);
         }
-        // admin: no filter
 
         const { data, error } = await query;
         if (error) throw new ApiError(500, error.message);
@@ -232,7 +264,6 @@ router.get(
 
 // ------------------------------------------------------------
 // GET /api/reports/:id/download
-// Returns a short-lived signed URL for the original file.
 // ------------------------------------------------------------
 
 router.get(
@@ -267,7 +298,7 @@ router.get(
 );
 
 // ------------------------------------------------------------
-// DELETE /api/reports/:id   (student, before attached to an approved topic)
+// DELETE /api/reports/:id
 // ------------------------------------------------------------
 
 router.delete(
@@ -286,7 +317,6 @@ router.delete(
             throw new ApiError(403, 'You can only delete your own reports.');
         }
 
-        // Block if a topic that's already approved/rejected uses it
         const { data: attached } = await admin
             .from('topics')
             .select('topic_id, status')
@@ -294,12 +324,17 @@ router.delete(
             .maybeSingle();
 
         if (attached && ['approved', 'rejected'].includes(attached.status)) {
-            throw new ApiError(409, 'Cannot delete a report attached to a reviewed topic.');
+            throw new ApiError(
+                409,
+                'Cannot delete a report attached to a reviewed topic.'
+            );
         }
 
-        // Best-effort delete the storage file
         if (report.storage_path) {
-            await admin.storage.from(SUBMISSIONS_BUCKET).remove([report.storage_path]);
+            await admin
+                .storage
+                .from(SUBMISSIONS_BUCKET)
+                .remove([report.storage_path]);
         }
 
         const { error } = await admin
