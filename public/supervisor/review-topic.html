@@ -14,12 +14,12 @@
     <script src="/assets/js/core.js"></script>
 
     <style>
-        /* ---- Page header ---- */
+        /* ---- Hero ---- */
         .topic-hero {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
             border-radius: var(--iv-r-lg);
-            padding: var(--iv-s-6);
+            padding: var(--iv-s-5);
             margin-bottom: var(--iv-s-5);
         }
 
@@ -42,16 +42,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .hero-eyebrow-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--iv-text-3);
+            flex-wrap: wrap;
         }
 
         .hero-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.02em;
             color: var(--iv-text);
@@ -77,21 +72,17 @@
         }
 
         .hero-meta-item i { font-size: 11px; }
-
-        .hero-meta-item strong {
-            color: var(--iv-text-2);
-            font-weight: 500;
-        }
+        .hero-meta-item strong { color: var(--iv-text-2); font-weight: 500; }
 
         /* ---- Layout ---- */
         .review-layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 360px;
+            grid-template-columns: minmax(0, 1fr) 340px;
             gap: var(--iv-s-5);
             align-items: start;
         }
 
-        /* ---- Sections ---- */
+        /* ---- Section card ---- */
         .section-card {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -109,10 +100,7 @@
             background: var(--iv-bg-subtle);
         }
 
-        .section-head i {
-            color: var(--iv-text-3);
-            font-size: 14px;
-        }
+        .section-head i { color: var(--iv-text-3); font-size: 14px; }
 
         .section-head-title {
             font-size: 13.5px;
@@ -143,12 +131,12 @@
         }
 
         .student-avatar {
-            width: 52px; height: 52px;
+            width: 50px; height: 50px;
             border-radius: 50%;
             background: var(--iv-bg-muted);
             color: var(--iv-text-2);
             display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: 600;
+            font-size: 15px; font-weight: 600;
             flex-shrink: 0;
         }
 
@@ -159,18 +147,14 @@
             font-weight: 600;
             color: var(--iv-text);
             letter-spacing: -0.01em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .student-email {
             font-size: 13px;
             color: var(--iv-text-3);
             margin-top: 3px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .student-dept {
@@ -179,25 +163,68 @@
             margin-top: 4px;
         }
 
-        /* ---- Report section ---- */
-        .report-header {
-            display: flex;
-            align-items: center;
-            gap: var(--iv-s-4);
+        /* ---- Report tiers ---- */
+        .tier-block {
             padding: var(--iv-s-5);
             border-bottom: 1px solid var(--iv-border);
+        }
+
+        .tier-block:last-child { border-bottom: none; }
+
+        .tier-block-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .tier-block-icon {
+            width: 32px; height: 32px;
+            border-radius: var(--iv-r-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .tier-block-icon-corpus { background: var(--iv-info-bg);    color: var(--iv-info); }
+        .tier-block-icon-ai     { background: #f5f3ff;              color: #7c3aed; }
+        .tier-block-icon-web    { background: var(--iv-success-bg); color: var(--iv-success); }
+
+        .tier-block-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+        }
+
+        .tier-block-sub {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 1px;
+        }
+
+        /* ---- Score summary ---- */
+        .report-summary {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-5);
             flex-wrap: wrap;
         }
 
-        .report-file-icon {
-            width: 44px; height: 44px;
-            border-radius: var(--iv-r-sm);
-            background: var(--iv-bg-muted);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            color: var(--iv-text-2);
+        .report-score-circle {
+            width: 84px; height: 84px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--iv-font-mono);
             flex-shrink: 0;
         }
+
+        .report-score-circle.low    { background: var(--iv-success-bg); color: var(--iv-success); border: 2px solid var(--iv-success-border); }
+        .report-score-circle.medium { background: var(--iv-warning-bg); color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
+        .report-score-circle.high   { background: var(--iv-danger-bg);  color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
 
         .report-file-body { flex: 1; min-width: 0; }
 
@@ -205,9 +232,7 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--iv-text);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .report-file-meta {
@@ -216,41 +241,7 @@
             margin-top: 3px;
         }
 
-        .report-score-badge {
-            display: flex;
-            align-items: center;
-            gap: var(--iv-s-3);
-            flex-shrink: 0;
-        }
-
-        .report-score-circle {
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; font-weight: 700;
-            font-family: var(--iv-font-mono);
-            letter-spacing: -0.02em;
-            flex-shrink: 0;
-        }
-
-        .report-score-circle.low    { background: var(--iv-success-bg); color: var(--iv-success); border: 2px solid var(--iv-success-border); }
-        .report-score-circle.medium { background: var(--iv-warning-bg); color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
-        .report-score-circle.high   { background: var(--iv-danger-bg);  color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
-
-        .report-actions {
-            padding: var(--iv-s-4) var(--iv-s-5);
-            background: var(--iv-bg-subtle);
-            display: flex;
-            gap: var(--iv-s-2);
-            flex-wrap: wrap;
-        }
-
-        /* ---- Report details ---- */
-        .report-details {
-            padding: var(--iv-s-5);
-            border-top: 1px solid var(--iv-border);
-        }
-
+        /* ---- Recommendation ---- */
         .report-rec {
             padding: var(--iv-s-3) var(--iv-s-4);
             border-radius: var(--iv-r-sm);
@@ -259,7 +250,7 @@
             border-left: 3px solid var(--iv-info);
             background: var(--iv-info-bg);
             color: var(--iv-text-2);
-            margin-bottom: var(--iv-s-4);
+            margin-top: var(--iv-s-4);
         }
 
         .report-rec.rec-success { border-color: var(--iv-success); background: var(--iv-success-bg); }
@@ -273,15 +264,7 @@
             font-weight: 600;
         }
 
-        .report-subhead {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: var(--iv-text-3);
-            margin-bottom: var(--iv-s-3);
-        }
-
+        /* ---- Matches ---- */
         .match-row {
             display: flex;
             align-items: flex-start;
@@ -311,6 +294,7 @@
             color: var(--iv-text-3);
             margin-top: 4px;
             line-height: 1.5;
+            font-style: italic;
         }
 
         .match-score {
@@ -318,6 +302,152 @@
             font-size: 13px;
             font-weight: 600;
             flex-shrink: 0;
+        }
+
+        /* ---- AI block ---- */
+        .ai-summary {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-4);
+            padding: var(--iv-s-4);
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: var(--iv-r-md);
+            flex-wrap: wrap;
+        }
+
+        .ai-score-circle {
+            width: 68px; height: 68px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: var(--iv-font-mono);
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .ai-score-circle.human  { color: var(--iv-success); border: 2px solid var(--iv-success-border); }
+        .ai-score-circle.mixed  { color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
+        .ai-score-circle.likely { color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
+
+        .ai-score-body { flex: 1; min-width: 160px; }
+
+        .ai-score-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #5b21b6;
+            margin-bottom: 2px;
+        }
+
+        .ai-score-sub {
+            font-size: 12.5px;
+            color: #6d28d9;
+            line-height: 1.45;
+        }
+
+        .ai-mini-indicators {
+            display: flex;
+            gap: var(--iv-s-3);
+            flex-wrap: wrap;
+            margin-top: var(--iv-s-3);
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+        }
+
+        .ai-mini-indicators span {
+            background: rgba(255,255,255,0.6);
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* ---- External matches ---- */
+        .ext-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: auto;
+        }
+
+        .ext-status-completed { background: var(--iv-success-bg); color: var(--iv-success); }
+        .ext-status-partial   { background: var(--iv-warning-bg); color: var(--iv-warning); }
+        .ext-status-failed    { background: var(--iv-danger-bg);  color: var(--iv-danger); }
+        .ext-status-not_started { background: var(--iv-bg-muted); color: var(--iv-text-3); }
+
+        .ext-match {
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+            margin-bottom: var(--iv-s-2);
+        }
+
+        .ext-match-source-line {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 4px;
+        }
+
+        .ext-match-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--iv-text);
+            word-break: break-word;
+        }
+
+        .ext-match-meta {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+        }
+
+        .ext-match-snippet {
+            font-size: 12px;
+            color: var(--iv-text-2);
+            margin-top: 5px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .ext-match-link {
+            font-size: 12px;
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 5px;
+        }
+
+        .ext-match-link:hover { text-decoration: underline; }
+
+        .ext-empty {
+            padding: var(--iv-s-5);
+            text-align: center;
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            font-size: 12.5px;
+            color: var(--iv-text-3);
+        }
+
+        .report-actions {
+            padding: var(--iv-s-4) var(--iv-s-5);
+            background: var(--iv-bg-subtle);
+            display: flex;
+            gap: var(--iv-s-2);
+            flex-wrap: wrap;
         }
 
         /* ---- Timeline ---- */
@@ -335,11 +465,7 @@
             border-radius: 2px;
         }
 
-        .tl-item {
-            position: relative;
-            padding-bottom: var(--iv-s-4);
-        }
-
+        .tl-item { position: relative; padding-bottom: var(--iv-s-4); }
         .tl-item:last-child { padding-bottom: 0; }
 
         .tl-dot {
@@ -382,7 +508,7 @@
             word-break: break-word;
         }
 
-        /* ---- Review panel (aside) ---- */
+        /* ---- Review panel ---- */
         .review-panel {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -463,30 +589,17 @@
             width: 100%;
         }
 
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .action-btn-primary {
-            background: var(--iv-success);
-            color: #fff;
-        }
+        .action-btn-primary { background: var(--iv-success); color: #fff; }
         .action-btn-primary:hover:not(:disabled) { background: #15803d; }
 
-        .action-btn-warning {
-            background: var(--iv-warning);
-            color: #fff;
-        }
+        .action-btn-warning { background: var(--iv-warning); color: #fff; }
         .action-btn-warning:hover:not(:disabled) { background: #a16207; }
 
-        .action-btn-danger {
-            background: var(--iv-danger);
-            color: #fff;
-        }
+        .action-btn-danger { background: var(--iv-danger); color: #fff; }
         .action-btn-danger:hover:not(:disabled) { background: #b91c1c; }
 
-        /* ---- Locked panel ---- */
         .locked-panel {
             padding: var(--iv-s-5);
             text-align: center;
@@ -515,7 +628,6 @@
             line-height: 1.5;
         }
 
-        /* ---- Loading / error ---- */
         .page-error {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -524,7 +636,6 @@
             text-align: center;
         }
 
-        /* ---- Responsive ---- */
         @media (max-width: 1000px) {
             .review-layout { grid-template-columns: 1fr; }
             .review-panel { position: static; }
@@ -532,10 +643,10 @@
 
         @media (max-width: 600px) {
             .topic-hero { padding: var(--iv-s-4); }
-            .hero-title { font-size: 18px; }
+            .hero-title { font-size: 17px; }
             .section-body { padding: var(--iv-s-4); }
-            .report-header { padding: var(--iv-s-4); }
-            .report-score-circle { width: 52px; height: 52px; font-size: 14px; }
+            .tier-block { padding: var(--iv-s-4); }
+            .report-score-circle { width: 70px; height: 70px; font-size: 18px; }
         }
     </style>
 </head>
@@ -577,14 +688,14 @@
     function noIdState() {
         return `
             <div class="page-error">
-                <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg); margin: 0 auto var(--iv-s-4);">
-                    <i class="fas fa-exclamation-triangle"></i>
+                <div style="font-size: 24px; color: var(--iv-danger); margin-bottom: var(--iv-s-3);">
+                    <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div style="font-size: 15px; font-weight: 600; color: var(--iv-text);">
                     No topic ID provided
                 </div>
                 <div style="font-size: 13.5px; color: var(--iv-text-3); margin-top: 6px;">
-                    This page expects a topic to review. Go back to your dashboard and pick one.
+                    Go back to your dashboard and pick one.
                 </div>
                 <a href="/supervisor/dashboard.html" class="iv-btn iv-btn-primary" style="margin-top: var(--iv-s-5);">
                     <i class="fas fa-arrow-left"></i> Back to dashboard
@@ -592,10 +703,6 @@
             </div>
         `;
     }
-
-    // ============================================================
-    // DATA
-    // ============================================================
 
     async function load() {
         const content = document.getElementById('iv-content');
@@ -608,8 +715,8 @@
             console.error(err);
             content.innerHTML = `
                 <div class="page-error">
-                    <div class="empty-icon" style="color: var(--iv-danger); background: var(--iv-danger-bg); margin: 0 auto var(--iv-s-4);">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div style="font-size: 24px; color: var(--iv-danger); margin-bottom: var(--iv-s-3);">
+                        <i class="fas fa-triangle-exclamation"></i>
                     </div>
                     <div style="font-size: 15px; font-weight: 600; color: var(--iv-text);">
                         Could not load topic
@@ -624,10 +731,6 @@
             `;
         }
     }
-
-    // ============================================================
-    // RENDER
-    // ============================================================
 
     function render() {
         const content = document.getElementById('iv-content');
@@ -652,16 +755,9 @@
             </div>
         `;
 
-        // Wire download buttons
         wireReportActions();
-
-        // Wire review panel if applicable
         if (!isLocked) wireReviewPanel();
     }
-
-    // ============================================================
-    // HERO
-    // ============================================================
 
     function hero(t, status) {
         const short = String(t.topic_id || '').slice(0, 8);
@@ -672,8 +768,7 @@
                     <div style="min-width: 0; flex: 1;">
                         <div class="hero-eyebrow">
                             Topic #${window.escapeHTML(short)}
-                            <span class="hero-eyebrow-dot"></span>
-                            Submitted ${window.formatDate(t.submitted_at)}
+                            · Submitted ${window.formatDate(t.submitted_at)}
                         </div>
                         <div class="hero-title">${window.escapeHTML(t.title || 'Untitled')}</div>
                     </div>
@@ -687,7 +782,7 @@
                     </div>
                     ${t.reviewed_at ? `
                         <div class="hero-meta-item">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-circle-check"></i>
                             Reviewed <strong>${window.formatDate(t.reviewed_at)}</strong>
                         </div>
                     ` : ''}
@@ -701,10 +796,6 @@
             </div>
         `;
     }
-
-    // ============================================================
-    // SECTIONS
-    // ============================================================
 
     function studentSection(t) {
         const s = t.student || {};
@@ -734,7 +825,7 @@
         return `
             <div class="section-card">
                 <div class="section-head">
-                    <i class="fas fa-exclamation-circle"></i>
+                    <i class="fas fa-circle-exclamation"></i>
                     <div class="section-head-title">Problem statement</div>
                 </div>
                 <div class="section-body ${t.problem_statement ? '' : 'section-body-empty'}">
@@ -771,6 +862,31 @@
             `;
         }
 
+        return `
+            <div class="section-card">
+                <div class="section-head">
+                    <i class="fas fa-file-shield"></i>
+                    <div class="section-head-title">Plagiarism report</div>
+                    <span class="iv-badge iv-badge-${(report.risk_level || 'low').toLowerCase()}"
+                          style="margin-left: auto;">
+                        ${window.escapeHTML(report.risk_level || 'low')}
+                    </span>
+                </div>
+
+                ${reportCorpusTier(report)}
+                ${reportAITier(report)}
+                ${reportExternalTier(report)}
+
+                <div class="report-actions">
+                    <button class="iv-btn iv-btn-secondary iv-btn-sm" id="downloadReportBtn" data-report-id="${window.escapeHTML(report.report_id)}">
+                        <i class="fas fa-download"></i> Download original document
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function reportCorpusTier(report) {
         const score = Number(report.similarity_score || 0);
         const risk = (report.risk_level || 'low').toLowerCase();
         const ext = (report.file_format || '').toLowerCase();
@@ -782,19 +898,17 @@
                                 'rec-success';
 
         return `
-            <div class="section-card">
-                <div class="section-head">
-                    <i class="fas fa-file-shield"></i>
-                    <div class="section-head-title">Attached plagiarism report</div>
-                    <span class="iv-badge iv-badge-${risk}" style="margin-left: auto;">
-                        ${window.escapeHTML(risk)}
-                    </span>
+            <div class="tier-block">
+                <div class="tier-block-head">
+                    <div class="tier-block-icon tier-block-icon-corpus"><i class="fas fa-database"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-block-title">Corpus similarity</div>
+                        <div class="tier-block-sub">Against supervisor-uploaded reference documents</div>
+                    </div>
                 </div>
 
-                <div class="report-header">
-                    <div class="report-file-icon">
-                        <i class="fas ${fileIcon(ext)}"></i>
-                    </div>
+                <div class="report-summary">
+                    <div class="report-score-circle ${risk}">${score}%</div>
                     <div class="report-file-body">
                         <div class="report-file-name">${window.escapeHTML(report.filename || 'Document')}</div>
                         <div class="report-file-meta">
@@ -802,61 +916,140 @@
                             · Scanned ${window.formatDate(report.created_at)}
                         </div>
                     </div>
-                    <div class="report-score-badge">
-                        <div class="report-score-circle ${risk}">${score}%</div>
+                </div>
+
+                <div class="report-rec ${recClass}">
+                    <strong><i class="fas fa-lightbulb"></i> AI recommendation</strong>
+                    ${window.escapeHTML(report.recommendation || 'No recommendation recorded.')}
+                </div>
+
+                ${matches.length ? `
+                    <div style="margin-top: var(--iv-s-4);">
+                        ${matches.slice(0, 8).map(m => {
+                            const s = Number(m.similarity || 0);
+                            const cls = s >= 60 ? 'match-danger' : s >= 30 ? 'match-warning' : 'match-success';
+                            const color = s >= 60 ? 'var(--iv-danger)' : s >= 30 ? 'var(--iv-warning)' : 'var(--iv-success)';
+                            return `
+                                <div class="match-row ${cls}">
+                                    <div class="match-body">
+                                        <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
+                                        ${Array.isArray(m.phrases) && m.phrases.length ? `
+                                            <div class="match-phrases">
+                                                Shared: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="match-score" style="color: ${color};">${s}%</div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
-                </div>
-
-                <div class="report-actions">
-                    <button class="iv-btn iv-btn-secondary iv-btn-sm" id="downloadReportBtn" data-report-id="${window.escapeHTML(report.report_id)}">
-                        <i class="fas fa-download"></i> Download original document
-                    </button>
-                </div>
-
-                <div class="report-details">
-                    <div class="report-rec ${recClass}">
-                        <strong><i class="fas fa-lightbulb"></i> AI recommendation</strong>
-                        ${window.escapeHTML(report.recommendation || 'No recommendation recorded.')}
-                    </div>
-
-                    ${matches.length ? `
-                        <div class="report-subhead">
-                            Top matches (${matches.length})
-                        </div>
-                        ${matches.slice(0, 8).map(m => matchRow(m)).join('')}
-                    ` : `
-                        <div class="report-subhead">Top matches</div>
-                        <div style="font-size: 12.5px; color: var(--iv-text-3); font-style: italic;">
-                            No overlapping documents were found in the corpus.
-                        </div>
-                    `}
-                </div>
+                ` : ''}
             </div>
         `;
     }
 
-    function matchRow(m) {
-        const s = Number(m.similarity || 0);
-        const cls =
-            s >= 60 ? 'match-danger'  :
-            s >= 30 ? 'match-warning' :
-                      'match-success';
-        const color =
-            s >= 60 ? 'var(--iv-danger)'  :
-            s >= 30 ? 'var(--iv-warning)' :
-                      'var(--iv-success)';
+    function reportAITier(report) {
+        const aiScore = Number(report.ai_likelihood_score || 0);
+        const indicators = report.ai_indicators || {};
+
+        let bandClass, title, sub;
+        if (aiScore < 40) {
+            bandClass = 'human';
+            title = 'Likely human-written';
+            sub = 'Sentence variety and vocabulary distribution match human authorship.';
+        } else if (aiScore < 70) {
+            bandClass = 'mixed';
+            title = 'Mixed signals';
+            sub = 'Some patterns resemble AI text, but the result is inconclusive.';
+        } else {
+            bandClass = 'likely';
+            title = 'Likely AI-generated';
+            sub = 'Statistical patterns strongly resemble machine-generated text.';
+        }
 
         return `
-            <div class="match-row ${cls}">
-                <div class="match-body">
-                    <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
-                    ${Array.isArray(m.phrases) && m.phrases.length ? `
-                        <div class="match-phrases">
-                            Shared phrases: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
-                        </div>
-                    ` : ''}
+            <div class="tier-block">
+                <div class="tier-block-head">
+                    <div class="tier-block-icon tier-block-icon-ai"><i class="fas fa-robot"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-block-title">AI-content signal</div>
+                        <div class="tier-block-sub">Statistical heuristic — screening signal only</div>
+                    </div>
                 </div>
-                <div class="match-score" style="color: ${color};">${s}%</div>
+
+                <div class="ai-summary">
+                    <div class="ai-score-circle ${bandClass}">${aiScore}%</div>
+                    <div class="ai-score-body">
+                        <div class="ai-score-title">${window.escapeHTML(title)}</div>
+                        <div class="ai-score-sub">${window.escapeHTML(sub)}</div>
+                    </div>
+                </div>
+
+                ${indicators.sentence_count ? `
+                    <div class="ai-mini-indicators">
+                        <span>Burstiness ${indicators.burstiness ?? '—'}</span>
+                        <span>Uniformity ${indicators.sentence_uniformity ?? '—'}</span>
+                        <span>Opener repeat ${indicators.opener_repetition ?? '—'}</span>
+                        <span>${indicators.sentence_count} sentences</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    function reportExternalTier(report) {
+        const matches = Array.isArray(report.external_matches) ? report.external_matches : [];
+        const sources = report.external_sources_checked || {};
+        const status = report.external_scan_status || 'not_started';
+
+        const statusLabel =
+            status === 'completed' ? 'Completed' :
+            status === 'partial'   ? 'Partial'   :
+            status === 'failed'    ? 'Failed'    : 'Not started';
+
+        const sourceLine = Object.keys(sources).length
+            ? Object.entries(sources).map(([n, c]) => `${n}: ${c}`).join(' · ')
+            : 'No sources queried';
+
+        return `
+            <div class="tier-block">
+                <div class="tier-block-head">
+                    <div class="tier-block-icon tier-block-icon-web"><i class="fas fa-globe"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-block-title">External source matches</div>
+                        <div class="tier-block-sub">${window.escapeHTML(sourceLine)}</div>
+                    </div>
+                    <span class="ext-status ext-status-${status}">
+                        ${window.escapeHTML(statusLabel)}
+                    </span>
+                </div>
+
+                ${matches.length ? matches.slice(0, 8).map(m => {
+                    const meta = [];
+                    if (m.year) meta.push(m.year);
+                    if (Array.isArray(m.authors) && m.authors.length) meta.push(m.authors.slice(0, 3).join(', '));
+
+                    return `
+                        <div class="ext-match">
+                            <div class="ext-match-source-line">${window.escapeHTML(m.source || 'Unknown')}</div>
+                            <div class="ext-match-title">${window.escapeHTML(m.title || 'Untitled')}</div>
+                            ${meta.length ? `<div class="ext-match-meta">${window.escapeHTML(meta.join(' · '))}</div>` : ''}
+                            ${m.snippet ? `<div class="ext-match-snippet">"${window.escapeHTML(m.snippet)}"</div>` : ''}
+                            ${m.url ? `
+                                <a class="ext-match-link" href="${window.escapeHTML(m.url)}" target="_blank" rel="noopener">
+                                    <i class="fas fa-arrow-up-right-from-square"></i> View source
+                                </a>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('') : `
+                    <div class="ext-empty">
+                        ${status === 'failed'
+                            ? 'External sources could not be reached for this scan.'
+                            : 'No external matches found for this document.'}
+                    </div>
+                `}
             </div>
         `;
     }
@@ -867,7 +1060,7 @@
         return `
             <div class="section-card">
                 <div class="section-head">
-                    <i class="fas fa-history"></i>
+                    <i class="fas fa-clock-rotate-left"></i>
                     <div class="section-head-title">Status history</div>
                 </div>
                 <div class="section-body">
@@ -908,10 +1101,6 @@
         `;
     }
 
-    // ============================================================
-    // REVIEW PANEL
-    // ============================================================
-
     function reviewPanel(status) {
         const isRevision = status === 'revision';
 
@@ -932,7 +1121,7 @@
                     <textarea class="comment-input" id="commentInput"
                               placeholder="Add feedback for the student. Required if requesting revision or rejecting."></textarea>
                     <div class="comment-help">
-                        This comment will be visible to the student and all other linked supervisors.
+                        Visible to the student and all other linked supervisors.
                     </div>
 
                     <div class="action-group">
@@ -940,7 +1129,7 @@
                             <i class="fas fa-check"></i> Approve topic
                         </button>
                         <button class="action-btn action-btn-warning" id="revisionBtn">
-                            <i class="fas fa-edit"></i> Request revision
+                            <i class="fas fa-pen-to-square"></i> Request revision
                         </button>
                         <button class="action-btn action-btn-danger" id="rejectBtn">
                             <i class="fas fa-times"></i> Reject topic
@@ -963,7 +1152,7 @@
                 </div>
                 <div class="locked-panel">
                     <div class="locked-icon" style="color: ${isApproved ? 'var(--iv-success)' : 'var(--iv-danger)'}; background: ${isApproved ? 'var(--iv-success-bg)' : 'var(--iv-danger-bg)'};">
-                        <i class="fas ${isApproved ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        <i class="fas ${isApproved ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
                     </div>
                     <div class="locked-title">
                         ${isApproved ? 'Approved' : 'Rejected'}
@@ -976,10 +1165,6 @@
             </div>
         `;
     }
-
-    // ============================================================
-    // WIRING
-    // ============================================================
 
     function wireReportActions() {
         const dl = document.getElementById('downloadReportBtn');
@@ -1012,29 +1197,27 @@
 
         const comment = document.getElementById('commentInput').value.trim();
 
-        // Require a comment for revision or rejection
         if ((action === 'revision' || action === 'rejected') && comment.length < 5) {
             window.toast('Please add a comment explaining your decision.', 'warning');
             document.getElementById('commentInput').focus();
             return;
         }
 
-        // Confirm
-        const actionLabels = {
-            approved:  'Approve this topic?',
-            revision:  'Request a revision?',
-            rejected:  'Reject this topic?'
+        const labels = {
+            approved:  { t: 'Approve this topic?',     c: 'Approve' },
+            revision:  { t: 'Request a revision?',     c: 'Request revision' },
+            rejected:  { t: 'Reject this topic?',      c: 'Reject' }
         };
-        const actionMessages = {
+        const messages = {
             approved: 'The student will be notified and the topic will be marked as approved.',
             revision: 'The student will be notified and asked to revise the topic before resubmitting.',
             rejected: 'The student will be notified and the topic will be permanently rejected.'
         };
 
         const ok = await window.confirmDialog({
-            title: actionLabels[action],
-            message: actionMessages[action],
-            confirmLabel: action === 'approved' ? 'Approve' : action === 'revision' ? 'Request revision' : 'Reject',
+            title: labels[action].t,
+            message: messages[action],
+            confirmLabel: labels[action].c,
             danger: action === 'rejected'
         });
         if (!ok) return;
@@ -1066,30 +1249,11 @@
             window.toast(err.message || 'Could not submit review.', 'error');
             activeBtn.disabled = false;
 
-            const iconMap = {
-                approved: 'fa-check',
-                revision: 'fa-edit',
-                rejected: 'fa-times'
-            };
-            const labelMap = {
-                approved: 'Approve topic',
-                revision: 'Request revision',
-                rejected: 'Reject topic'
-            };
-            activeBtn.innerHTML = `<i class="fas ${iconMap[action]}"></i> ${labelMap[action]}`;
+            const icons = { approved: 'fa-check', revision: 'fa-pen-to-square', rejected: 'fa-times' };
+            const labelMap = { approved: 'Approve topic', revision: 'Request revision', rejected: 'Reject topic' };
+            activeBtn.innerHTML = `<i class="fas ${icons[action]}"></i> ${labelMap[action]}`;
             state.submitting = false;
         }
-    }
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-
-    function fileIcon(ext) {
-        if (ext === 'pdf')  return 'fa-file-pdf';
-        if (ext === 'docx') return 'fa-file-word';
-        if (ext === 'txt')  return 'fa-file-lines';
-        return 'fa-file';
     }
 </script>
 
