@@ -72,7 +72,7 @@
 
         input[type="file"] { display: none; }
 
-        /* ---- Selected file strip ---- */
+        /* ---- File strip ---- */
         .file-strip {
             display: flex;
             align-items: center;
@@ -100,9 +100,7 @@
             font-size: 13.5px;
             font-weight: 500;
             color: var(--iv-text);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .file-strip-meta {
@@ -126,7 +124,7 @@
             color: var(--iv-danger);
         }
 
-        /* ---- Scan button bar ---- */
+        /* ---- Scan bar ---- */
         .scan-bar {
             display: flex;
             gap: var(--iv-s-3);
@@ -151,10 +149,7 @@
             font-size: 13.5px;
         }
 
-        .progress-head strong {
-            color: var(--iv-text);
-            font-weight: 600;
-        }
+        .progress-head strong { color: var(--iv-text); font-weight: 600; }
 
         .progress-head span {
             color: var(--iv-text-3);
@@ -177,7 +172,20 @@
             transition: width 0.4s ease;
         }
 
-        /* ---- Result ---- */
+        .progress-steps {
+            margin-top: var(--iv-s-3);
+            font-size: 12px;
+            color: var(--iv-text-3);
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .progress-steps span { display: inline-flex; align-items: center; gap: 5px; }
+        .progress-steps .done { color: var(--iv-success); }
+        .progress-steps .active { color: var(--iv-focus); font-weight: 600; }
+
+        /* ---- Result card ---- */
         .result-card {
             margin-top: var(--iv-s-5);
             padding: var(--iv-s-6);
@@ -203,48 +211,90 @@
             font-weight: 500;
         }
 
+        /* ---- Tier headings ---- */
+        .tier {
+            margin-top: var(--iv-s-6);
+            padding-top: var(--iv-s-5);
+            border-top: 1px solid var(--iv-border);
+        }
+
+        .tier:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+        .tier-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .tier-icon {
+            width: 28px; height: 28px;
+            border-radius: var(--iv-r-sm);
+            background: var(--iv-bg-muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px;
+            color: var(--iv-text-2);
+            flex-shrink: 0;
+        }
+
+        .tier-icon-corpus  { background: var(--iv-info-bg);    color: var(--iv-info); }
+        .tier-icon-ai      { background: #f5f3ff;              color: #7c3aed; }
+        .tier-icon-web     { background: var(--iv-success-bg); color: var(--iv-success); }
+
+        .tier-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--iv-text);
+            letter-spacing: -0.01em;
+        }
+
+        .tier-sub {
+            font-size: 12px;
+            color: var(--iv-text-3);
+            margin-top: 1px;
+        }
+
+        /* ---- Score circle (corpus) ---- */
         .score-grid {
             display: flex;
             align-items: center;
-            gap: var(--iv-s-6);
+            gap: var(--iv-s-5);
             flex-wrap: wrap;
-            margin-bottom: var(--iv-s-5);
         }
 
         .score-circle {
-            width: 120px; height: 120px;
+            width: 110px; height: 110px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             font-family: var(--iv-font-mono);
             letter-spacing: -0.02em;
             flex-shrink: 0;
-            position: relative;
         }
 
         .score-circle.low    { background: var(--iv-success-bg); color: var(--iv-success); border: 2px solid var(--iv-success-border); }
         .score-circle.medium { background: var(--iv-warning-bg); color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
         .score-circle.high   { background: var(--iv-danger-bg);  color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
 
-        .score-meta { flex: 1; min-width: 200px; }
+        .score-meta { flex: 1; min-width: 180px; }
 
         .score-meta-title {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             letter-spacing: -0.02em;
             margin-bottom: 4px;
         }
 
         .score-meta-sub {
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--iv-text-3);
             margin-bottom: var(--iv-s-3);
         }
 
-        .score-meta-stats {
+        .stat-row {
             display: flex;
             gap: var(--iv-s-5);
             flex-wrap: wrap;
@@ -252,16 +302,16 @@
             border-top: 1px solid var(--iv-border);
         }
 
-        .score-meta-stat-label {
-            font-size: 11.5px;
+        .stat-label {
+            font-size: 11px;
             color: var(--iv-text-3);
             text-transform: uppercase;
             letter-spacing: 0.04em;
             font-weight: 500;
         }
 
-        .score-meta-stat-value {
-            font-size: 15px;
+        .stat-value {
+            font-size: 14px;
             font-weight: 600;
             color: var(--iv-text);
             margin-top: 2px;
@@ -276,7 +326,7 @@
             font-size: 13.5px;
             line-height: 1.55;
             color: var(--iv-text-2);
-            margin-bottom: var(--iv-s-5);
+            margin-top: var(--iv-s-4);
         }
 
         .rec.rec-success { border-color: var(--iv-success); background: var(--iv-success-bg); }
@@ -290,28 +340,12 @@
             font-weight: 600;
         }
 
-        /* ---- Subsections ---- */
-        .subsect {
-            margin-top: var(--iv-s-5);
-            padding-top: var(--iv-s-5);
-            border-top: 1px solid var(--iv-border);
-        }
-
-        .subsect-head {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--iv-text);
-            margin-bottom: var(--iv-s-3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         /* ---- Matches ---- */
         .match-list {
             display: flex;
             flex-direction: column;
             gap: var(--iv-s-2);
+            margin-top: var(--iv-s-4);
         }
 
         .match {
@@ -324,9 +358,9 @@
             border-left: 3px solid var(--iv-border-strong);
         }
 
-        .match.match-warning { border-left-color: var(--iv-warning); }
-        .match.match-danger  { border-left-color: var(--iv-danger); }
-        .match.match-success { border-left-color: var(--iv-success); }
+        .match-warning { border-left-color: var(--iv-warning); }
+        .match-danger  { border-left-color: var(--iv-danger); }
+        .match-success { border-left-color: var(--iv-success); }
 
         .match-body { flex: 1; min-width: 0; }
 
@@ -334,16 +368,21 @@
             font-size: 13.5px;
             font-weight: 500;
             color: var(--iv-text);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            word-break: break-word;
         }
 
-        .match-phrases {
+        .match-sub {
             font-size: 12px;
             color: var(--iv-text-3);
             margin-top: 3px;
             line-height: 1.5;
+        }
+
+        .match-phrases {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 4px;
+            font-style: italic;
         }
 
         .match-score {
@@ -358,6 +397,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            margin-top: var(--iv-s-3);
         }
 
         .kw {
@@ -369,7 +409,205 @@
             font-weight: 500;
         }
 
-        /* ---- Recent scans ---- */
+        /* ---- AI tier ---- */
+        .ai-score-box {
+            display: flex;
+            align-items: center;
+            gap: var(--iv-s-5);
+            padding: var(--iv-s-5);
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            border-radius: var(--iv-r-md);
+            flex-wrap: wrap;
+        }
+
+        .ai-score-circle {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+            font-family: var(--iv-font-mono);
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .ai-score-circle.human  { color: var(--iv-success); border: 2px solid var(--iv-success-border); }
+        .ai-score-circle.mixed  { color: var(--iv-warning); border: 2px solid var(--iv-warning-border); }
+        .ai-score-circle.likely { color: var(--iv-danger);  border: 2px solid var(--iv-danger-border); }
+
+        .ai-score-meta { flex: 1; min-width: 180px; }
+
+        .ai-score-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #5b21b6;
+            margin-bottom: 3px;
+        }
+
+        .ai-score-sub {
+            font-size: 12.5px;
+            color: #6d28d9;
+            line-height: 1.5;
+        }
+
+        .ai-indicators {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--iv-s-3);
+            margin-top: var(--iv-s-4);
+        }
+
+        .ai-ind {
+            padding: var(--iv-s-3);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+        }
+
+        .ai-ind-label {
+            font-size: 11px;
+            color: var(--iv-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+        }
+
+        .ai-ind-value {
+            font-size: 16px;
+            font-weight: 700;
+            font-family: var(--iv-font-mono);
+            color: var(--iv-text);
+            margin-top: 4px;
+        }
+
+        .ai-ind-note {
+            font-size: 11px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+        }
+
+        /* ---- External tier ---- */
+        .ext-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-left: auto;
+        }
+
+        .ext-status-completed { background: var(--iv-success-bg); color: var(--iv-success); }
+        .ext-status-partial   { background: var(--iv-warning-bg); color: var(--iv-warning); }
+        .ext-status-failed    { background: var(--iv-danger-bg);  color: var(--iv-danger); }
+        .ext-status-not_started { background: var(--iv-bg-muted); color: var(--iv-text-3); }
+
+        .ext-sources {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: var(--iv-s-3);
+            margin-bottom: var(--iv-s-4);
+        }
+
+        .ext-source-chip {
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: var(--iv-bg-muted);
+            color: var(--iv-text-2);
+        }
+
+        .ext-source-chip strong { color: var(--iv-text); margin-left: 4px; }
+
+        .ext-match {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--iv-s-3);
+            padding: var(--iv-s-3) var(--iv-s-4);
+            background: var(--iv-bg-subtle);
+            border: 1px solid var(--iv-border);
+            border-radius: var(--iv-r-sm);
+            margin-bottom: var(--iv-s-2);
+            transition: var(--iv-transition);
+        }
+
+        .ext-match:hover {
+            border-color: var(--iv-border-strong);
+            background: var(--iv-bg);
+        }
+
+        .ext-match-source {
+            width: 40px; height: 40px;
+            border-radius: var(--iv-r-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .ext-match-source-openalex {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .ext-match-source-wikipedia {
+            background: #f4f4f5;
+            color: #18181b;
+        }
+
+        .ext-match-body { flex: 1; min-width: 0; }
+
+        .ext-match-title {
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--iv-text);
+            word-break: break-word;
+        }
+
+        .ext-match-meta {
+            font-size: 11.5px;
+            color: var(--iv-text-3);
+            margin-top: 3px;
+        }
+
+        .ext-match-snippet {
+            font-size: 12px;
+            color: var(--iv-text-2);
+            margin-top: 6px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .ext-match-link {
+            font-size: 12px;
+            color: var(--iv-focus);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .ext-match-link:hover { text-decoration: underline; }
+
+        .ext-empty {
+            padding: var(--iv-s-6) var(--iv-s-4);
+            text-align: center;
+            background: var(--iv-bg-subtle);
+            border-radius: var(--iv-r-sm);
+            font-size: 13px;
+            color: var(--iv-text-3);
+        }
+
+        /* ---- Scan history ---- */
         .scan-list {
             background: var(--iv-bg);
             border: 1px solid var(--iv-border);
@@ -402,15 +640,17 @@
         .scan-row-name {
             font-size: 13.5px;
             font-weight: 500;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .scan-row-meta {
             font-size: 12px;
             color: var(--iv-text-3);
             margin-top: 2px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .scan-row-score {
@@ -452,11 +692,14 @@
 
         .mini-empty i { font-size: 24px; opacity: 0.4; display: block; margin-bottom: var(--iv-s-2); }
 
+        /* ---- Mobile ---- */
         @media (max-width: 600px) {
             .score-grid { gap: var(--iv-s-4); }
-            .score-circle { width: 96px; height: 96px; font-size: 26px; }
+            .score-circle { width: 92px; height: 92px; font-size: 24px; }
+            .ai-score-circle { width: 76px; height: 76px; font-size: 18px; }
             .result-card { padding: var(--iv-s-4); }
             .scan-row { padding: var(--iv-s-3) var(--iv-s-4); }
+            .ai-indicators { grid-template-columns: 1fr; gap: var(--iv-s-2); }
         }
     </style>
 </head>
@@ -480,7 +723,7 @@
             ctx,
             activePath: '/student/plagiarism-report.html',
             title: 'Plagiarism Scan',
-            subtitle: 'Upload a document to check its similarity against the reference corpus',
+            subtitle: 'Three-tier check: corpus, AI-content signal, and external sources',
             actions: `
                 <a href="/student/submit-topic.html" class="iv-btn iv-btn-secondary iv-btn-sm">
                     <i class="fas fa-paper-plane"></i> Submit topic
@@ -494,7 +737,7 @@
     })();
 
     // ============================================================
-    // MAIN PAGE MARKUP
+    // MAIN LAYOUT
     // ============================================================
 
     function page() {
@@ -504,13 +747,13 @@
                     <div>
                         <div class="iv-card-title">Upload a document</div>
                         <div class="iv-card-subtitle">
-                            Your file is scanned against supervisor-uploaded reference documents.
+                            Your file is checked against your supervisor's corpus, external academic sources, and analyzed for AI-content signals.
                         </div>
                     </div>
                 </div>
 
                 <div class="upload-zone" id="uploadZone">
-                    <div class="upload-zone-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="upload-zone-icon"><i class="fas fa-cloud-arrow-up"></i></div>
                     <div class="upload-zone-title">Drop your document here</div>
                     <div class="upload-zone-sub">or tap to browse</div>
                     <div class="upload-zone-formats">
@@ -526,7 +769,7 @@
                 <div class="scan-bar" id="scanBar" style="display: none;">
                     <button class="iv-btn iv-btn-primary" id="scanBtn">
                         <i class="fas fa-microchip"></i>
-                        <span>Run similarity scan</span>
+                        <span>Run full scan</span>
                     </button>
                     <button class="iv-btn iv-btn-secondary" id="clearBtn">
                         <i class="fas fa-times"></i> Clear
@@ -540,7 +783,7 @@
             <div class="iv-row-between iv-mb-4">
                 <div class="iv-card-title">Scan history</div>
                 <button class="iv-btn iv-btn-ghost iv-btn-sm" id="refreshHistory">
-                    <i class="fas fa-sync-alt"></i> Refresh
+                    <i class="fas fa-rotate-right"></i> Refresh
                 </button>
             </div>
             <div id="historyArea"></div>
@@ -548,7 +791,7 @@
     }
 
     // ============================================================
-    // UPLOAD HANDLING
+    // UPLOAD
     // ============================================================
 
     function wireUpload() {
@@ -584,7 +827,7 @@
         document.getElementById('refreshHistory').onclick = loadHistory;
     }
 
-    const MAX_SIZE = 7 * 1024 * 1024; // 7 MB
+    const MAX_SIZE = 7 * 1024 * 1024;
     const ALLOWED = ['pdf', 'docx', 'txt'];
 
     function selectFile(file) {
@@ -664,7 +907,7 @@
         const progress = startProgress();
         try {
             const base64 = await fileToBase64(state.file);
-            progress.update(35, 'Uploading file');
+            progress.step(1, 'Uploading and extracting text…');
 
             const res = await window.api('/api/reports/scan', {
                 method: 'POST',
@@ -675,11 +918,13 @@
                 }
             });
 
-            progress.update(85, 'Analyzing matches');
-            await wait(250);
-            progress.update(100, 'Done');
-            await wait(200);
-            progress.hide();
+            progress.step(2, 'Running corpus similarity…');
+            await wait(300);
+            progress.step(3, 'Analyzing AI-content signals…');
+            await wait(300);
+            progress.step(4, 'Searching external academic sources…');
+            await wait(300);
+            progress.done();
 
             state.lastReport = res.report;
             document.getElementById('resultArea').innerHTML = renderResult(res.report);
@@ -687,7 +932,6 @@
 
             window.toast('Scan completed.', 'success');
 
-            // Clear file selection, keep result
             state.file = null;
             document.getElementById('fileInput').value = '';
             renderFileStrip();
@@ -702,9 +946,13 @@
         } finally {
             state.scanning = false;
             scanBtn.disabled = false;
-            scanBtn.innerHTML = `<i class="fas fa-microchip"></i> <span>Run similarity scan</span>`;
+            scanBtn.innerHTML = `<i class="fas fa-microchip"></i> <span>Run full scan</span>`;
         }
     }
+
+    // ============================================================
+    // PROGRESS
+    // ============================================================
 
     function startProgress() {
         const area = document.getElementById('progressArea');
@@ -715,34 +963,83 @@
                     <span id="progressPct">0%</span>
                 </div>
                 <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="progress-steps" id="progressSteps">
+                    <span data-step="1"><i class="fas fa-circle"></i> Extract text</span>
+                    <span data-step="2"><i class="fas fa-circle"></i> Corpus comparison</span>
+                    <span data-step="3"><i class="fas fa-circle"></i> AI signal analysis</span>
+                    <span data-step="4"><i class="fas fa-circle"></i> External sources</span>
+                </div>
             </div>
         `;
         const fill = document.getElementById('progressFill');
         const pct = document.getElementById('progressPct');
 
         return {
-            update(value, label) {
-                fill.style.width = value + '%';
-                pct.textContent = value + '%';
-                if (label) {
-                    const head = area.querySelector('.progress-head strong');
-                    if (head) head.textContent = label + '…';
-                }
+            step(n, label) {
+                const widths = { 1: 25, 2: 55, 3: 80, 4: 95 };
+                fill.style.width = (widths[n] || 0) + '%';
+                pct.textContent = (widths[n] || 0) + '%';
+                const head = area.querySelector('.progress-head strong');
+                if (head && label) head.textContent = label;
+                const steps = area.querySelectorAll('.progress-steps span');
+                steps.forEach(s => {
+                    const idx = Number(s.dataset.step);
+                    s.classList.remove('done', 'active');
+                    if (idx < n) s.classList.add('done');
+                    else if (idx === n) s.classList.add('active');
+                });
             },
-            hide() {
-                area.innerHTML = '';
-            }
+            done() {
+                fill.style.width = '100%';
+                pct.textContent = '100%';
+                const steps = area.querySelectorAll('.progress-steps span');
+                steps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+            },
+            hide() { area.innerHTML = ''; }
         };
     }
 
     // ============================================================
-    // RESULT RENDERING
+    // RESULT
     // ============================================================
 
     function renderResult(report) {
+        return `
+            <div class="result-card">
+                <div class="result-head">
+                    <div class="result-head-text">Scan result</div>
+                    ${riskBadge(report.risk_level)}
+                </div>
+
+                ${renderCorpusTier(report)}
+                ${renderAITier(report)}
+                ${renderExternalTier(report)}
+
+                <div class="scan-bar" style="margin-top: var(--iv-s-6); padding-top: var(--iv-s-5); border-top: 1px solid var(--iv-border);">
+                    ${Number(report.similarity_score) <= 30 ? `
+                        <button class="iv-btn iv-btn-primary" id="attachBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Attach to topic
+                        </button>
+                    ` : `
+                        <button class="iv-btn iv-btn-secondary" disabled title="Similarity must be 30% or below to attach">
+                            <i class="fas fa-lock"></i>
+                            Cannot attach (&gt;30%)
+                        </button>
+                    `}
+                    <button class="iv-btn iv-btn-secondary" id="againBtn">
+                        <i class="fas fa-redo"></i> Scan another
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // -------- Tier 1: Corpus --------
+
+    function renderCorpusTier(report) {
         const score = Number(report.similarity_score || 0);
         const risk = (report.risk_level || 'low').toLowerCase();
-        const riskLabel = risk.toUpperCase() + ' RISK';
         const stats = report.statistics || {};
         const matches = Array.isArray(report.matches) ? report.matches : [];
         const keywords = Array.isArray(report.keywords) ? report.keywords : [];
@@ -752,13 +1049,14 @@
             risk === 'medium' ? 'rec-warning' :
                                 'rec-success';
 
-        const canAttach = score <= 30;
-
         return `
-            <div class="result-card">
-                <div class="result-head">
-                    <div class="result-head-text">Scan result</div>
-                    <span class="iv-badge iv-badge-${risk}">${riskLabel}</span>
+            <div class="tier">
+                <div class="tier-head">
+                    <div class="tier-icon tier-icon-corpus"><i class="fas fa-database"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-title">Corpus similarity</div>
+                        <div class="tier-sub">Compared against supervisor-uploaded reference documents</div>
+                    </div>
                 </div>
 
                 <div class="score-grid">
@@ -769,18 +1067,18 @@
                             ${window.escapeHTML((report.file_format || '').toUpperCase())}
                             · ${window.formatDateTime(report.created_at)}
                         </div>
-                        <div class="score-meta-stats">
+                        <div class="stat-row">
                             <div>
-                                <div class="score-meta-stat-label">Words</div>
-                                <div class="score-meta-stat-value">${stats.words || 0}</div>
+                                <div class="stat-label">Words</div>
+                                <div class="stat-value">${stats.words || 0}</div>
                             </div>
                             <div>
-                                <div class="score-meta-stat-label">Docs compared</div>
-                                <div class="score-meta-stat-value">${stats.matches_checked || 0}</div>
+                                <div class="stat-label">Docs compared</div>
+                                <div class="stat-value">${stats.matches_checked || 0}</div>
                             </div>
                             <div>
-                                <div class="score-meta-stat-label">Shared phrases</div>
-                                <div class="score-meta-stat-value">${stats.phrases_matched || 0}</div>
+                                <div class="stat-label">Shared phrases</div>
+                                <div class="stat-value">${stats.phrases_matched || 0}</div>
                             </div>
                         </div>
                     </div>
@@ -792,72 +1090,213 @@
                 </div>
 
                 ${matches.length ? `
-                    <div class="subsect">
-                        <div class="subsect-head">
-                            <i class="fas fa-project-diagram" style="color: var(--iv-focus);"></i>
-                            Top matches (${matches.length})
-                        </div>
-                        <div class="match-list">
-                            ${matches.map(m => {
-                                const s = Number(m.similarity || 0);
-                                const cls =
-                                    s >= 60 ? 'match-danger'  :
-                                    s >= 30 ? 'match-warning' :
-                                              'match-success';
-                                const color =
-                                    s >= 60 ? 'var(--iv-danger)'  :
-                                    s >= 30 ? 'var(--iv-warning)' :
-                                              'var(--iv-success)';
-                                return `
-                                    <div class="match ${cls}">
-                                        <div class="match-body">
-                                            <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
-                                            ${Array.isArray(m.phrases) && m.phrases.length ? `
-                                                <div class="match-phrases">
-                                                    Shared: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
-                                                </div>
-                                            ` : ''}
-                                        </div>
-                                        <div class="match-score" style="color: ${color};">${s}%</div>
+                    <div class="match-list">
+                        ${matches.map(m => {
+                            const s = Number(m.similarity || 0);
+                            const cls = s >= 60 ? 'match-danger' : s >= 30 ? 'match-warning' : 'match-success';
+                            const color = s >= 60 ? 'var(--iv-danger)' : s >= 30 ? 'var(--iv-warning)' : 'var(--iv-success)';
+                            return `
+                                <div class="match ${cls}">
+                                    <div class="match-body">
+                                        <div class="match-title">${window.escapeHTML(m.title || 'Reference document')}</div>
+                                        ${Array.isArray(m.phrases) && m.phrases.length ? `
+                                            <div class="match-phrases">
+                                                Shared: ${m.phrases.slice(0, 3).map(p => `"${window.escapeHTML(p)}"`).join(', ')}
+                                            </div>
+                                        ` : ''}
                                     </div>
-                                `;
-                            }).join('')}
-                        </div>
+                                    <div class="match-score" style="color: ${color};">${s}%</div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 ` : ''}
 
                 ${keywords.length ? `
-                    <div class="subsect">
-                        <div class="subsect-head">
-                            <i class="fas fa-tags" style="color: var(--iv-focus);"></i>
-                            Key terms detected
-                        </div>
-                        <div class="kw-wrap">
-                            ${keywords.map(k => `<span class="kw">${window.escapeHTML(k)}</span>`).join('')}
-                        </div>
+                    <div class="kw-wrap">
+                        ${keywords.map(k => `<span class="kw">${window.escapeHTML(k)}</span>`).join('')}
                     </div>
                 ` : ''}
+            </div>
+        `;
+    }
 
-                <div class="subsect">
-                    <div class="scan-bar">
-                        ${canAttach ? `
-                            <button class="iv-btn iv-btn-primary" id="attachBtn">
-                                <i class="fas fa-paper-plane"></i>
-                                Attach to topic
-                            </button>
-                        ` : `
-                            <button class="iv-btn iv-btn-secondary" disabled title="Similarity must be 30% or below to attach">
-                                <i class="fas fa-lock"></i>
-                                Cannot attach (>30%)
-                            </button>
-                        `}
-                        <button class="iv-btn iv-btn-secondary" id="againBtn">
-                            <i class="fas fa-redo"></i> Scan another document
-                        </button>
+    // -------- Tier 2: AI --------
+
+    function renderAITier(report) {
+        const aiScore = Number(report.ai_likelihood_score || 0);
+        const indicators = report.ai_indicators || {};
+
+        // Classify
+        let band, bandClass, title, sub;
+        if (aiScore < 40) {
+            band = 'Likely human-written';
+            bandClass = 'human';
+            title = 'Likely human-written';
+            sub = 'Sentence variety and vocabulary distribution are consistent with human authorship.';
+        } else if (aiScore < 70) {
+            band = 'Mixed signals';
+            bandClass = 'mixed';
+            title = 'Mixed signals';
+            sub = 'Some patterns resemble AI-generated text, but the result is inconclusive. Consider reviewing sentence structure variety.';
+        } else {
+            band = 'Likely AI-generated';
+            bandClass = 'likely';
+            title = 'Likely AI-generated';
+            sub = 'Statistical patterns strongly resemble machine-generated text. Consider rewriting to add more sentence-length variety and personal voice.';
+        }
+
+        // Indicator formatting
+        const burst = indicators.burstiness;
+        const uniform = indicators.sentence_uniformity;
+        const opener = indicators.opener_repetition;
+        const sentCount = indicators.sentence_count;
+        const avgLen = indicators.average_sentence_length;
+
+        return `
+            <div class="tier">
+                <div class="tier-head">
+                    <div class="tier-icon tier-icon-ai"><i class="fas fa-robot"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-title">AI-content signal</div>
+                        <div class="tier-sub">Statistical heuristic — not a definitive verdict</div>
                     </div>
+                    <span class="ext-status ${aiScore < 40 ? 'ext-status-completed' : aiScore < 70 ? 'ext-status-partial' : 'ext-status-failed'}">
+                        ${window.escapeHTML(band)}
+                    </span>
+                </div>
+
+                <div class="ai-score-box">
+                    <div class="ai-score-circle ${bandClass}">${aiScore}%</div>
+                    <div class="ai-score-meta">
+                        <div class="ai-score-title">${window.escapeHTML(title)}</div>
+                        <div class="ai-score-sub">${window.escapeHTML(sub)}</div>
+                    </div>
+                </div>
+
+                ${sentCount ? `
+                    <div class="ai-indicators">
+                        <div class="ai-ind">
+                            <div class="ai-ind-label">Burstiness</div>
+                            <div class="ai-ind-value">${burst !== undefined ? burst : '—'}</div>
+                            <div class="ai-ind-note">Higher = more human</div>
+                        </div>
+                        <div class="ai-ind">
+                            <div class="ai-ind-label">Uniformity</div>
+                            <div class="ai-ind-value">${uniform !== undefined ? uniform : '—'}</div>
+                            <div class="ai-ind-note">Lower = more human</div>
+                        </div>
+                        <div class="ai-ind">
+                            <div class="ai-ind-label">Opener repeat</div>
+                            <div class="ai-ind-value">${opener !== undefined ? opener : '—'}</div>
+                            <div class="ai-ind-note">Lower = more human</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: var(--iv-s-3); font-size: 12px; color: var(--iv-text-3); line-height: 1.55;">
+                        Analyzed ${sentCount} sentences · average ${avgLen || 0} words per sentence.
+                        AI models tend to produce uniform sentence lengths and reuse similar openers.
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    // -------- Tier 3: External --------
+
+    function renderExternalTier(report) {
+        const matches = Array.isArray(report.external_matches) ? report.external_matches : [];
+        const sources = report.external_sources_checked || {};
+        const status = report.external_scan_status || 'not_started';
+
+        // Group matches by source
+        const bySource = {};
+        matches.forEach(m => {
+            const s = m.source || 'Unknown';
+            if (!bySource[s]) bySource[s] = [];
+            bySource[s].push(m);
+        });
+
+        const sourceChips = Object.keys(sources).length
+            ? Object.entries(sources).map(([name, count]) =>
+                `<span class="ext-source-chip">${window.escapeHTML(name)}<strong>${count}</strong></span>`
+              ).join('')
+            : '<span class="ext-source-chip">No sources queried</span>';
+
+        // Status label
+        const statusLabel =
+            status === 'completed' ? 'Completed' :
+            status === 'partial'   ? 'Partial'   :
+            status === 'failed'    ? 'Failed'    : 'Not started';
+
+        return `
+            <div class="tier">
+                <div class="tier-head">
+                    <div class="tier-icon tier-icon-web"><i class="fas fa-globe"></i></div>
+                    <div style="flex: 1;">
+                        <div class="tier-title">External source matches</div>
+                        <div class="tier-sub">Academic papers (OpenAlex) and reference material (Wikipedia)</div>
+                    </div>
+                    <span class="ext-status ext-status-${status}">
+                        ${window.escapeHTML(statusLabel)}
+                    </span>
+                </div>
+
+                <div class="ext-sources">
+                    ${sourceChips}
+                </div>
+
+                ${matches.length ? `
+                    ${matches.map(m => externalMatchRow(m)).join('')}
+                ` : `
+                    <div class="ext-empty">
+                        <i class="fas fa-magnifying-glass" style="font-size: 20px; opacity: 0.4; display: block; margin-bottom: 8px;"></i>
+                        ${status === 'failed'
+                            ? 'External sources could not be reached this time. Your corpus similarity and AI signal are still valid.'
+                            : 'No matching external sources found for this document\'s key terms.'}
+                    </div>
+                `}
+            </div>
+        `;
+    }
+
+    function externalMatchRow(m) {
+        const source = m.source || 'Unknown';
+        const sourceKey = source.toLowerCase();
+        const initial = source[0];
+
+        const meta = [];
+        if (m.year) meta.push(m.year);
+        if (Array.isArray(m.authors) && m.authors.length) {
+            meta.push(m.authors.slice(0, 3).join(', '));
+        }
+        if (m.type) meta.push(m.type);
+
+        return `
+            <div class="ext-match">
+                <div class="ext-match-source ext-match-source-${sourceKey}">
+                    ${window.escapeHTML(initial)}
+                </div>
+                <div class="ext-match-body">
+                    <div class="ext-match-title">${window.escapeHTML(m.title || 'Untitled')}</div>
+                    ${meta.length ? `<div class="ext-match-meta">${window.escapeHTML(meta.join(' · '))}</div>` : ''}
+                    ${m.snippet ? `<div class="ext-match-snippet">"${window.escapeHTML(m.snippet)}"</div>` : ''}
+                    ${m.url ? `
+                        <a class="ext-match-link" href="${window.escapeHTML(m.url)}" target="_blank" rel="noopener">
+                            <i class="fas fa-arrow-up-right-from-square"></i> View source
+                        </a>
+                    ` : ''}
                 </div>
             </div>
         `;
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function riskBadge(risk) {
+        const r = String(risk || 'low').toLowerCase();
+        return `<span class="iv-badge iv-badge-${r}">${window.escapeHTML(r)} risk</span>`;
     }
 
     function wireResultActions() {
@@ -881,12 +1320,17 @@
     function errorCard(message) {
         return `
             <div class="result-card" style="border-color: var(--iv-danger-border); background: var(--iv-danger-bg);">
-                <div class="subsect-head" style="color: var(--iv-danger);">
-                    <i class="fas fa-exclamation-triangle"></i> Scan failed
+                <div class="tier-head" style="margin-bottom: 0;">
+                    <div class="tier-icon" style="background: #fff; color: var(--iv-danger);">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="tier-title" style="color: var(--iv-danger);">Scan failed</div>
+                        <div class="tier-sub" style="color: var(--iv-text-2);">
+                            ${window.escapeHTML(message || 'Something went wrong. Please try again.')}
+                        </div>
+                    </div>
                 </div>
-                <p style="font-size: 13.5px; color: var(--iv-text-2); line-height: 1.55;">
-                    ${window.escapeHTML(message || 'Something went wrong. Please try again.')}
-                </p>
             </div>
         `;
     }
@@ -905,7 +1349,7 @@
             wireHistoryActions(reports);
         } catch (err) {
             console.error(err);
-            area.innerHTML = `<div class="mini-empty"><i class="fas fa-exclamation-triangle"></i>Could not load scan history.</div>`;
+            area.innerHTML = `<div class="mini-empty"><i class="fas fa-triangle-exclamation"></i>Could not load scan history.</div>`;
         }
     }
 
@@ -920,6 +1364,8 @@
                         risk === 'medium' ? 'var(--iv-warning)' :
                                             'var(--iv-success)';
                     const ext = (r.file_format || '').toLowerCase();
+                    const ai = Number(r.ai_likelihood_score || 0);
+                    const extStatus = r.external_scan_status || 'not_started';
 
                     return `
                         <div class="scan-row">
@@ -927,8 +1373,19 @@
                             <div class="scan-row-body">
                                 <div class="scan-row-name">${window.escapeHTML(r.filename || 'Document')}</div>
                                 <div class="scan-row-meta">
-                                    ${window.escapeHTML((r.file_format || '').toUpperCase())}
-                                    · ${window.formatDate(r.created_at)}
+                                    <span>${window.escapeHTML((r.file_format || '').toUpperCase())}</span>
+                                    <span>·</span>
+                                    <span>${window.formatDate(r.created_at)}</span>
+                                    <span>·</span>
+                                    <span style="display:inline-flex; align-items:center; gap:4px;">
+                                        <i class="fas fa-robot" style="font-size:10px;"></i>
+                                        AI ${ai}%
+                                    </span>
+                                    <span>·</span>
+                                    <span style="display:inline-flex; align-items:center; gap:4px;">
+                                        <i class="fas fa-globe" style="font-size:10px;"></i>
+                                        ${window.escapeHTML(extStatus)}
+                                    </span>
                                 </div>
                             </div>
                             <div class="scan-row-score" style="color: ${color};">${score}%</div>
@@ -995,7 +1452,7 @@
     }
 
     // ============================================================
-    // HELPERS
+    // LOW-LEVEL HELPERS
     // ============================================================
 
     function fileToBase64(file) {
@@ -1003,7 +1460,6 @@
             const reader = new FileReader();
             reader.onload = () => {
                 const result = reader.result || '';
-                // strip the "data:...;base64," prefix
                 const idx = result.indexOf(',');
                 resolve(idx >= 0 ? result.slice(idx + 1) : result);
             };
@@ -1024,4 +1480,4 @@
 </script>
 
 </body>
-  </html>
+    </html>
